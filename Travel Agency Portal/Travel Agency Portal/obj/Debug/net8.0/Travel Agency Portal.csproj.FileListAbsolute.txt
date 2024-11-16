@@ -1,0 +1,32 @@
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\appsettings.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Travel Agency Portal.exe
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Travel Agency Portal.deps.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Travel Agency Portal.runtimeconfig.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Travel Agency Portal.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Travel Agency Portal.pdb
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.csproj.AssemblyReference.cache
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.AssemblyInfoInputs.cache
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.AssemblyInfo.cs
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets\msbuild.Travel Agency Portal.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets\msbuild.build.Travel Agency Portal.props
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Travel Agency Portal.props
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Travel Agency Portal.props
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\scopedcss\bundle\Travel Agency Portal.styles.css
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel A.69F067BE.Up2Date
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\refint\Travel Agency Portal.dll
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.pdb
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.genruntimeconfig.cache
+C:\Users\Lenovo\OneDrive\Desktop\.NET\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\ref\Travel Agency Portal.dll
