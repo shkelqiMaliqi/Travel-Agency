@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef83d0a3eac2fe885af807d6835e30c5b0cb9d68")]
 [assembly: System.Reflection.AssemblyProductAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

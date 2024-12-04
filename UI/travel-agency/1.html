@@ -1,0 +1,32 @@
+public class Users
+
+{
+    [Key]
+    public int U_Id { get; set; }
+
+    public string U_Name { get; set; }
+    public string U_Surname { get; set; }
+
+    public string U_Email { get; set; }
+    public string U_Username { get; set; }
+    public int U_Phone { get; set; }
+    public string U_Password { get; set; }
+    public string U_RepeatPassword { get; set; }
+    public string U_Type { get; set; }
+
+
+    {
+
+
+  "ConnectionStrings": {
+    
+     "CRUDCS": "Data Source=SHKELQIM;Initial Catalog=Job_Portal;User Id=SHKELQIM/Lenovo;Trusted_Connection=True; MultipleActiveResultSets=true"
+  },
+
+    "Logging": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft.AspNetCore": "Warning"
+      }
+    }
+  }
