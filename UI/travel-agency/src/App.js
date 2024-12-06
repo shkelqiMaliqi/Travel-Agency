@@ -1,15 +1,13 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom'; 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import Navbar from "/Navbar";
-import Home from './components/Home';
-import AboutUs from './components/AboutUs';
-import ContactUs from './components/ContactUs';
-import Profile from './components/Profile';
-import Register from './components/RegisterPage';
-import LoggedIn from './components/LoggedIn';
-import LoginPage from './components/LoginPage';
+import Navbar from "./NavBar";
+import Home from './Components/Home';
+import AboutUs from './Components/AboutUs';
+import ContactUs from './Components/ContactUs';
+import Profile from './Components/Profile';
+import Register from './Components/RegisterPage';
+import LoggedIn from './Components/LoginPage';
+import LoginPage from './Components/LoginPage';
 
 /*
 import { getToken, getUserFromToken } from './Auth';
