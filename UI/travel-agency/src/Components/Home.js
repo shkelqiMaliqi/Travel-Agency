@@ -3,7 +3,8 @@ import React from 'react';
 
 const Home = () => {
   return (
-    <div>
+    <div className='mainDiv'>
+      <h1>shkelqim here</h1>
       {/* Hero Section */}
       <header className="bg-primary text-white text-center py-5">
         <div className="container">
