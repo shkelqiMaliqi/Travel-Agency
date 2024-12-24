@@ -4,7 +4,7 @@ import React from 'react';
 const Home = () => {
   return (
     <div className='mainDiv'>
-      <h1>shkelqim here</h1>
+      
       {/* Hero Section */}
       <header className="bg-primary text-white text-center py-5">
         <div className="container">
@@ -12,7 +12,7 @@ const Home = () => {
           <p className="lead">
             Your journey starts here. Find the perfect destination for your next adventure.
           </p>
-          <a href="/contactus" className="btn btn-warning btn-lg">
+          <a href="/destinations" className="btn btn-warning btn-lg">
             Discover More
           </a>
         </div>
@@ -68,6 +68,56 @@ const Home = () => {
                 </div>
               </div>
             </div>
+
+            <div className="col-md-4 mb-4">
+              <div className="card">
+                <img
+                  src="https://via.placeholder.com/300"
+                  className="card-img-top"
+                  alt="Destination 4"
+                />
+                <div className="card-body">
+                  <h5 className="card-title">Kosovo</h5>
+                  <p className="card-text">
+                    Experience the romance and charm of the City of Light.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4 mb-4">
+              <div className="card">
+                <img
+                  src="https://via.placeholder.com/300"
+                  className="card-img-top"
+                  alt="Destination 2"
+                />
+                <div className="card-body">
+                  <h5 className="card-title">Kosovo 5</h5>
+                  <p className="card-text">
+                    Experience the romance and charm of the City of Light.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-4 mb-4">
+              <div className="card">
+                <img
+                  src="https://via.placeholder.com/300"
+                  className="card-img-top"
+                  alt="Destination 2"
+                />
+                <div className="card-body">
+                  <h5 className="card-title">Kosovo 6</h5>
+                  <p className="card-text">
+                    Experience the romance and charm of the City of Light.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+
           </div>
         </div>
       </section>

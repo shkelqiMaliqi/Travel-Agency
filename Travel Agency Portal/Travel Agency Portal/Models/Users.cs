@@ -15,12 +15,13 @@ namespace Travel_Agency_Portal.Models
         public string U_Surname { get; set; }
 
         public string U_Email { get; set; }
-        public string U_Username { get; set; }
-        public int U_Phone { get; set; }
+   
         public string U_Password { get; set; }
         public string U_RepeatPassword { get; set; }
+        public int U_Phone { get; set; }
         public string U_Type { get; set; }
 
 
     }
 }
+

@@ -8,6 +8,7 @@ import Profile from './Components/Profile';
 import RegisterPage from './Components/RegisterPage';
 import LoginPage from './Components/LoginPage';
 import LoggedIn from './Components/LoggedIn';
+import Destinations from './Components/Destinations';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/registerPage" element={<RegisterPage />} />
           <Route path="/loggedIn" element={<LoggedIn />} />
           <Route path="/loginPage" element={<LoginPage />} />
+          <Route path="/destinations" element={<Destinations />} />
           
         </Routes>
       </div>

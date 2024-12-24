@@ -15,6 +15,7 @@ export default function Navbar() {
                 <div className="collapse navbar-collapse justify-content-center" id="navbarNav">
                     <ul className="navbar-nav">
                         <CustomLink to="/Aboutus">About Us</CustomLink>
+                        <CustomLink to="/Destinations">Destinations</CustomLink>
                         <CustomLink to="/Contactus">Contact Us</CustomLink>
                     </ul>
                 </div>

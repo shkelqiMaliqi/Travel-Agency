@@ -18,19 +18,20 @@ const RegisterPage = () => {
               placeholder="Enter your name"
               required
             />
+            
           </div>
           <div className="mb-3">
-            <label htmlFor="username" className="form-label">
-              Username
+            <label htmlFor="surname" className="form-label">
+              Surname
             </label>
             <input
               type="text"
-              id="username"
+              id="name"
               className="form-control"
-              placeholder="Enter your username"
+              placeholder="Enter your surname"
               required
             />
-          </div>
+            </div>
           <div className="mb-3">
             <label htmlFor="email" className="form-label">
               Email

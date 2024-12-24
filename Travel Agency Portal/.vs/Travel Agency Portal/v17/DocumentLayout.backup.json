@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\models\\places.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\models\\places.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -14,21 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Users.cs",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
-              "RelativeDocumentMoniker": "Travel Agency Portal\\Models\\Users.cs",
-              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
-              "RelativeToolTip": "Travel Agency Portal\\Models\\Users.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAmAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-04T15:57:58.978Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
@@ -36,6 +27,32 @@
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Places.cs",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Places.cs",
+              "RelativeDocumentMoniker": "Travel Agency Portal\\Models\\Places.cs",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Places.cs",
+              "RelativeToolTip": "Travel Agency Portal\\Models\\Places.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAxwBMAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-19T23:36:37.342Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Users.cs",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
+              "RelativeDocumentMoniker": "Travel Agency Portal\\Models\\Users.cs",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
+              "RelativeToolTip": "Travel Agency Portal\\Models\\Users.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-04T15:57:58.978Z",
+              "EditorCaption": ""
             }
           ]
         }
