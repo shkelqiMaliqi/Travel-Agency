@@ -32,18 +32,18 @@ namespace Travel_Agency_Portal.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddPlace([FromBody] Place place)
+        public IActionResult AddPlace([FromBody] Places p)
         {
             string query = @"INSERT INTO dbo.Places (Place_Name, Place_Description) VALUES (@Place_Name, @Place_Description)";
-            ExecuteNonQuery(query, place);
+            ExecuteNonQuery(query, p);
             return Ok("Place added successfully");
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdatePlace(int id, [FromBody] Place place)
+        public IActionResult UpdatePlace(int id, [FromBody] Places p)
         {
             string query = @"UPDATE dbo.Places SET Place_Name = @Place_Name, Place_Description = @Place_Description WHERE Place_Id = @Place_Id";
-            ExecuteNonQuery(query, place, id);
+            ExecuteNonQuery(query, p, id);
             return Ok("Place updated successfully");
         }
 
@@ -54,8 +54,8 @@ namespace Travel_Agency_Portal.Controllers
             ExecuteNonQuery(query, id: id);
             return Ok("Place deleted successfully");
         }
-/*
-        // Utility methods for database operations (similar to UsersController)
+
+        //Utility methods for database operations (similar to UsersController)
         private DataTable ExecuteQuery(string query)
         {
             DataTable table = new DataTable();
@@ -111,6 +111,6 @@ namespace Travel_Agency_Portal.Controllers
             }
         }
 
-        */
+        
     }
 }

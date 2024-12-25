@@ -9,7 +9,7 @@ using Travel_Agency_Portal.Models;
 //using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Travel_Agency_Portal.Models;
+
 
 namespace Travel_Agency_Portal.Controllers
 {
@@ -66,8 +66,8 @@ namespace Travel_Agency_Portal.Controllers
             return Ok("User deleted successfully");
         }
 
-        /*
-        // Utility methods for database operations
+        
+         //Utility methods for database operations
         private DataTable ExecuteQuery(string query)
         {
             DataTable table = new DataTable();
@@ -127,6 +127,6 @@ namespace Travel_Agency_Portal.Controllers
                 }
             }
         }
-        */
+        
     }
 }
