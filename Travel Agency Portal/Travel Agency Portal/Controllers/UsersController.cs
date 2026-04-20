@@ -1,132 +1,111 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Travel_Agency_Portal.Models;
-//using Microsoft.IdentityModel.Tokens;
-//using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
+namespace Travel_Agency_Portal.Controllers;
 
-namespace Travel_Agency_Portal.Controllers
+[Route("api/v1/[controller]")]
+[ApiController]
+public class UsersController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UsersController : ControllerBase
+    private readonly IConfiguration _configuration;
+
+    public UsersController(IConfiguration configuration)
     {
-        private readonly IConfiguration _configuration;
+        _configuration = configuration;
+    }
 
-        public UsersController(IConfiguration configuration)
+    [Authorize(Roles = "admin")]
+    [HttpGet]
+    public IActionResult GetUsers()
+    {
+        const string query = @"SELECT U_Id, U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Type FROM dbo.Users ORDER BY U_Id DESC";
+        return new JsonResult(ExecuteQuery(query));
+    }
+
+    [Authorize]
+    [HttpGet("{id:int}")]
+    public IActionResult GetUser(int id)
+    {
+        const string query = @"SELECT U_Id, U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Type FROM dbo.Users WHERE U_Id = @U_Id";
+        var parameters = new[] { new SqlParameter("@U_Id", id) };
+        var result = ExecuteQuery(query, parameters);
+
+        return result.Rows.Count > 0 ? Ok(result.Rows[0]) : NotFound();
+    }
+
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public IActionResult UpdateUser(int id, [FromBody] Users user)
+    {
+        if (!ModelState.IsValid)
         {
-            _configuration = configuration;
+            return ValidationProblem(ModelState);
         }
 
-        [HttpGet]
-        public IActionResult GetUsers()
+        const string query = @"
+            UPDATE dbo.Users
+            SET U_Name = @U_Name,
+                U_Surname = @U_Surname,
+                U_Email = @U_Email,
+                U_Username = @U_Username,
+                U_Phone = @U_Phone,
+                U_Type = @U_Type
+            WHERE U_Id = @U_Id";
+
+        var rows = ExecuteNonQuery(query,
+            new SqlParameter("@U_Id", id),
+            new SqlParameter("@U_Name", user.U_Name),
+            new SqlParameter("@U_Surname", user.U_Surname),
+            new SqlParameter("@U_Email", user.U_Email),
+            new SqlParameter("@U_Username", user.U_Username),
+            new SqlParameter("@U_Phone", (object?)user.U_Phone ?? DBNull.Value),
+            new SqlParameter("@U_Type", user.U_Type));
+
+        return rows > 0 ? Ok(new { message = "User updated successfully." }) : NotFound();
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpDelete("{id:int}")]
+    public IActionResult DeleteUser(int id)
+    {
+        const string query = "DELETE FROM dbo.Users WHERE U_Id = @U_Id";
+        var rows = ExecuteNonQuery(query, new SqlParameter("@U_Id", id));
+
+        return rows > 0 ? Ok(new { message = "User deleted successfully." }) : NotFound();
+    }
+
+    private DataTable ExecuteQuery(string query, params SqlParameter[] parameters)
+    {
+        var table = new DataTable();
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+
+        if (parameters.Length > 0)
         {
-            string query = @"SELECT * FROM dbo.Users";
-            DataTable table = ExecuteQuery(query);
-            return new JsonResult(table);
+            command.Parameters.AddRange(parameters);
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetUser(int id)
+        connection.Open();
+        using var adapter = new SqlDataAdapter(command);
+        adapter.Fill(table);
+
+        return table;
+    }
+
+    private int ExecuteNonQuery(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+
+        if (parameters.Length > 0)
         {
-            string query = "SELECT * FROM dbo.Users WHERE U_Id = @U_Id";
-            return ExecuteQueryWithId(query, id);
+            command.Parameters.AddRange(parameters);
         }
 
-        [HttpPost]
-        public IActionResult AddUser(Users userData)
-        {
-            string query = @"INSERT INTO dbo.Users (U_Name, U_Surname, U_Email, U_Phone, U_Password, U_RepeatPassword, U_Type)
-                             VALUES (@U_Name, @U_Surname, @U_Email, @U_Phone, @U_Password, @U_RepeatPassword, @U_Type)";
-            ExecuteNonQuery(query, userData);
-            return Ok("User registered successfully");
-        }
-
-        [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, [FromBody] Users user)
-        {
-            string query = @"UPDATE dbo.Users SET U_Name = @U_Name, U_Surname = @U_Surname, U_Email = @U_Email, 
-                             U_Phone = @U_Phone, U_Password = @U_Password, 
-                             U_RepeatPassword = @U_RepeatPassword, U_Type = @U_Type WHERE U_Id = @U_Id";
-            ExecuteNonQuery(query, user, id);
-            return Ok("User updated successfully");
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult DeleteUser(int id)
-        {
-            string query = "DELETE FROM dbo.Users WHERE U_Id = @U_Id";
-            ExecuteNonQuery(query, id: id);
-            return Ok("User deleted successfully");
-        }
-
-        
-         //Utility methods for database operations
-        private DataTable ExecuteQuery(string query)
-        {
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("CRUDCS");
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myCon.Open();
-                    SqlDataAdapter adapter = new SqlDataAdapter(myCommand);
-                    adapter.Fill(table);
-                }
-            }
-            return table;
-        }
-
-        private IActionResult ExecuteQueryWithId(string query, int id)
-        {
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("CRUDCS");
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myCommand.Parameters.AddWithValue("@U_Id", id);
-                    myCon.Open();
-                    SqlDataAdapter adapter = new SqlDataAdapter(myCommand);
-                    adapter.Fill(table);
-                }
-            }
-            return table.Rows.Count > 0 ? Ok(table.Rows[0]) : NotFound();
-        }
-
-        private void ExecuteNonQuery(string query, Users user = null, int? id = null)
-        {
-            string sqlDataSource = _configuration.GetConnectionString("CRUDCS");
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    if (user != null)
-                    {
-                        myCommand.Parameters.AddWithValue("@U_Name", user.U_Name);
-                        myCommand.Parameters.AddWithValue("@U_Surname", user.U_Surname);
-                        myCommand.Parameters.AddWithValue("@U_Email", user.U_Email);
-                        myCommand.Parameters.AddWithValue("@U_Phone", user.U_Phone);
-                        myCommand.Parameters.AddWithValue("@U_Password", user.U_Password);
-                        myCommand.Parameters.AddWithValue("@U_RepeatPassword", user.U_RepeatPassword);
-                        myCommand.Parameters.AddWithValue("@U_Type", user.U_Type);
-                    }
-                    if (id.HasValue)
-                    {
-                        myCommand.Parameters.AddWithValue("@U_Id", id.Value);
-                    }
-                    myCon.Open();
-                    myCommand.ExecuteNonQuery();
-                }
-            }
-        }
-        
+        connection.Open();
+        return command.ExecuteNonQuery();
     }
 }

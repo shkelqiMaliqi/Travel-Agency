@@ -1,134 +1,53 @@
-import React from 'react';
-//import 'bootstrap/dist/css/bootstrap.min.css';
+import React from "react";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   return (
-    <div className='mainDiv'>
-      
-      {/* Hero Section */}
-      <header className="bg-primary text-white text-center py-5">
-        <div className="container">
-          <h1>Explore the World with TravelAgency</h1>
-          <p className="lead">
-            Your journey starts here. Find the perfect destination for your next adventure.
+    <section className="py-4">
+      <div className="p-5 mb-4 bg-light rounded-3 border">
+        <div className="container-fluid py-4">
+          <h1 className="display-5 fw-bold">Travel smarter with a real API-backed portal</h1>
+          <p className="col-md-8 fs-5 text-muted">
+            This project now has a working .NET API foundation, JWT authentication, destination endpoints, and a live React client for the core user flows.
           </p>
-          <a href="/destinations" className="btn btn-warning btn-lg">
-            Discover More
-          </a>
-        </div>
-      </header>
-
-      {/* Featured Destinations */}
-      <section id="destinations" className="py-5">
-        <div className="container">
-          <h2 className="text-center mb-4">Featured Destinations</h2>
-          <div className="row">
-            <div className="col-md-4 mb-4">
-              <div className="card">
-                <img
-                  src="https://via.placeholder.com/300"
-                  className="card-img-top"
-                  alt="Destination 1"
-                />
-                <div className="card-body">
-                  <h5 className="card-title">Maldives</h5>
-                  <p className="card-text">
-                    Crystal clear waters and white sandy beaches await you.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4 mb-4">
-              <div className="card">
-                <img
-                  src="https://via.placeholder.com/300"
-                  className="card-img-top"
-                  alt="Destination 2"
-                />
-                <div className="card-body">
-                  <h5 className="card-title">Paris</h5>
-                  <p className="card-text">
-                    Experience the romance and charm of the City of Light.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4 mb-4">
-              <div className="card">
-                <img
-                  src="https://via.placeholder.com/300"
-                  className="card-img-top"
-                  alt="Destination 3"
-                />
-                <div className="card-body">
-                  <h5 className="card-title">Bali</h5>
-                  <p className="card-text">
-                    Discover the beauty and culture of this tropical paradise.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-4 mb-4">
-              <div className="card">
-                <img
-                  src="https://via.placeholder.com/300"
-                  className="card-img-top"
-                  alt="Destination 4"
-                />
-                <div className="card-body">
-                  <h5 className="card-title">Kosovo</h5>
-                  <p className="card-text">
-                    Experience the romance and charm of the City of Light.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-4 mb-4">
-              <div className="card">
-                <img
-                  src="https://via.placeholder.com/300"
-                  className="card-img-top"
-                  alt="Destination 2"
-                />
-                <div className="card-body">
-                  <h5 className="card-title">Kosovo 5</h5>
-                  <p className="card-text">
-                    Experience the romance and charm of the City of Light.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-4 mb-4">
-              <div className="card">
-                <img
-                  src="https://via.placeholder.com/300"
-                  className="card-img-top"
-                  alt="Destination 2"
-                />
-                <div className="card-body">
-                  <h5 className="card-title">Kosovo 6</h5>
-                  <p className="card-text">
-                    Experience the romance and charm of the City of Light.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-
+          <div className="d-flex gap-3 flex-wrap">
+            <Link to="/destinations" className="btn btn-primary btn-lg">
+              Explore destinations
+            </Link>
+            <Link to="/registerpage" className="btn btn-outline-primary btn-lg">
+              Create account
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Footer */}
-      <footer className="bg-dark text-white text-center py-3">
-        <div className="container">
-          <p className="mb-0">&copy; 2024 TravelAgency. All Rights Reserved.</p>
+      <div className="row g-4">
+        <div className="col-md-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body">
+              <h2 className="h5">Secure access</h2>
+              <p className="text-muted mb-0">JWT-based authentication is now part of the API layer to align with the project requirements.</p>
+            </div>
+          </div>
         </div>
-      </footer>
-    </div>
+        <div className="col-md-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body">
+              <h2 className="h5">REST endpoints</h2>
+              <p className="text-muted mb-0">Versioned REST routes are exposed under <code>/api/v1</code> for users, auth, places, and contact messages.</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body">
+              <h2 className="h5">Travel content</h2>
+              <p className="text-muted mb-0">Destinations are loaded from the database instead of hardcoded placeholders in the UI.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 

@@ -1,27 +1,20 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Principal;
-using System.Xml.Linq;
 
+namespace Travel_Agency_Portal.Models;
 
-namespace Travel_Agency_Portal.Models
+public class Place
 {
-    public class Places
-    {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public string Name { get; set; }
-        [Required]
+    [Key]
+    public int Place_Id { get; set; }
 
-        public string Description { get; set; }
-        [Required]
+    [Required]
+    [StringLength(150)]
+    public string Place_Name { get; set; } = string.Empty;
 
-        public string Url { get; set; }
-        [Required]
+    [Required]
+    [StringLength(1000)]
+    public string Place_Description { get; set; } = string.Empty;
 
-        
-
-    }
-
+    [Url]
+    public string? Place_Url { get; set; }
 }
