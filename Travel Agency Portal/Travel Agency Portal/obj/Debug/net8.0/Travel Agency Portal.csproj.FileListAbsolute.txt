@@ -60,7 +60,6 @@ C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agenc
 C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Travel Agency Portal.props
 C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Travel Agency Portal.props
 C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets.pack.json
-C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel A.69F067BE.Up2Date
 C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.dll
 C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\refint\Travel Agency Portal.dll
@@ -117,3 +116,17 @@ C:\Users\Lenovo\OneDrive\Desktop\PROJECTS\Travel Agency\Travel Agency Portal\Tra
 C:\Users\Lenovo\OneDrive\Desktop\PROJECTS\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel A.69F067BE.Up2Date
 C:\Users\Lenovo\OneDrive\Desktop\PROJECTS\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\Travel Agency Portal.genruntimeconfig.cache
 C:\Users\Lenovo\OneDrive\Desktop\PROJECTS\Travel Agency\Travel Agency Portal\Travel Agency Portal\obj\Debug\net8.0\ref\Travel Agency Portal.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\System.Data.SqlClient.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\runtimes\win-arm64\native\sni.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\runtimes\win-x64\native\sni.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\runtimes\win-x86\native\sni.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll
+C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal\bin\Debug\net8.0\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll

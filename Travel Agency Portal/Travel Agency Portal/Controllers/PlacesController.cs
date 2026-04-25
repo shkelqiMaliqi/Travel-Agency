@@ -1,4 +1,3 @@
-using System.Data;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +21,7 @@ public class PlacesController : ControllerBase
     public IActionResult GetPlaces()
     {
         const string query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places ORDER BY Place_Id DESC";
-        return new JsonResult(ExecuteQuery(query));
+        return Ok(ExecutePlacesQuery(query));
     }
 
     [AllowAnonymous]
@@ -30,9 +29,9 @@ public class PlacesController : ControllerBase
     public IActionResult GetPlace(int id)
     {
         const string query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places WHERE Place_Id = @Place_Id";
-        var result = ExecuteQuery(query, new SqlParameter("@Place_Id", id));
+        var result = ExecutePlacesQuery(query, new SqlParameter("@Place_Id", id));
 
-        return result.Rows.Count > 0 ? Ok(result.Rows[0]) : NotFound();
+        return result.Count > 0 ? Ok(result[0]) : NotFound();
     }
 
     [Authorize(Roles = "admin")]
@@ -91,9 +90,9 @@ public class PlacesController : ControllerBase
         return rows > 0 ? Ok(new { message = "Place deleted successfully." }) : NotFound();
     }
 
-    private DataTable ExecuteQuery(string query, params SqlParameter[] parameters)
+    private List<Place> ExecutePlacesQuery(string query, params SqlParameter[] parameters)
     {
-        var table = new DataTable();
+        var places = new List<Place>();
         using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
         using var command = new SqlCommand(query, connection);
 
@@ -103,10 +102,21 @@ public class PlacesController : ControllerBase
         }
 
         connection.Open();
-        using var adapter = new SqlDataAdapter(command);
-        adapter.Fill(table);
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            places.Add(new Place
+            {
+                Place_Id = reader.GetInt32(reader.GetOrdinal("Place_Id")),
+                Place_Name = reader.GetString(reader.GetOrdinal("Place_Name")),
+                Place_Description = reader.GetString(reader.GetOrdinal("Place_Description")),
+                Place_Url = reader.IsDBNull(reader.GetOrdinal("Place_Url"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Place_Url"))
+            });
+        }
 
-        return table;
+        return places;
     }
 
     private int ExecuteNonQuery(string query, params SqlParameter[] parameters)
