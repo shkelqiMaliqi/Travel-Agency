@@ -36,3 +36,157 @@
     transform: rotate(360deg);
   }
 }
+
+.user-dashboard {
+  padding-bottom: 2rem;
+}
+
+.dashboard-header {
+  align-items: center;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-kicker {
+  color: #0d6efd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.dashboard-stat,
+.dashboard-panel {
+  background: #ffffff;
+  border: 1px solid #e6eaf0;
+  border-radius: 8px;
+  box-shadow: 0 0.35rem 1rem rgba(33, 37, 41, 0.06);
+}
+
+.dashboard-stat {
+  display: grid;
+  min-height: 132px;
+  padding: 1.25rem;
+}
+
+.dashboard-stat strong {
+  color: #172033;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.dashboard-stat small,
+.stat-label {
+  color: #6c757d;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.dashboard-panel {
+  padding: 1.25rem;
+}
+
+.dashboard-panel h2 {
+  color: #172033;
+  font-size: 1.15rem;
+  margin-bottom: 0.85rem;
+}
+
+.panel-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.destination-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.destination-row {
+  align-items: center;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 128px 1fr;
+  padding: 0.75rem;
+}
+
+.destination-row img {
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  height: 96px;
+  object-fit: cover;
+  width: 128px;
+}
+
+.destination-row h3 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.destination-row p {
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+.profile-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0;
+}
+
+.profile-list dt {
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.profile-list dd {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+.quick-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.empty-state {
+  background: #f8f9fb;
+  border: 1px dashed #cfd6df;
+  border-radius: 8px;
+  color: #6c757d;
+  padding: 1rem;
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-header,
+  .panel-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .destination-row {
+    grid-template-columns: 1fr;
+  }
+
+  .destination-row img {
+    height: auto;
+    width: 100%;
+  }
+}
