@@ -20,7 +20,7 @@ public class JwtTokenService
         var secret = _configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
         var issuer = _configuration["Jwt:Issuer"] ?? "TravelAgency.Api";
         var audience = _configuration["Jwt:Audience"] ?? "TravelAgency.Client";
-        var expiresAt = DateTime.UtcNow.AddHours(4);
+        var expiresAt = DateTime.UtcNow.AddHours(1);
 
         var claims = new[]
         {

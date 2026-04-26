@@ -42,6 +42,14 @@ CREATE TABLE dbo.Contact_Form (
 );
 GO
 
+INSERT INTO dbo.Users (U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Password, U_RepeatPassword, U_Type)
+VALUES
+('Admin', 'User', 'admin@travelagency.com', 'admin', '',
+ '3EB3FE66B31E3B4D10FA70B5CAD49C7112294AF6AE4E476A1C405155D45AA121',
+ '3EB3FE66B31E3B4D10FA70B5CAD49C7112294AF6AE4E476A1C405155D45AA121',
+ 'admin');
+GO
+
 INSERT INTO dbo.Places (Place_Name, Place_Description, Place_Url)
 VALUES
 ('Paris', 'Discover iconic landmarks, art, food, and romantic city walks.', 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a'),

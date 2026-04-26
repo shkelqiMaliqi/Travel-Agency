@@ -29,12 +29,16 @@ export function getAuthToken() {
 }
 
 async function request(path, options = {}) {
+  const { auth = false, ...fetchOptions } = options;
+  const token = auth ? getAuthToken() : "";
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(fetchOptions.headers || {}),
     },
-    ...options,
+    ...fetchOptions,
   });
 
   const isJson = response.headers.get("content-type")?.includes("application/json");
@@ -68,6 +72,14 @@ export async function loginUser(formData) {
 
 export async function getPlaces() {
   return request("/places");
+}
+
+export async function addPlace(formData) {
+  return request("/places", {
+    auth: true,
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
 }
 
 export async function sendContactMessage(formData) {

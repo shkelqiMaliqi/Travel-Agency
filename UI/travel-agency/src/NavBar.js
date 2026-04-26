@@ -5,6 +5,7 @@ import { clearAuth, getStoredAuth } from "./services/api";
 export default function Navbar() {
   const navigate = useNavigate();
   const auth = getStoredAuth();
+  const isAdmin = auth?.role?.toLowerCase() === "admin";
 
   const handleLogout = () => {
     clearAuth();
@@ -38,6 +39,11 @@ export default function Navbar() {
           <div className="d-flex gap-2">
             {auth ? (
               <>
+                {isAdmin ? (
+                  <Link to="/admin" className="btn btn-warning btn-sm">
+                    Admin
+                  </Link>
+                ) : null}
                 <Link to="/dashboard" className="btn btn-light btn-sm">
                   Dashboard
                 </Link>
