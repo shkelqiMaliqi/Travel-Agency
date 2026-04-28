@@ -10,6 +10,7 @@ import LoginPage from "./Components/LoginPage";
 import LoggedIn from "./Components/LoggedIn";
 import Destinations from "./Components/Destinations";
 import AdminDashboard from "./Admin/Admin_Dashboard";
+import ProtectedRoute from "./Components/ProtectedRoute";
 
 function App() {
   return (
@@ -22,9 +23,30 @@ function App() {
           <Route path="/contactus" element={<ContactUs />} />
           <Route path="/registerpage" element={<RegisterPage />} />
           <Route path="/loginpage" element={<LoginPage />} />
-          <Route path="/dashboard" element={<LoggedIn />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/profile" element={<LoggedIn />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <LoggedIn />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <LoggedIn />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/destinations" element={<Destinations />} />
         </Routes>
       </main>

@@ -5,6 +5,7 @@ import { getPlaces, getStoredAuth } from "../services/api";
 const LoggedIn = () => {
   const [auth] = useState(() => getStoredAuth());
   const [places, setPlaces] = useState([]);
+  const [availablePlaces, setAvailablePlaces] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -13,11 +14,13 @@ const LoggedIn = () => {
       getPlaces()
         .then((response) => {
           if (active) {
+            setAvailablePlaces(response.length);
             setPlaces(response.slice(0, 3));
           }
         })
         .catch(() => {
           if (active) {
+            setAvailablePlaces(0);
             setPlaces([]);
           }
         });
@@ -38,18 +41,30 @@ const LoggedIn = () => {
 
   const firstName = auth.name?.split(" ")[0] || auth.name || "Traveler";
   const expiresAt = auth.expiresAtUtc ? new Date(auth.expiresAtUtc).toLocaleString() : "Not available";
+  const isAdmin = auth.role?.toLowerCase() === "admin";
 
   return (
     <section className="user-dashboard">
       <div className="dashboard-header">
         <div>
-          <p className="dashboard-kicker">User dashboard</p>
+          <p className="dashboard-kicker">{isAdmin ? "Admin account" : "User dashboard"}</p>
           <h1>Welcome back, {firstName}</h1>
-          <p className="text-muted mb-0">Plan your next trip, review your profile, and continue exploring destinations.</p>
+          <p className="text-muted mb-0">
+            {isAdmin
+              ? "Manage destination content or review the public travel catalog."
+              : "Plan your next trip, review your profile, and continue exploring destinations."}
+          </p>
         </div>
-        <Link to="/destinations" className="btn btn-primary">
-          Browse destinations
-        </Link>
+        <div className="dashboard-header-actions">
+          {isAdmin ? (
+            <Link to="/admin" className="btn btn-warning">
+              Manage destinations
+            </Link>
+          ) : null}
+          <Link to="/destinations" className="btn btn-primary">
+            Browse destinations
+          </Link>
+        </div>
       </div>
 
       <div className="row g-4 mb-4">
@@ -63,7 +78,7 @@ const LoggedIn = () => {
         <div className="col-md-4">
           <div className="dashboard-stat">
             <span className="stat-label">Available places</span>
-            <strong>{places.length}</strong>
+            <strong>{availablePlaces}</strong>
             <small>Featured by the agency</small>
           </div>
         </div>
@@ -128,6 +143,11 @@ const LoggedIn = () => {
           <div className="dashboard-panel">
             <h2>Quick actions</h2>
             <div className="quick-actions">
+              {isAdmin ? (
+                <Link to="/admin" className="btn btn-warning">
+                  Admin tools
+                </Link>
+              ) : null}
               <Link to="/destinations" className="btn btn-outline-primary">
                 Explore trips
               </Link>

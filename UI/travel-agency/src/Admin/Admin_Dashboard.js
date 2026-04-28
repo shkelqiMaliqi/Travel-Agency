@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { addPlace, getPlaces, getStoredAuth } from "../services/api";
+import { Link, Navigate } from "react-router-dom";
+import { addPlace, deletePlace, getPlaces, getStoredAuth, updatePlace } from "../services/api";
 
 const initialForm = {
   place_Name: "",
@@ -12,6 +12,7 @@ const AdminDashboard = () => {
   const [auth] = useState(() => getStoredAuth());
   const [places, setPlaces] = useState([]);
   const [formData, setFormData] = useState(initialForm);
+  const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState({ loading: false, error: "", success: "" });
 
   const isAdmin = auth?.role?.toLowerCase() === "admin";
@@ -38,9 +39,58 @@ const AdminDashboard = () => {
     setStatus({ loading: true, error: "", success: "" });
 
     try {
-      await addPlace(formData);
+      if (editingId) {
+        await updatePlace(editingId, formData);
+      } else {
+        await addPlace(formData);
+      }
+
       setFormData(initialForm);
-      setStatus({ loading: false, error: "", success: "Destination added successfully." });
+      setEditingId(null);
+      setStatus({
+        loading: false,
+        error: "",
+        success: editingId ? "Destination updated successfully." : "Destination added successfully.",
+      });
+      loadPlaces();
+    } catch (error) {
+      setStatus({ loading: false, error: error.message, success: "" });
+    }
+  };
+
+  const handleEdit = (place) => {
+    setEditingId(place.place_Id ?? place.Place_Id);
+    setFormData({
+      place_Name: place.place_Name ?? place.Place_Name ?? "",
+      place_Description: place.place_Description ?? place.Place_Description ?? "",
+      place_Url: place.place_Url ?? place.Place_Url ?? "",
+    });
+    setStatus({ loading: false, error: "", success: "" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData(initialForm);
+    setStatus({ loading: false, error: "", success: "" });
+  };
+
+  const handleDelete = async (place) => {
+    const placeId = place.place_Id ?? place.Place_Id;
+    const placeName = place.place_Name ?? place.Place_Name;
+    const confirmed = window.confirm(`Delete ${placeName}? This cannot be undone.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setStatus({ loading: true, error: "", success: "" });
+
+    try {
+      await deletePlace(placeId);
+      if (editingId === placeId) {
+        handleCancelEdit();
+      }
+      setStatus({ loading: false, error: "", success: "Destination deleted successfully." });
       loadPlaces();
     } catch (error) {
       setStatus({ loading: false, error: error.message, success: "" });
@@ -48,19 +98,11 @@ const AdminDashboard = () => {
   };
 
   if (!auth) {
-    return (
-      <div className="alert alert-warning">
-        You need to log in first. <Link to="/loginpage">Go to login</Link>.
-      </div>
-    );
+    return <Navigate to="/loginpage" replace />;
   }
 
   if (!isAdmin) {
-    return (
-      <div className="alert alert-danger">
-        This page is only for admin users. <Link to="/dashboard">Back to dashboard</Link>.
-      </div>
-    );
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
@@ -69,7 +111,7 @@ const AdminDashboard = () => {
         <div>
           <p className="dashboard-kicker">Admin dashboard</p>
           <h1>Manage destinations</h1>
-          <p className="text-muted mb-0">Add destinations that customers will see on the Destinations page.</p>
+          <p className="text-muted mb-0">Add, update, and remove destinations that customers see on the Destinations page.</p>
         </div>
         <Link to="/destinations" className="btn btn-outline-primary">
           View public page
@@ -79,7 +121,7 @@ const AdminDashboard = () => {
       <div className="row g-4">
         <div className="col-lg-5">
           <div className="dashboard-panel">
-            <h2>Add destination</h2>
+            <h2>{editingId ? "Edit destination" : "Add destination"}</h2>
             <form onSubmit={handleSubmit} className="row g-3">
               <div className="col-12">
                 <label htmlFor="place_Name" className="form-label">
@@ -130,9 +172,16 @@ const AdminDashboard = () => {
 
               <div className="col-12 d-grid">
                 <button type="submit" className="btn btn-primary" disabled={status.loading}>
-                  {status.loading ? "Adding destination..." : "Add destination"}
+                  {status.loading ? "Saving destination..." : editingId ? "Save changes" : "Add destination"}
                 </button>
               </div>
+              {editingId ? (
+                <div className="col-12 d-grid">
+                  <button type="button" className="btn btn-outline-secondary" onClick={handleCancelEdit} disabled={status.loading}>
+                    Cancel edit
+                  </button>
+                </div>
+              ) : null}
             </form>
           </div>
         </div>
@@ -156,6 +205,14 @@ const AdminDashboard = () => {
                   <div>
                     <h3>{place.place_Name ?? place.Place_Name}</h3>
                     <p>{place.place_Description ?? place.Place_Description}</p>
+                  </div>
+                  <div className="destination-actions">
+                    <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => handleEdit(place)}>
+                      Edit
+                    </button>
+                    <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(place)}>
+                      Delete
+                    </button>
                   </div>
                 </article>
               ))}

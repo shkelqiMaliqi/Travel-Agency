@@ -82,6 +82,21 @@ export async function addPlace(formData) {
   });
 }
 
+export async function updatePlace(id, formData) {
+  return request(`/places/${id}`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function deletePlace(id) {
+  return request(`/places/${id}`, {
+    auth: true,
+    method: "DELETE",
+  });
+}
+
 export async function sendContactMessage(formData) {
   return request("/contact", {
     method: "POST",
