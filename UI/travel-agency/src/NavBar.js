@@ -47,6 +47,9 @@ export default function Navbar() {
                 <Link to="/dashboard" className="btn btn-light btn-sm">
                   Dashboard
                 </Link>
+                <Link to="/profile" className="btn btn-outline-light btn-sm">
+                  Profile
+                </Link>
                 <button type="button" className="btn btn-outline-light btn-sm" onClick={handleLogout}>
                   Logout
                 </button>

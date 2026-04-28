@@ -78,6 +78,7 @@ http://localhost:3000
 - Register and login
 - JWT session expiry set to 1 hour
 - User dashboard
+- User profile view/edit
 - Admin dashboard
 - Admin add/edit/delete destinations
 - Public destinations page
@@ -89,6 +90,7 @@ http://localhost:3000
 - `/registerpage` - Register
 - `/loginpage` - Login
 - `/dashboard` - User dashboard
+- `/profile` - User profile settings
 - `/admin` - Admin destination management
 - `/destinations` - Public destination catalog
 - `/contactus` - Contact form

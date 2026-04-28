@@ -9,6 +9,7 @@ import RegisterPage from "./Components/RegisterPage";
 import LoginPage from "./Components/LoginPage";
 import LoggedIn from "./Components/LoggedIn";
 import Destinations from "./Components/Destinations";
+import Profile from "./Components/Profile";
 import AdminDashboard from "./Admin/Admin_Dashboard";
 import ProtectedRoute from "./Components/ProtectedRoute";
 
@@ -43,7 +44,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <LoggedIn />
+                <Profile />
               </ProtectedRoute>
             }
           />

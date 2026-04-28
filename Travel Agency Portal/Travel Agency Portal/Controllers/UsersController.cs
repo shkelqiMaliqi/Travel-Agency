@@ -1,5 +1,5 @@
-using System.Data;
 using System.Data.SqlClient;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Travel_Agency_Portal.Models;
@@ -22,27 +22,51 @@ public class UsersController : ControllerBase
     public IActionResult GetUsers()
     {
         const string query = @"SELECT U_Id, U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Type FROM dbo.Users ORDER BY U_Id DESC";
-        return new JsonResult(ExecuteQuery(query));
+        return Ok(ExecuteUsersQuery(query));
     }
 
     [Authorize]
     [HttpGet("{id:int}")]
     public IActionResult GetUser(int id)
     {
-        const string query = @"SELECT U_Id, U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Type FROM dbo.Users WHERE U_Id = @U_Id";
-        var parameters = new[] { new SqlParameter("@U_Id", id) };
-        var result = ExecuteQuery(query, parameters);
+        if (!CanAccessUser(id))
+        {
+            return Forbid();
+        }
 
-        return result.Rows.Count > 0 ? Ok(result.Rows[0]) : NotFound();
+        const string query = @"SELECT U_Id, U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Type FROM dbo.Users WHERE U_Id = @U_Id";
+        var result = ExecuteUsersQuery(query, new SqlParameter("@U_Id", id));
+
+        return result.Count > 0 ? Ok(result[0]) : NotFound();
     }
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public IActionResult UpdateUser(int id, [FromBody] Users user)
+    public IActionResult UpdateUser(int id, [FromBody] UpdateUserProfileRequest user)
     {
+        if (!CanAccessUser(id))
+        {
+            return Forbid();
+        }
+
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
+        }
+
+        const string existsQuery = @"
+            SELECT COUNT(1)
+            FROM dbo.Users
+            WHERE U_Id <> @U_Id AND (U_Email = @U_Email OR U_Username = @U_Username)";
+
+        var duplicateCount = ExecuteScalar(existsQuery,
+            new SqlParameter("@U_Id", id),
+            new SqlParameter("@U_Email", user.U_Email),
+            new SqlParameter("@U_Username", user.U_Username));
+
+        if (duplicateCount > 0)
+        {
+            return Conflict(new { message = "Another user already has this email or username." });
         }
 
         const string query = @"
@@ -51,8 +75,7 @@ public class UsersController : ControllerBase
                 U_Surname = @U_Surname,
                 U_Email = @U_Email,
                 U_Username = @U_Username,
-                U_Phone = @U_Phone,
-                U_Type = @U_Type
+                U_Phone = @U_Phone
             WHERE U_Id = @U_Id";
 
         var rows = ExecuteNonQuery(query,
@@ -61,8 +84,7 @@ public class UsersController : ControllerBase
             new SqlParameter("@U_Surname", user.U_Surname),
             new SqlParameter("@U_Email", user.U_Email),
             new SqlParameter("@U_Username", user.U_Username),
-            new SqlParameter("@U_Phone", (object?)user.U_Phone ?? DBNull.Value),
-            new SqlParameter("@U_Type", user.U_Type));
+            new SqlParameter("@U_Phone", string.IsNullOrWhiteSpace(user.U_Phone) ? DBNull.Value : user.U_Phone));
 
         return rows > 0 ? Ok(new { message = "User updated successfully." }) : NotFound();
     }
@@ -77,9 +99,17 @@ public class UsersController : ControllerBase
         return rows > 0 ? Ok(new { message = "User deleted successfully." }) : NotFound();
     }
 
-    private DataTable ExecuteQuery(string query, params SqlParameter[] parameters)
+    private bool CanAccessUser(int id)
     {
-        var table = new DataTable();
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("admin");
+
+        return isAdmin || string.Equals(currentUserId, id.ToString(), StringComparison.Ordinal);
+    }
+
+    private List<UserProfile> ExecuteUsersQuery(string query, params SqlParameter[] parameters)
+    {
+        var users = new List<UserProfile>();
         using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
         using var command = new SqlCommand(query, connection);
 
@@ -89,10 +119,22 @@ public class UsersController : ControllerBase
         }
 
         connection.Open();
-        using var adapter = new SqlDataAdapter(command);
-        adapter.Fill(table);
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            users.Add(new UserProfile
+            {
+                U_Id = reader.GetInt32(reader.GetOrdinal("U_Id")),
+                U_Name = reader.GetString(reader.GetOrdinal("U_Name")),
+                U_Surname = reader.GetString(reader.GetOrdinal("U_Surname")),
+                U_Email = reader.GetString(reader.GetOrdinal("U_Email")),
+                U_Username = reader.GetString(reader.GetOrdinal("U_Username")),
+                U_Phone = reader.IsDBNull(reader.GetOrdinal("U_Phone")) ? null : reader.GetString(reader.GetOrdinal("U_Phone")),
+                U_Type = reader.GetString(reader.GetOrdinal("U_Type"))
+            });
+        }
 
-        return table;
+        return users;
     }
 
     private int ExecuteNonQuery(string query, params SqlParameter[] parameters)
@@ -107,5 +149,21 @@ public class UsersController : ControllerBase
 
         connection.Open();
         return command.ExecuteNonQuery();
+    }
+
+    private int ExecuteScalar(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+
+        if (parameters.Length > 0)
+        {
+            command.Parameters.AddRange(parameters);
+        }
+
+        connection.Open();
+        var result = command.ExecuteScalar();
+
+        return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
     }
 }

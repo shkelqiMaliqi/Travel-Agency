@@ -151,6 +151,9 @@ const LoggedIn = () => {
               <Link to="/destinations" className="btn btn-outline-primary">
                 Explore trips
               </Link>
+              <Link to="/profile" className="btn btn-outline-secondary">
+                Edit profile
+              </Link>
               <Link to="/contactus" className="btn btn-outline-secondary">
                 Contact agency
               </Link>

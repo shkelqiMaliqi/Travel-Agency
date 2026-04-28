@@ -97,6 +97,20 @@ export async function deletePlace(id) {
   });
 }
 
+export async function getUserProfile(id) {
+  return request(`/users/${id}`, {
+    auth: true,
+  });
+}
+
+export async function updateUserProfile(id, formData) {
+  return request(`/users/${id}`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify(formData),
+  });
+}
+
 export async function sendContactMessage(formData) {
   return request("/contact", {
     method: "POST",
