@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getPlaces, getStoredAuth } from "../services/api";
+import { getMyBookings, getPackages, getPlaces, getStoredAuth } from "../services/api";
 
 const LoggedIn = () => {
   const [auth] = useState(() => getStoredAuth());
   const [places, setPlaces] = useState([]);
   const [availablePlaces, setAvailablePlaces] = useState(0);
+  const [availablePackages, setAvailablePackages] = useState(0);
+  const [bookingCount, setBookingCount] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -22,6 +24,30 @@ const LoggedIn = () => {
           if (active) {
             setAvailablePlaces(0);
             setPlaces([]);
+          }
+        });
+
+      getPackages()
+        .then((response) => {
+          if (active) {
+            setAvailablePackages(response.length);
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setAvailablePackages(0);
+          }
+        });
+
+      getMyBookings()
+        .then((response) => {
+          if (active) {
+            setBookingCount(response.length);
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setBookingCount(0);
           }
         });
     }
@@ -64,6 +90,9 @@ const LoggedIn = () => {
           <Link to="/destinations" className="btn btn-primary">
             Browse destinations
           </Link>
+          <Link to="/packages" className="btn btn-outline-primary">
+            Book packages
+          </Link>
         </div>
       </div>
 
@@ -71,8 +100,8 @@ const LoggedIn = () => {
         <div className="col-md-4">
           <div className="dashboard-stat">
             <span className="stat-label">Saved trips</span>
-            <strong>0</strong>
-            <small>Ready for your first plan</small>
+            <strong>{bookingCount}</strong>
+            <small>Your active bookings</small>
           </div>
         </div>
         <div className="col-md-4">
@@ -84,9 +113,9 @@ const LoggedIn = () => {
         </div>
         <div className="col-md-4">
           <div className="dashboard-stat">
-            <span className="stat-label">Account role</span>
-            <strong className="text-capitalize">{auth.role}</strong>
-            <small>Active user access</small>
+            <span className="stat-label">Packages</span>
+            <strong>{availablePackages}</strong>
+            <small>Ready to book</small>
           </div>
         </div>
       </div>
@@ -150,6 +179,12 @@ const LoggedIn = () => {
               ) : null}
               <Link to="/destinations" className="btn btn-outline-primary">
                 Explore trips
+              </Link>
+              <Link to="/packages" className="btn btn-outline-primary">
+                Book a package
+              </Link>
+              <Link to="/my-bookings" className="btn btn-outline-secondary">
+                My bookings
               </Link>
               <Link to="/profile" className="btn btn-outline-secondary">
                 Edit profile

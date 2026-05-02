@@ -97,6 +97,89 @@ export async function deletePlace(id) {
   });
 }
 
+export async function getHotels(placeId) {
+  const query = placeId ? `?placeId=${placeId}` : "";
+  return request(`/hotels${query}`);
+}
+
+export async function addHotel(formData) {
+  return request("/hotels", {
+    auth: true,
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function updateHotel(id, formData) {
+  return request(`/hotels/${id}`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function deleteHotel(id) {
+  return request(`/hotels/${id}`, {
+    auth: true,
+    method: "DELETE",
+  });
+}
+
+export async function getPackages() {
+  return request("/packages");
+}
+
+export async function addPackage(formData) {
+  return request("/packages", {
+    auth: true,
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function updatePackage(id, formData) {
+  return request(`/packages/${id}`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function deletePackage(id) {
+  return request(`/packages/${id}`, {
+    auth: true,
+    method: "DELETE",
+  });
+}
+
+export async function createBooking(formData) {
+  return request("/bookings", {
+    auth: true,
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function getMyBookings() {
+  return request("/bookings/mine", {
+    auth: true,
+  });
+}
+
+export async function getBookings() {
+  return request("/bookings", {
+    auth: true,
+  });
+}
+
+export async function updateBookingStatus(id, status) {
+  return request(`/bookings/${id}/status`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify(status),
+  });
+}
+
 export async function getUserProfile(id) {
   return request(`/users/${id}`, {
     auth: true,

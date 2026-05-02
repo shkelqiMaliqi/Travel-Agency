@@ -34,6 +34,7 @@ export default function Navbar() {
             <CustomLink to="/">Home</CustomLink>
             <CustomLink to="/aboutus">About Us</CustomLink>
             <CustomLink to="/destinations">Destinations</CustomLink>
+            <CustomLink to="/packages">Packages</CustomLink>
             <CustomLink to="/contactus">Contact</CustomLink>
           </ul>
           <div className="d-flex gap-2">
@@ -49,6 +50,9 @@ export default function Navbar() {
                 </Link>
                 <Link to="/profile" className="btn btn-outline-light btn-sm">
                   Profile
+                </Link>
+                <Link to="/my-bookings" className="btn btn-outline-light btn-sm">
+                  Bookings
                 </Link>
                 <button type="button" className="btn btn-outline-light btn-sm" onClick={handleLogout}>
                   Logout

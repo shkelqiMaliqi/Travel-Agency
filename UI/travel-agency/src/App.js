@@ -9,6 +9,8 @@ import RegisterPage from "./Components/RegisterPage";
 import LoginPage from "./Components/LoginPage";
 import LoggedIn from "./Components/LoggedIn";
 import Destinations from "./Components/Destinations";
+import Packages from "./Components/Packages";
+import MyBookings from "./Components/MyBookings";
 import Profile from "./Components/Profile";
 import AdminDashboard from "./Admin/Admin_Dashboard";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -49,6 +51,15 @@ function App() {
             }
           />
           <Route path="/destinations" element={<Destinations />} />
+          <Route path="/packages" element={<Packages />} />
+          <Route
+            path="/my-bookings"
+            element={
+              <ProtectedRoute>
+                <MyBookings />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>
