@@ -47,6 +47,12 @@ const Packages = () => {
 
   const submitFilters = (event) => {
     event.preventDefault();
+
+    if (filters.minPrice && filters.maxPrice && Number(filters.minPrice) > Number(filters.maxPrice)) {
+      setStatus({ loading: false, error: "Minimum price cannot be greater than maximum price.", success: "" });
+      return;
+    }
+
     setAppliedFilters(filters);
     loadPackages(filters);
   };
@@ -134,6 +140,11 @@ const Packages = () => {
       </form>
 
       <div className="row g-4">
+        {packages.length === 0 ? (
+          <div className="col-12">
+            <div className="empty-state">No packages match your filters.</div>
+          </div>
+        ) : null}
         {packages.map((tripPackage) => {
           const packageId = valueOf(tripPackage, "package_Id", "Package_Id");
           const seats = valueOf(tripPackage, "available_Seats", "Available_Seats");

@@ -1,6 +1,6 @@
-using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Travel_Agency_Portal.Services;
 
 namespace Travel_Agency_Portal.Controllers;
 
@@ -8,11 +8,11 @@ namespace Travel_Agency_Portal.Controllers;
 [ApiController]
 public class StatsController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly DatabaseService _databaseService;
 
-    public StatsController(IConfiguration configuration)
+    public StatsController(DatabaseService databaseService)
     {
-        _configuration = configuration;
+        _databaseService = databaseService;
     }
 
     [Authorize(Roles = "admin")]
@@ -28,24 +28,21 @@ public class StatsController : ControllerBase
                 (SELECT COUNT(1) FROM dbo.Travel_Packages WHERE Available_Seats = 0) AS SoldOutPackagesCount,
                 (SELECT ISNULL(SUM(Total_Price), 0) FROM dbo.Bookings WHERE Booking_Status <> 'Cancelled') AS Revenue";
 
-        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
-        using var command = new SqlCommand(query, connection);
-
-        connection.Open();
-        using var reader = command.ExecuteReader();
-        if (!reader.Read())
+        var table = _databaseService.Query(query);
+        if (table.Rows.Count == 0)
         {
             return Ok(new { });
         }
 
+        var row = table.Rows[0];
         return Ok(new
         {
-            usersCount = reader.GetInt32(reader.GetOrdinal("UsersCount")),
-            bookingsCount = reader.GetInt32(reader.GetOrdinal("BookingsCount")),
-            pendingBookingsCount = reader.GetInt32(reader.GetOrdinal("PendingBookingsCount")),
-            packagesCount = reader.GetInt32(reader.GetOrdinal("PackagesCount")),
-            soldOutPackagesCount = reader.GetInt32(reader.GetOrdinal("SoldOutPackagesCount")),
-            revenue = reader.GetDecimal(reader.GetOrdinal("Revenue"))
+            usersCount = Convert.ToInt32(row["UsersCount"]),
+            bookingsCount = Convert.ToInt32(row["BookingsCount"]),
+            pendingBookingsCount = Convert.ToInt32(row["PendingBookingsCount"]),
+            packagesCount = Convert.ToInt32(row["PackagesCount"]),
+            soldOutPackagesCount = Convert.ToInt32(row["SoldOutPackagesCount"]),
+            revenue = Convert.ToDecimal(row["Revenue"])
         });
     }
 }

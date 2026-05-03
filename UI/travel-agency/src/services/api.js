@@ -45,12 +45,20 @@ async function request(path, options = {}) {
   const payload = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
+    if (auth && response.status === 401) {
+      clearAuth();
+    }
+
     const message =
       (typeof payload === "object" && payload?.message) ||
       (typeof payload === "string" && payload) ||
       "Request failed.";
 
     throw new Error(message);
+  }
+
+  if (payload && typeof payload === "object" && "success" in payload && "data" in payload) {
+    return payload.data;
   }
 
   return payload;

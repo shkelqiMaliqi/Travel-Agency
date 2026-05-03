@@ -1,6 +1,7 @@
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Travel_Agency_Portal.Dtos;
 using Travel_Agency_Portal.Models;
 
 namespace Travel_Agency_Portal.Controllers;
@@ -84,7 +85,7 @@ public class PackagesController : ControllerBase
 
     [Authorize(Roles = "admin")]
     [HttpPost]
-    public IActionResult AddPackage([FromBody] TravelPackage package)
+    public IActionResult AddPackage([FromBody] PackageRequestDto package)
     {
         if (!ModelState.IsValid)
         {
@@ -123,7 +124,7 @@ public class PackagesController : ControllerBase
 
     [Authorize(Roles = "admin")]
     [HttpPut("{id:int}")]
-    public IActionResult UpdatePackage(int id, [FromBody] TravelPackage package)
+    public IActionResult UpdatePackage(int id, [FromBody] PackageRequestDto package)
     {
         if (!ModelState.IsValid)
         {

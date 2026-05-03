@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { sendContactMessage } from "../services/api";
+import { getStoredAuth, sendContactMessage } from "../services/api";
 
 const initialForm = {
   c_Name: "",
@@ -11,7 +11,21 @@ const initialForm = {
 };
 
 const ContactUs = () => {
-  const [formData, setFormData] = useState(initialForm);
+  const [auth] = useState(() => getStoredAuth());
+  const [formData, setFormData] = useState(() => {
+    if (!auth) {
+      return initialForm;
+    }
+
+    const [name = "", ...surnameParts] = (auth.name || "").split(" ");
+    return {
+      ...initialForm,
+      c_Name: name,
+      c_Surname: surnameParts.join(" "),
+      c_Email: auth.email || "",
+      u_Id: auth.userId ?? null,
+    };
+  });
   const [status, setStatus] = useState({ loading: false, error: "", success: "" });
 
   const handleChange = (event) => {
