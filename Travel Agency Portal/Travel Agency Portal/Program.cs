@@ -1,12 +1,32 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Travel_Agency_Portal.Filters;
+using Travel_Agency_Portal.Middleware;
+using Travel_Agency_Portal.Models;
 using Travel_Agency_Portal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ApiResponseFilter>();
+})
+.ConfigureApiBehaviorOptions(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(entry => entry.Value?.Errors.Count > 0)
+            .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
+
+        return new BadRequestObjectResult(ApiResponse<object>.Fail("Validation failed.", errors));
+    };
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -58,6 +78,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<DatabaseService>();
 
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
 var issuer = builder.Configuration["Jwt:Issuer"] ?? "TravelAgency.Api";
@@ -83,6 +104,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
