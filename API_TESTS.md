@@ -20,7 +20,29 @@ Use these checks in Swagger or Postman to demonstrate the Web API behavior.
    - Expected: returns token, role, user id, name, and email.
 
 6. `POST /api/v1/auth/forgot-password`
-   - Expected: updates password for an existing email.
+   - Body:
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+   - Expected: returns a reset code for copy/paste testing.
+
+7. `POST /api/v1/auth/reset-password`
+   - Body:
+
+```json
+{
+  "email": "user@example.com",
+  "resetCode": "123456",
+  "newPassword": "NewPass123!",
+  "confirmPassword": "NewPass123!"
+}
+```
+
+   - Expected: verifies code and updates the password.
 
 ## Authenticated User Requests
 

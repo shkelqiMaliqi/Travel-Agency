@@ -29,6 +29,20 @@ public class RegisterRequest
     public string U_Type { get; set; } = "user";
 }
 
+public static class PasswordPolicy
+{
+    public const string Message = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+
+    public static bool IsValid(string password)
+    {
+        return password.Length >= 8 &&
+               password.Any(char.IsUpper) &&
+               password.Any(char.IsLower) &&
+               password.Any(char.IsDigit) &&
+               password.Any(ch => !char.IsLetterOrDigit(ch));
+    }
+}
+
 public class LoginRequest
 {
     [Required]
@@ -43,9 +57,19 @@ public class ForgotPasswordRequest
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordRequest
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(6)]
+    public string ResetCode { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(8)]
     public string NewPassword { get; set; } = string.Empty;
 
     [Required]

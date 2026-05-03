@@ -92,7 +92,7 @@ http://localhost:3000
 ## Main Features
 
 - Register and login
-- Forgot password reset
+- Forgot password reset with copy/paste reset code
 - JWT session expiry set to 1 hour
 - User dashboard with booking counts, upcoming booking, and package options
 - User profile view/edit
@@ -150,7 +150,8 @@ Unhandled backend errors are processed by global middleware and returned as clea
 | --- | --- | --- | --- |
 | `POST` | `/api/v1/auth/register` | Public | Register user |
 | `POST` | `/api/v1/auth/login` | Public | Login and receive JWT |
-| `POST` | `/api/v1/auth/forgot-password` | Public | Reset password |
+| `POST` | `/api/v1/auth/forgot-password` | Public | Generate password reset code |
+| `POST` | `/api/v1/auth/reset-password` | Public | Verify reset code and set new password |
 | `GET` | `/api/v1/places` | Public | List/search destinations |
 | `POST` | `/api/v1/places` | Admin | Add destination |
 | `PUT` | `/api/v1/places/{id}` | Admin | Update destination |
@@ -231,3 +232,4 @@ API_TESTS.md
 - Logged-in users can book packages and submit contact messages linked to their account.
 - Users can cancel only pending bookings.
 - Packages with zero seats are shown as sold out and cannot be booked.
+- Registration and password reset require passwords with at least 8 characters, uppercase, lowercase, number, and special character.
