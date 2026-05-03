@@ -63,7 +63,7 @@ public class PackagesController : ControllerBase
             query += " WHERE " + string.Join(" AND ", filters);
         }
 
-        query += " ORDER BY p.Place_Name ASC, tp.Package_Name ASC";
+        query += " ORDER BY tp.Package_Name ASC, p.Place_Name ASC";
 
         return Ok(ExecutePackagesQuery(query, parameters.ToArray()));
     }

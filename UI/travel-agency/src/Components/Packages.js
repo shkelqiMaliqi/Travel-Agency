@@ -5,6 +5,10 @@ import { createBooking, getPackages, getPlaces, getStoredAuth } from "../service
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
 const date = (value) => (value ? new Date(value).toLocaleDateString() : "");
+const byPackageName = (first, second) =>
+  String(valueOf(first, "package_Name", "Package_Name") || "").localeCompare(String(valueOf(second, "package_Name", "Package_Name") || ""), undefined, {
+    sensitivity: "base",
+  });
 
 const Packages = () => {
   const [auth] = useState(() => getStoredAuth());
@@ -19,7 +23,7 @@ const Packages = () => {
     setStatus((current) => ({ ...current, loading: true }));
     getPackages(nextFilters)
       .then((response) => {
-        setPackages(response);
+        setPackages([...response].sort(byPackageName));
         setStatus({ loading: false, error: "", success: "" });
       })
       .catch((error) => setStatus({ loading: false, error: error.message, success: "" }));
