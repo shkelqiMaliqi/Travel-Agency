@@ -78,8 +78,15 @@ export async function loginUser(formData) {
   });
 }
 
-export async function forgotPassword(formData) {
+export async function requestPasswordReset(formData) {
   return request("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function resetPassword(formData) {
+  return request("/auth/reset-password", {
     method: "POST",
     body: JSON.stringify(formData),
   });

@@ -5,6 +5,7 @@ USE Travel_Agency;
 GO
 
 IF OBJECT_ID('dbo.Bookings', 'U') IS NOT NULL DROP TABLE dbo.Bookings;
+IF OBJECT_ID('dbo.Password_Reset_Codes', 'U') IS NOT NULL DROP TABLE dbo.Password_Reset_Codes;
 IF OBJECT_ID('dbo.Travel_Packages', 'U') IS NOT NULL DROP TABLE dbo.Travel_Packages;
 IF OBJECT_ID('dbo.Hotels', 'U') IS NOT NULL DROP TABLE dbo.Hotels;
 IF OBJECT_ID('dbo.Contact_Form', 'U') IS NOT NULL DROP TABLE dbo.Contact_Form;
@@ -45,6 +46,16 @@ CREATE TABLE dbo.Contact_Form (
     C_IsArchived BIT NOT NULL CONSTRAINT DF_ContactForm_IsArchived DEFAULT (0),
     C_CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_ContactForm_CreatedAt DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT FK_ContactForm_User FOREIGN KEY (U_Id) REFERENCES dbo.Users(U_Id)
+);
+GO
+
+CREATE TABLE dbo.Password_Reset_Codes (
+    Reset_Id INT PRIMARY KEY IDENTITY(1,1),
+    U_Email VARCHAR(255) NOT NULL,
+    Reset_Code_Hash VARCHAR(255) NOT NULL,
+    Expires_At DATETIME2 NOT NULL,
+    Is_Used BIT NOT NULL CONSTRAINT DF_ResetCodes_IsUsed DEFAULT (0),
+    Created_At DATETIME2 NOT NULL CONSTRAINT DF_ResetCodes_CreatedAt DEFAULT (SYSUTCDATETIME())
 );
 GO
 

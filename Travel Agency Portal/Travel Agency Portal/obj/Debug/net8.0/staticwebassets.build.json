@@ -1,1 +1,12 @@
-{"Version":1,"Hash":"59LJip2VwdXo8CWZM9Bd9ftTSrh+lpjtv47dzRWqzUo=","Source":"Travel Agency Portal","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "MRfJFrAe/vv+PwmNHOkD7M74Xval7KVWJllWo4p2BJc=",
+  "Source": "Travel Agency Portal",
+  "BasePath": "_content/Travel Agency Portal",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

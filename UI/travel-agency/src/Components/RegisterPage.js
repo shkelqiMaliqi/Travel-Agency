@@ -12,6 +12,18 @@ const initialForm = {
   confirmPassword: "",
 };
 
+const passwordRulesText = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+
+function isPasswordValid(password) {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(initialForm);
@@ -24,6 +36,17 @@ const RegisterPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!isPasswordValid(formData.password)) {
+      setStatus({ loading: false, error: passwordRulesText, success: "" });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setStatus({ loading: false, error: "Passwords do not match.", success: "" });
+      return;
+    }
+
     setStatus({ loading: true, error: "", success: "" });
 
     try {
@@ -85,6 +108,7 @@ const RegisterPage = () => {
                   Password
                 </label>
                 <input id="password" name="password" type="password" className="form-control" value={formData.password} onChange={handleChange} required />
+                <div className="form-text">{passwordRulesText}</div>
               </div>
               <div className="col-md-6">
                 <label htmlFor="confirmPassword" className="form-label">
