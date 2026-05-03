@@ -58,6 +58,32 @@ public class BookingsController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("{id:int}")]
+    public IActionResult GetBooking(int id)
+    {
+        var userId = GetCurrentUserId();
+        const string query = @"
+            SELECT b.Booking_Id, b.Package_Id, b.U_Id,
+                   (u.U_Name + ' ' + u.U_Surname) AS Customer_Name, u.U_Email, u.U_Phone,
+                   tp.Package_Name, p.Place_Name, h.Hotel_Name,
+                   b.Travelers, b.Total_Price, b.Booking_Status, b.Booking_Date
+            FROM dbo.Bookings b
+            INNER JOIN dbo.Travel_Packages tp ON tp.Package_Id = b.Package_Id
+            INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
+            INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id
+            INNER JOIN dbo.Users u ON u.U_Id = b.U_Id
+            WHERE b.Booking_Id = @Booking_Id
+              AND (@IsAdmin = 1 OR b.U_Id = @U_Id)";
+
+        var result = ExecuteBookingsQuery(query,
+            new SqlParameter("@Booking_Id", id),
+            new SqlParameter("@IsAdmin", User.IsInRole("admin") ? 1 : 0),
+            new SqlParameter("@U_Id", userId));
+
+        return result.Count > 0 ? Ok(result[0]) : NotFound();
+    }
+
+    [Authorize]
     [HttpPost]
     public IActionResult CreateBooking([FromBody] CreateBookingRequest request)
     {
@@ -142,7 +168,7 @@ public class BookingsController : ControllerBase
     [HttpPut("{id:int}/cancel")]
     public IActionResult CancelMyBooking(int id)
     {
-        return ChangeBookingStatus(id, "Cancelled", GetCurrentUserId());
+        return ChangeBookingStatus(id, "Cancelled", GetCurrentUserId(), userCancellation: true);
     }
 
     private int GetCurrentUserId()
@@ -151,7 +177,7 @@ public class BookingsController : ControllerBase
         return int.TryParse(value, out var userId) ? userId : 0;
     }
 
-    private IActionResult ChangeBookingStatus(int bookingId, string nextStatus, int? ownerUserId)
+    private IActionResult ChangeBookingStatus(int bookingId, string nextStatus, int? ownerUserId, bool userCancellation = false)
     {
         using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
         connection.Open();
@@ -185,6 +211,12 @@ public class BookingsController : ControllerBase
             {
                 transaction.Rollback();
                 return Forbid();
+            }
+
+            if (userCancellation && currentStatus != "Pending")
+            {
+                transaction.Rollback();
+                return BadRequest(new { message = "Only pending bookings can be cancelled by the user." });
             }
 
             if (currentStatus == nextStatus)

@@ -7,11 +7,13 @@ import AboutUs from "./Components/AboutUs";
 import ContactUs from "./Components/ContactUs";
 import RegisterPage from "./Components/RegisterPage";
 import LoginPage from "./Components/LoginPage";
+import ForgotPassword from "./Components/ForgotPassword";
 import LoggedIn from "./Components/LoggedIn";
 import Destinations from "./Components/Destinations";
 import Packages from "./Components/Packages";
 import PackageDetails from "./Components/PackageDetails";
 import MyBookings from "./Components/MyBookings";
+import BookingDetails from "./Components/BookingDetails";
 import Profile from "./Components/Profile";
 import AdminDashboard from "./Admin/Admin_Dashboard";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -27,6 +29,7 @@ function App() {
           <Route path="/contactus" element={<ContactUs />} />
           <Route path="/registerpage" element={<RegisterPage />} />
           <Route path="/loginpage" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/dashboard"
             element={
@@ -59,6 +62,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings/:id"
+            element={
+              <ProtectedRoute>
+                <BookingDetails />
               </ProtectedRoute>
             }
           />

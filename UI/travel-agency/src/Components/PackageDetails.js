@@ -51,6 +51,7 @@ const PackageDetails = () => {
 
   const seats = valueOf(tripPackage, "available_Seats", "Available_Seats");
   const price = valueOf(tripPackage, "price_Per_Person", "Price_Per_Person");
+  const isSoldOut = seats < 1;
 
   return (
     <section>
@@ -92,7 +93,7 @@ const PackageDetails = () => {
               <dt>Price per person</dt>
               <dd>{money(price)}</dd>
               <dt>Available seats</dt>
-              <dd>{seats}</dd>
+              <dd>{isSoldOut ? "Sold out" : seats}</dd>
               <dt>Total</dt>
               <dd>{money(Number(price) * Number(travelers || 1))}</dd>
             </dl>
@@ -109,8 +110,8 @@ const PackageDetails = () => {
                   value={travelers}
                   onChange={(event) => setTravelers(event.target.value)}
                 />
-                <button type="button" className="btn btn-primary w-100" disabled={seats < 1} onClick={handleBook}>
-                  Book this package
+                <button type="button" className="btn btn-primary w-100" disabled={isSoldOut} onClick={handleBook}>
+                  {isSoldOut ? "Sold out" : "Book this package"}
                 </button>
               </div>
             ) : (

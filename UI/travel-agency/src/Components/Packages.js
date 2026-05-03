@@ -138,6 +138,7 @@ const Packages = () => {
           const packageId = valueOf(tripPackage, "package_Id", "Package_Id");
           const seats = valueOf(tripPackage, "available_Seats", "Available_Seats");
           const price = valueOf(tripPackage, "price_Per_Person", "Price_Per_Person");
+          const isSoldOut = seats < 1;
 
           return (
             <div className="col-md-6 col-lg-4" key={packageId}>
@@ -166,7 +167,7 @@ const Packages = () => {
                     </div>
                     <div>
                       <dt>Seats</dt>
-                      <dd>{seats}</dd>
+                      <dd>{isSoldOut ? "Sold out" : seats}</dd>
                     </div>
                   </dl>
 
@@ -185,8 +186,8 @@ const Packages = () => {
                           onChange={(event) => handleTravelerChange(packageId, event.target.value)}
                           aria-label="Travelers"
                         />
-                        <button className="btn btn-primary" disabled={seats < 1} onClick={() => handleBook(tripPackage)}>
-                          Book
+                        <button className="btn btn-primary" disabled={isSoldOut} onClick={() => handleBook(tripPackage)}>
+                          {isSoldOut ? "Sold out" : "Book"}
                         </button>
                       </div>
                     ) : (

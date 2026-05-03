@@ -69,6 +69,9 @@ const LoginPage = () => {
             <p className="mt-3 mb-0">
               Don&apos;t have an account? <Link to="/registerpage">Register here</Link>
             </p>
+            <p className="mt-2 mb-0">
+              Forgot your password? <Link to="/forgot-password">Reset it here</Link>
+            </p>
           </div>
         </div>
       </div>

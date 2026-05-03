@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { cancelBooking, getMyBookings, getStoredAuth } from "../services/api";
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
@@ -93,7 +93,10 @@ const MyBookings = () => {
                         <span className="badge text-bg-primary">{bookingStatus}</span>
                       </td>
                       <td>
-                        <button type="button" className="btn btn-outline-danger btn-sm" disabled={bookingStatus === "Cancelled"} onClick={() => handleCancel(bookingId)}>
+                        <Link to={`/bookings/${bookingId}`} className="btn btn-outline-primary btn-sm me-2">
+                          Details
+                        </Link>
+                        <button type="button" className="btn btn-outline-danger btn-sm" disabled={bookingStatus !== "Pending"} onClick={() => handleCancel(bookingId)}>
                           Cancel
                         </button>
                       </td>

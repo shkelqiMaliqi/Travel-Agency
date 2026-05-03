@@ -15,6 +15,13 @@ BEGIN
 END
 GO
 
+IF COL_LENGTH('dbo.Contact_Form', 'C_IsArchived') IS NULL
+BEGIN
+    ALTER TABLE dbo.Contact_Form
+    ADD C_IsArchived BIT NOT NULL CONSTRAINT DF_ContactForm_IsArchived DEFAULT (0);
+END
+GO
+
 IF OBJECT_ID('dbo.Hotels', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Hotels (
@@ -82,6 +89,21 @@ BEGIN
 END
 GO
 
+IF NOT EXISTS (SELECT 1 FROM dbo.Places WHERE Place_Name = 'Maldives')
+BEGIN
+    INSERT INTO dbo.Places (Place_Name, Place_Description, Place_Url)
+    VALUES ('Maldives', 'Enjoy luxury island escapes with crystal-clear water and white sand.', 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Hotels WHERE Hotel_Name = 'Crystal Lagoon Villas')
+BEGIN
+    INSERT INTO dbo.Hotels (Place_Id, Hotel_Name, Hotel_Description, Hotel_Stars, Hotel_Url)
+    SELECT Place_Id, 'Crystal Lagoon Villas', 'Private island villas with beach access and turquoise lagoon views.', 5, 'https://images.unsplash.com/photo-1582719508461-905c673771fd'
+    FROM dbo.Places WHERE Place_Name = 'Maldives';
+END
+GO
+
 IF NOT EXISTS (SELECT 1 FROM dbo.Travel_Packages)
 BEGIN
     INSERT INTO dbo.Travel_Packages
@@ -96,6 +118,16 @@ BEGIN
     FROM dbo.Places p INNER JOIN dbo.Hotels h ON h.Place_Id = p.Place_Id
     WHERE p.Place_Name = 'Bali' AND h.Hotel_Name = 'Ubud Garden Resort';
 
+    INSERT INTO dbo.Travel_Packages
+        (Place_Id, Hotel_Id, Package_Name, Package_Description, Price_Per_Person, Start_Date, End_Date, Available_Seats, Package_Url)
+    SELECT p.Place_Id, h.Hotel_Id, 'Maldives Island Retreat', 'Six nights in a lagoon villa with breakfast, boat transfer, and snorkeling tour.', 1499.00, '2026-08-02', '2026-08-08', 12, 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd'
+    FROM dbo.Places p INNER JOIN dbo.Hotels h ON h.Place_Id = p.Place_Id
+    WHERE p.Place_Name = 'Maldives' AND h.Hotel_Name = 'Crystal Lagoon Villas';
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Travel_Packages WHERE Package_Name = 'Maldives Island Retreat')
+BEGIN
     INSERT INTO dbo.Travel_Packages
         (Place_Id, Hotel_Id, Package_Name, Package_Description, Price_Per_Person, Start_Date, End_Date, Available_Seats, Package_Url)
     SELECT p.Place_Id, h.Hotel_Id, 'Maldives Island Retreat', 'Six nights in a lagoon villa with breakfast, boat transfer, and snorkeling tour.', 1499.00, '2026-08-02', '2026-08-08', 12, 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd'
