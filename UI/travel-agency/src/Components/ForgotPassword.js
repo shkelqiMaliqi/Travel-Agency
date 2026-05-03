@@ -1,15 +1,29 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { forgotPassword } from "../services/api";
+import { requestPasswordReset, resetPassword } from "../services/api";
+
+const passwordRulesText = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
 
 const initialForm = {
   email: "",
+  resetCode: "",
   newPassword: "",
   confirmPassword: "",
 };
 
+function isPasswordValid(password) {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
 const ForgotPassword = () => {
   const [formData, setFormData] = useState(initialForm);
+  const [generatedCode, setGeneratedCode] = useState("");
   const [status, setStatus] = useState({ loading: false, error: "", success: "" });
 
   const handleChange = (event) => {
@@ -17,14 +31,35 @@ const ForgotPassword = () => {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleRequestCode = async (event) => {
     event.preventDefault();
     setStatus({ loading: true, error: "", success: "" });
 
     try {
-      const response = await forgotPassword(formData);
+      const response = await requestPasswordReset({ email: formData.email });
+      setGeneratedCode(response.resetCode || "");
+      setFormData((current) => ({ ...current, resetCode: response.resetCode || "" }));
+      setStatus({ loading: false, error: "", success: response.message || "Reset code generated." });
+    } catch (error) {
+      setStatus({ loading: false, error: error.message, success: "" });
+    }
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+
+    if (!isPasswordValid(formData.newPassword)) {
+      setStatus({ loading: false, error: passwordRulesText, success: "" });
+      return;
+    }
+
+    setStatus({ loading: true, error: "", success: "" });
+
+    try {
+      const response = await resetPassword(formData);
       setStatus({ loading: false, error: "", success: response.message || "Password reset successfully." });
       setFormData(initialForm);
+      setGeneratedCode("");
     } catch (error) {
       setStatus({ loading: false, error: error.message, success: "" });
     }
@@ -32,24 +67,45 @@ const ForgotPassword = () => {
 
   return (
     <div className="row justify-content-center">
-      <div className="col-lg-5">
+      <div className="col-lg-6">
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h2 className="mb-3">Reset password</h2>
-            <p className="text-muted">Enter your account email and choose a new password.</p>
+            <p className="text-muted">Request a reset code, copy it, then enter the code with your new password.</p>
 
-            <form onSubmit={handleSubmit} className="row g-3">
+            <form onSubmit={handleRequestCode} className="row g-3 mb-4">
               <div className="col-12">
                 <label htmlFor="email" className="form-label">
-                  Email
+                  Account email
                 </label>
                 <input id="email" name="email" type="email" className="form-control" value={formData.email} onChange={handleChange} required />
+              </div>
+              <div className="col-12 d-grid">
+                <button type="submit" className="btn btn-outline-primary" disabled={status.loading || !formData.email}>
+                  {status.loading ? "Generating code..." : "Generate reset code"}
+                </button>
+              </div>
+            </form>
+
+            {generatedCode ? (
+              <div className="alert alert-info">
+                Reset code: <strong>{generatedCode}</strong>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleResetPassword} className="row g-3">
+              <div className="col-12">
+                <label htmlFor="resetCode" className="form-label">
+                  Reset code
+                </label>
+                <input id="resetCode" name="resetCode" className="form-control" value={formData.resetCode} onChange={handleChange} required />
               </div>
               <div className="col-12">
                 <label htmlFor="newPassword" className="form-label">
                   New password
                 </label>
                 <input id="newPassword" name="newPassword" type="password" className="form-control" value={formData.newPassword} onChange={handleChange} required />
+                <div className="form-text">{passwordRulesText}</div>
               </div>
               <div className="col-12">
                 <label htmlFor="confirmPassword" className="form-label">

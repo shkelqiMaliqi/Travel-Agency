@@ -13,11 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+304c603f94038522167d98752fddf0a58bf94c38")]
-=======
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1fdc2b8625583b8c130820614a223e28cd0fbe1e")]
->>>>>>> 4957f325644af61bc5d5d2d5b9d6cf30bacbe9c4
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8da72753a1f6d6b5b8342f892d526cac0b1a792b")]
 [assembly: System.Reflection.AssemblyProductAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

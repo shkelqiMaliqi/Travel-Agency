@@ -34,6 +34,11 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Passwords do not match." });
         }
 
+        if (!PasswordPolicy.IsValid(request.Password))
+        {
+            return BadRequest(new { message = PasswordPolicy.Message });
+        }
+
         const string existsQuery = "SELECT COUNT(1) FROM dbo.Users WHERE U_Email = @U_Email OR U_Username = @U_Username";
         var existingUsers = ExecuteScalar(existsQuery,
             new SqlParameter("@U_Email", request.U_Email),
@@ -128,17 +133,78 @@ public class AuthController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
+        const string userQuery = "SELECT COUNT(1) FROM dbo.Users WHERE U_Email = @U_Email";
+        var existingUsers = ExecuteScalar(userQuery, new SqlParameter("@U_Email", request.Email));
+
+        if (existingUsers == 0)
+        {
+            return NotFound(new { message = "No account exists with this email." });
+        }
+
+        var resetCode = Random.Shared.Next(100000, 999999).ToString();
+        var resetCodeHash = PasswordHasher.Hash(resetCode);
+        var expiresAtUtc = DateTime.UtcNow.AddMinutes(15);
+
+        const string expireOldCodesQuery = @"
+            UPDATE dbo.Password_Reset_Codes
+            SET Is_Used = 1
+            WHERE U_Email = @U_Email AND Is_Used = 0";
+
+        ExecuteNonQuery(expireOldCodesQuery, new SqlParameter("@U_Email", request.Email));
+
+        const string insertCodeQuery = @"
+            INSERT INTO dbo.Password_Reset_Codes (U_Email, Reset_Code_Hash, Expires_At, Is_Used, Created_At)
+            VALUES (@U_Email, @Reset_Code_Hash, @Expires_At, 0, SYSUTCDATETIME())";
+
+        ExecuteNonQuery(insertCodeQuery,
+            new SqlParameter("@U_Email", request.Email),
+            new SqlParameter("@Reset_Code_Hash", resetCodeHash),
+            new SqlParameter("@Expires_At", expiresAtUtc));
+
+        return Ok(new
+        {
+            message = "Reset code generated. Copy this code and use it to set a new password.",
+            resetCode,
+            expiresAtUtc
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public IActionResult ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         if (!string.Equals(request.NewPassword, request.ConfirmPassword, StringComparison.Ordinal))
         {
             return BadRequest(new { message = "Passwords do not match." });
         }
 
-        const string existsQuery = "SELECT COUNT(1) FROM dbo.Users WHERE U_Email = @U_Email";
-        var existingUsers = ExecuteScalar(existsQuery, new SqlParameter("@U_Email", request.Email));
-
-        if (existingUsers == 0)
+        if (!PasswordPolicy.IsValid(request.NewPassword))
         {
-            return NotFound(new { message = "No account exists with this email." });
+            return BadRequest(new { message = PasswordPolicy.Message });
+        }
+
+        var resetCodeHash = PasswordHasher.Hash(request.ResetCode.Trim());
+        const string codeQuery = @"
+            SELECT TOP 1 Reset_Id
+            FROM dbo.Password_Reset_Codes
+            WHERE U_Email = @U_Email
+              AND Reset_Code_Hash = @Reset_Code_Hash
+              AND Is_Used = 0
+              AND Expires_At >= SYSUTCDATETIME()
+            ORDER BY Created_At DESC";
+
+        var resetId = ExecuteScalar(codeQuery,
+            new SqlParameter("@U_Email", request.Email),
+            new SqlParameter("@Reset_Code_Hash", resetCodeHash));
+
+        if (resetId == 0)
+        {
+            return BadRequest(new { message = "Reset code is invalid or expired." });
         }
 
         var hashedPassword = PasswordHasher.Hash(request.NewPassword);
@@ -151,6 +217,9 @@ public class AuthController : ControllerBase
         ExecuteNonQuery(updateQuery,
             new SqlParameter("@U_Email", request.Email),
             new SqlParameter("@U_Password", hashedPassword));
+
+        const string markCodeUsedQuery = "UPDATE dbo.Password_Reset_Codes SET Is_Used = 1 WHERE Reset_Id = @Reset_Id";
+        ExecuteNonQuery(markCodeUsedQuery, new SqlParameter("@Reset_Id", resetId));
 
         return Ok(new { message = "Password reset successfully. You can now sign in." });
     }

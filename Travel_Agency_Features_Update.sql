@@ -73,6 +73,19 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('dbo.Password_Reset_Codes', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Password_Reset_Codes (
+        Reset_Id INT PRIMARY KEY IDENTITY(1,1),
+        U_Email VARCHAR(255) NOT NULL,
+        Reset_Code_Hash VARCHAR(255) NOT NULL,
+        Expires_At DATETIME2 NOT NULL,
+        Is_Used BIT NOT NULL CONSTRAINT DF_ResetCodes_IsUsed DEFAULT (0),
+        Created_At DATETIME2 NOT NULL CONSTRAINT DF_ResetCodes_CreatedAt DEFAULT (SYSUTCDATETIME())
+    );
+END
+GO
+
 IF NOT EXISTS (SELECT 1 FROM dbo.Hotels)
 BEGIN
     INSERT INTO dbo.Hotels (Place_Id, Hotel_Name, Hotel_Description, Hotel_Stars, Hotel_Url)
