@@ -14,7 +14,10 @@ public class TravelPackage
     public int Hotel_Id { get; set; }
 
     public string? Place_Name { get; set; }
+    public string? Place_Description { get; set; }
     public string? Hotel_Name { get; set; }
+    public string? Hotel_Description { get; set; }
+    public int? Hotel_Stars { get; set; }
 
     [Required]
     [StringLength(150)]
