@@ -221,6 +221,46 @@
   grid-template-columns: 96px 1fr;
 }
 
+.package-detail-layout {
+  align-items: stretch;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+}
+
+.package-detail-main,
+.package-detail-summary {
+  display: flex;
+  min-width: 0;
+}
+
+.package-detail-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.package-detail-card .card-img-top {
+  aspect-ratio: 16 / 9;
+  max-height: 420px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.booking-summary-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.booking-summary-image {
+  border-radius: 8px;
+  flex: 1 1 260px;
+  margin-top: 1rem;
+  min-height: 260px;
+  object-fit: cover;
+  width: 100%;
+}
+
 .package-detail-copy {
   display: grid;
   gap: 0.75rem;
@@ -725,6 +765,10 @@ h6 {
   }
 
   .process-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .package-detail-layout {
     grid-template-columns: 1fr;
   }
 

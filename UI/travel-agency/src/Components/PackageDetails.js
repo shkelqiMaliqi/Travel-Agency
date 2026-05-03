@@ -88,6 +88,26 @@ const destinationGuides = {
   },
 };
 
+const bookingSummaryImages = {
+  Bali: "https://images.unsplash.com/photo-1555400038-63f5ba517a47",
+  Barcelona: "https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4",
+  Cairo: "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368",
+  "Cape Town": "https://images.unsplash.com/photo-1580060839134-75a5edca2e99",
+  Dubai: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c",
+  Istanbul: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200",
+  Kyoto: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e",
+  Maldives: "https://images.unsplash.com/photo-1512100356356-de1b84283e18",
+  Marrakech: "https://images.unsplash.com/photo-1539020140153-e8c237112e53",
+  "New York": "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee",
+  Paris: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a",
+  Rome: "https://images.unsplash.com/photo-1552832230-c0197dd311b5",
+  Santorini: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff",
+  Singapore: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd",
+  Sydney: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9",
+  Tokyo: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf",
+  Vancouver: "https://images.unsplash.com/photo-1559511260-66a654ae982a",
+};
+
 const PackageDetails = () => {
   const { id } = useParams();
   const [auth] = useState(() => getStoredAuth());
@@ -143,6 +163,7 @@ const PackageDetails = () => {
   const endDate = valueOf(tripPackage, "end_Date", "End_Date");
   const tripLength = nightsBetween(startDate, endDate);
   const isSoldOut = seats < 1;
+  const summaryImage = bookingSummaryImages[placeName] || "https://images.unsplash.com/photo-1488646953014-85cb44e25828";
 
   return (
     <section>
@@ -160,14 +181,13 @@ const PackageDetails = () => {
       {status.error ? <div className="alert alert-danger">{status.error}</div> : null}
       {status.success ? <div className="alert alert-success">{status.success}</div> : null}
 
-      <div className="row g-4">
-        <div className="col-lg-7">
-          <article className="card shadow-sm">
+      <div className="package-detail-layout">
+        <div className="package-detail-main">
+          <article className="card shadow-sm package-detail-card">
             <img
               src={valueOf(tripPackage, "package_Url", "Package_Url") || "https://via.placeholder.com/900x400?text=Travel+Package"}
               className="card-img-top"
               alt={valueOf(tripPackage, "package_Name", "Package_Name")}
-              style={{ maxHeight: "420px", objectFit: "cover" }}
             />
             <div className="card-body">
               <div className="package-detail-copy">
@@ -198,8 +218,8 @@ const PackageDetails = () => {
           </article>
         </div>
 
-        <div className="col-lg-5">
-          <div className="dashboard-panel">
+        <aside className="package-detail-summary">
+          <div className="dashboard-panel booking-summary-panel">
             <h2>Booking summary</h2>
             <dl className="profile-list">
               <dt>Dates</dt>
@@ -239,8 +259,13 @@ const PackageDetails = () => {
                 Login to book
               </Link>
             )}
+            <img
+              src={summaryImage}
+              className="booking-summary-image"
+              alt={placeName}
+            />
           </div>
-        </div>
+        </aside>
       </div>
     </section>
   );
