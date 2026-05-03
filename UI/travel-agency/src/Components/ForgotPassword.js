@@ -66,7 +66,6 @@ const ForgotPassword = () => {
   };
 
   return (
-<<<<<<< HEAD
     <div className="auth-layout">
       <aside className="auth-aside">
         <p className="dashboard-kicker">Account help</p>
@@ -74,10 +73,6 @@ const ForgotPassword = () => {
         <p>Use your account email and choose a fresh password to regain access.</p>
       </aside>
       <div>
-=======
-    <div className="row justify-content-center">
-      <div className="col-lg-6">
->>>>>>> f8072e85f68938e07d84cd8fe8cd3d14b1b6d078
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h2 className="mb-3">Reset password</h2>

@@ -13,23 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a7e14e549f32c4ecc51d5d7e7743c1cad8006d9f")]
-=======
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8da72753a1f6d6b5b8342f892d526cac0b1a792b")]
-=======
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4957f325644af61bc5d5d2d5b9d6cf30bacbe9c4")]
-=======
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+304c603f94038522167d98752fddf0a58bf94c38")]
-=======
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1fdc2b8625583b8c130820614a223e28cd0fbe1e")]
->>>>>>> 4957f325644af61bc5d5d2d5b9d6cf30bacbe9c4
->>>>>>> 8da72753a1f6d6b5b8342f892d526cac0b1a792b
->>>>>>> 5dbbe80d356dd16ef947311fee7fd13a0612b905
->>>>>>> f8072e85f68938e07d84cd8fe8cd3d14b1b6d078
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5c91e6c066624cd7ae075abc411ef2cb2a76a059")]
 [assembly: System.Reflection.AssemblyProductAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Travel Agency Portal")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
