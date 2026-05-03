@@ -119,6 +119,42 @@ public class AuthController : ControllerBase
         return Ok(_jwtTokenService.CreateToken(user));
     }
 
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (!string.Equals(request.NewPassword, request.ConfirmPassword, StringComparison.Ordinal))
+        {
+            return BadRequest(new { message = "Passwords do not match." });
+        }
+
+        const string existsQuery = "SELECT COUNT(1) FROM dbo.Users WHERE U_Email = @U_Email";
+        var existingUsers = ExecuteScalar(existsQuery, new SqlParameter("@U_Email", request.Email));
+
+        if (existingUsers == 0)
+        {
+            return NotFound(new { message = "No account exists with this email." });
+        }
+
+        var hashedPassword = PasswordHasher.Hash(request.NewPassword);
+        const string updateQuery = @"
+            UPDATE dbo.Users
+            SET U_Password = @U_Password,
+                U_RepeatPassword = @U_Password
+            WHERE U_Email = @U_Email";
+
+        ExecuteNonQuery(updateQuery,
+            new SqlParameter("@U_Email", request.Email),
+            new SqlParameter("@U_Password", hashedPassword));
+
+        return Ok(new { message = "Password reset successfully. You can now sign in." });
+    }
+
     private DataTable ExecuteQuery(string query, params SqlParameter[] parameters)
     {
         var table = new DataTable();
@@ -143,5 +179,15 @@ public class AuthController : ControllerBase
         var result = command.ExecuteScalar();
 
         return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+    }
+
+    private int ExecuteNonQuery(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+        command.Parameters.AddRange(parameters);
+
+        connection.Open();
+        return command.ExecuteNonQuery();
     }
 }

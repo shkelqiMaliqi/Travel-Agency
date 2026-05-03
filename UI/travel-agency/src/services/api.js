@@ -70,6 +70,13 @@ export async function loginUser(formData) {
   });
 }
 
+export async function forgotPassword(formData) {
+  return request("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+}
+
 export async function getPlaces(filters = {}) {
   const params = new URLSearchParams();
 

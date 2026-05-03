@@ -7,6 +7,7 @@ import AboutUs from "./Components/AboutUs";
 import ContactUs from "./Components/ContactUs";
 import RegisterPage from "./Components/RegisterPage";
 import LoginPage from "./Components/LoginPage";
+import ForgotPassword from "./Components/ForgotPassword";
 import LoggedIn from "./Components/LoggedIn";
 import Destinations from "./Components/Destinations";
 import Packages from "./Components/Packages";
@@ -28,6 +29,7 @@ function App() {
           <Route path="/contactus" element={<ContactUs />} />
           <Route path="/registerpage" element={<RegisterPage />} />
           <Route path="/loginpage" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/dashboard"
             element={

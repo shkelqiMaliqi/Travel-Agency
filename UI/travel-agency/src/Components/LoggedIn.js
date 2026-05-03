@@ -2,12 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyBookings, getPackages, getPlaces, getStoredAuth } from "../services/api";
 
+const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
+const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
+
 const LoggedIn = () => {
   const [auth] = useState(() => getStoredAuth());
   const [places, setPlaces] = useState([]);
   const [availablePlaces, setAvailablePlaces] = useState(0);
   const [availablePackages, setAvailablePackages] = useState(0);
   const [bookingCount, setBookingCount] = useState(0);
+  const [bookings, setBookings] = useState([]);
+  const [featuredPackages, setFeaturedPackages] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -31,11 +36,13 @@ const LoggedIn = () => {
         .then((response) => {
           if (active) {
             setAvailablePackages(response.length);
+            setFeaturedPackages(response.slice(0, 3));
           }
         })
         .catch(() => {
           if (active) {
             setAvailablePackages(0);
+            setFeaturedPackages([]);
           }
         });
 
@@ -43,11 +50,13 @@ const LoggedIn = () => {
         .then((response) => {
           if (active) {
             setBookingCount(response.length);
+            setBookings(response);
           }
         })
         .catch(() => {
           if (active) {
             setBookingCount(0);
+            setBookings([]);
           }
         });
     }
@@ -68,6 +77,10 @@ const LoggedIn = () => {
   const firstName = auth.name?.split(" ")[0] || auth.name || "Traveler";
   const expiresAt = auth.expiresAtUtc ? new Date(auth.expiresAtUtc).toLocaleString() : "Not available";
   const isAdmin = auth.role?.toLowerCase() === "admin";
+  const pendingBookings = bookings.filter((booking) => valueOf(booking, "booking_Status", "Booking_Status") === "Pending").length;
+  const confirmedBookings = bookings.filter((booking) => valueOf(booking, "booking_Status", "Booking_Status") === "Confirmed").length;
+  const cancelledBookings = bookings.filter((booking) => valueOf(booking, "booking_Status", "Booking_Status") === "Cancelled").length;
+  const upcomingBooking = bookings.find((booking) => valueOf(booking, "booking_Status", "Booking_Status") !== "Cancelled");
 
   return (
     <section className="user-dashboard">
@@ -99,9 +112,9 @@ const LoggedIn = () => {
       <div className="row g-4 mb-4">
         <div className="col-md-4">
           <div className="dashboard-stat">
-            <span className="stat-label">Saved trips</span>
+            <span className="stat-label">Bookings</span>
             <strong>{bookingCount}</strong>
-            <small>Your active bookings</small>
+            <small>{pendingBookings} pending, {confirmedBookings} confirmed</small>
           </div>
         </div>
         <div className="col-md-4">
@@ -120,8 +133,63 @@ const LoggedIn = () => {
         </div>
       </div>
 
+      <div className="row g-4 mb-4">
+        <div className="col-md-4">
+          <div className="dashboard-stat">
+            <span className="stat-label">Pending</span>
+            <strong>{pendingBookings}</strong>
+            <small>Waiting for admin approval</small>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="dashboard-stat">
+            <span className="stat-label">Confirmed</span>
+            <strong>{confirmedBookings}</strong>
+            <small>Approved trips</small>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="dashboard-stat">
+            <span className="stat-label">Cancelled</span>
+            <strong>{cancelledBookings}</strong>
+            <small>Closed bookings</small>
+          </div>
+        </div>
+      </div>
+
       <div className="row g-4">
         <div className="col-lg-8">
+          <div className="dashboard-panel mb-4">
+            <div className="panel-heading">
+              <div>
+                <h2>Upcoming booking</h2>
+                <p className="text-muted mb-0">Your latest active trip request.</p>
+              </div>
+              <Link to="/my-bookings" className="btn btn-outline-primary btn-sm">
+                View bookings
+              </Link>
+            </div>
+
+            {upcomingBooking ? (
+              <article className="destination-row">
+                <img src="https://via.placeholder.com/120x90?text=Booking" alt={valueOf(upcomingBooking, "package_Name", "Package_Name")} />
+                <div>
+                  <h3>{valueOf(upcomingBooking, "package_Name", "Package_Name")}</h3>
+                  <p>
+                    {valueOf(upcomingBooking, "place_Name", "Place_Name")} - {valueOf(upcomingBooking, "hotel_Name", "Hotel_Name")} - {money(valueOf(upcomingBooking, "total_Price", "Total_Price"))}
+                  </p>
+                </div>
+                <div className="destination-actions">
+                  <Link to={`/bookings/${valueOf(upcomingBooking, "booking_Id", "Booking_Id")}`} className="btn btn-outline-primary btn-sm">
+                    Details
+                  </Link>
+                </div>
+              </article>
+            ) : (
+              <div className="empty-state">No active booking yet. Choose a package to start planning.</div>
+            )}
+          </div>
+
           <div className="dashboard-panel">
             <div className="panel-heading">
               <div>
@@ -154,6 +222,44 @@ const LoggedIn = () => {
               )}
             </div>
           </div>
+
+          <div className="dashboard-panel mt-4">
+            <div className="panel-heading">
+              <div>
+                <h2>Package options</h2>
+                <p className="text-muted mb-0">Quick access to bookable travel packages.</p>
+              </div>
+              <Link to="/packages" className="btn btn-outline-primary btn-sm">
+                View all
+              </Link>
+            </div>
+
+            <div className="destination-list">
+              {featuredPackages.length > 0 ? (
+                featuredPackages.map((tripPackage) => (
+                  <article className="destination-row" key={valueOf(tripPackage, "package_Id", "Package_Id")}>
+                    <img
+                      src={valueOf(tripPackage, "package_Url", "Package_Url") || "https://via.placeholder.com/120x90?text=Package"}
+                      alt={valueOf(tripPackage, "package_Name", "Package_Name")}
+                    />
+                    <div>
+                      <h3>{valueOf(tripPackage, "package_Name", "Package_Name")}</h3>
+                      <p>
+                        {valueOf(tripPackage, "place_Name", "Place_Name")} - {money(valueOf(tripPackage, "price_Per_Person", "Price_Per_Person"))} / person
+                      </p>
+                    </div>
+                    <div className="destination-actions">
+                      <Link to={`/packages/${valueOf(tripPackage, "package_Id", "Package_Id")}`} className="btn btn-outline-primary btn-sm">
+                        Details
+                      </Link>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="empty-state">No packages are available yet.</div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="col-lg-4">
@@ -166,6 +272,8 @@ const LoggedIn = () => {
               <dd>{auth.email}</dd>
               <dt>Session expires</dt>
               <dd>{expiresAt}</dd>
+              <dt>Account role</dt>
+              <dd className="text-capitalize">{auth.role}</dd>
             </dl>
           </div>
 
