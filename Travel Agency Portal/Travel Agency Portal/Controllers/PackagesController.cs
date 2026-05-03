@@ -21,7 +21,9 @@ public class PackagesController : ControllerBase
     public IActionResult GetPackages([FromQuery] string? search = null, [FromQuery] int? placeId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null)
     {
         var query = @"
-            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id, p.Place_Name, h.Hotel_Name,
+            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
+                   p.Place_Name, p.Place_Description,
+                   h.Hotel_Name, h.Hotel_Description, h.Hotel_Stars,
                    tp.Package_Name, tp.Package_Description, tp.Price_Per_Person,
                    tp.Start_Date, tp.End_Date, tp.Available_Seats, tp.Package_Url
             FROM dbo.Travel_Packages tp
@@ -70,7 +72,9 @@ public class PackagesController : ControllerBase
     public IActionResult GetPackage(int id)
     {
         const string query = @"
-            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id, p.Place_Name, h.Hotel_Name,
+            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
+                   p.Place_Name, p.Place_Description,
+                   h.Hotel_Name, h.Hotel_Description, h.Hotel_Stars,
                    tp.Package_Name, tp.Package_Description, tp.Price_Per_Person,
                    tp.Start_Date, tp.End_Date, tp.Available_Seats, tp.Package_Url
             FROM dbo.Travel_Packages tp
@@ -201,7 +205,10 @@ public class PackagesController : ControllerBase
                 Place_Id = reader.GetInt32(reader.GetOrdinal("Place_Id")),
                 Hotel_Id = reader.GetInt32(reader.GetOrdinal("Hotel_Id")),
                 Place_Name = reader.GetString(reader.GetOrdinal("Place_Name")),
+                Place_Description = reader.GetString(reader.GetOrdinal("Place_Description")),
                 Hotel_Name = reader.GetString(reader.GetOrdinal("Hotel_Name")),
+                Hotel_Description = reader.GetString(reader.GetOrdinal("Hotel_Description")),
+                Hotel_Stars = reader.GetInt32(reader.GetOrdinal("Hotel_Stars")),
                 Package_Name = reader.GetString(reader.GetOrdinal("Package_Name")),
                 Package_Description = reader.GetString(reader.GetOrdinal("Package_Description")),
                 Price_Per_Person = reader.GetDecimal(reader.GetOrdinal("Price_Per_Person")),
