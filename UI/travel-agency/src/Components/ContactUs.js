@@ -47,12 +47,24 @@ const ContactUs = () => {
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-7">
+    <div className="contact-layout">
+      <aside className="dashboard-panel contact-info">
+        <p className="dashboard-kicker">Support</p>
+        <h1>We are here before and after booking.</h1>
+        <p>Send a question about a package, destination, reservation status, or special travel request.</p>
+        <dl className="profile-list">
+          <dt>Typical response</dt>
+          <dd>Within one business day</dd>
+          <dt>Best for</dt>
+          <dd>Booking questions, destination advice, profile help</dd>
+        </dl>
+      </aside>
+      <div>
         <div className="card shadow-sm">
           <div className="card-body p-4">
-            <h2>Contact us</h2>
-            <p className="text-muted">Send a message through the API-backed contact form.</p>
+            <p className="dashboard-kicker">Contact</p>
+            <h2>Talk to the travel team</h2>
+            <p className="text-muted">Ask about destinations, packages, bookings, or changes to an upcoming trip.</p>
 
             <form onSubmit={handleSubmit} className="row g-3">
               <div className="col-md-6">

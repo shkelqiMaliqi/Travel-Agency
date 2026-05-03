@@ -29,8 +29,13 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-5">
+    <div className="auth-layout">
+      <aside className="auth-aside">
+        <p className="dashboard-kicker">Welcome back</p>
+        <h1>Pick up your travel plans where you left off.</h1>
+        <p>Sign in to book packages, review reservations, and manage your profile.</p>
+      </aside>
+      <div>
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h2 className="mb-3">Welcome back</h2>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { clearAuth, getStoredAuth } from "./services/api";
 
 export default function Navbar() {
@@ -13,10 +13,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <nav className="navbar navbar-expand-lg navbar-dark app-navbar">
       <div className="container">
-        <Link to="/" className="navbar-brand fw-semibold">
-          Travel Agency
+        <Link to="/" className="navbar-brand">
+          <span className="brand-mark">TA</span>
+          <span>Travel Agency</span>
         </Link>
         <button
           className="navbar-toggler"
@@ -37,33 +38,33 @@ export default function Navbar() {
             <CustomLink to="/packages">Packages</CustomLink>
             <CustomLink to="/contactus">Contact</CustomLink>
           </ul>
-          <div className="d-flex gap-2">
+          <div className="nav-actions">
             {auth ? (
               <>
                 {isAdmin ? (
-                  <Link to="/admin" className="btn btn-warning btn-sm">
+                  <Link to="/admin" className="btn btn-warning btn-sm nav-cta">
                     Admin
                   </Link>
                 ) : null}
-                <Link to="/dashboard" className="btn btn-light btn-sm">
+                <Link to="/dashboard" className="btn btn-light btn-sm nav-cta">
                   Dashboard
                 </Link>
-                <Link to="/profile" className="btn btn-outline-light btn-sm">
+                <Link to="/profile" className="btn btn-outline-light btn-sm nav-cta">
                   Profile
                 </Link>
-                <Link to="/my-bookings" className="btn btn-outline-light btn-sm">
+                <Link to="/my-bookings" className="btn btn-outline-light btn-sm nav-cta">
                   Bookings
                 </Link>
-                <button type="button" className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+                <button type="button" className="btn btn-outline-light btn-sm nav-cta" onClick={handleLogout}>
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link to="/loginpage" className="btn btn-light btn-sm">
+                <Link to="/loginpage" className="btn btn-light btn-sm nav-cta">
                   Login
                 </Link>
-                <Link to="/registerpage" className="btn btn-outline-light btn-sm">
+                <Link to="/registerpage" className="btn btn-outline-light btn-sm nav-cta">
                   Register
                 </Link>
               </>
@@ -78,9 +79,9 @@ export default function Navbar() {
 function CustomLink({ to, children }) {
   return (
     <li className="nav-item">
-      <Link to={to} className="nav-link">
+      <NavLink to={to} end={to === "/"} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
         {children}
-      </Link>
+      </NavLink>
     </li>
   );
 }

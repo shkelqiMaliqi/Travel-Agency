@@ -51,9 +51,12 @@ const Destinations = () => {
 
   return (
     <section>
-      <div className="mb-4">
-        <h1 className="mb-2">Destinations</h1>
-        <p className="text-muted">Explore destinations loaded directly from the Travel Agency API.</p>
+      <div className="dashboard-header">
+        <div>
+          <p className="dashboard-kicker">Travel catalog</p>
+          <h1>Destinations</h1>
+          <p className="text-muted mb-0">Explore cities, islands, beaches, historic routes, and nature escapes curated for your next trip.</p>
+        </div>
       </div>
 
       <form className="dashboard-panel mb-4" onSubmit={handleSearch}>

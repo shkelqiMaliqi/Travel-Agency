@@ -31,8 +31,13 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-5">
+    <div className="auth-layout">
+      <aside className="auth-aside">
+        <p className="dashboard-kicker">Account help</p>
+        <h1>Reset your password and get back to planning.</h1>
+        <p>Use your account email and choose a fresh password to regain access.</p>
+      </aside>
+      <div>
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h2 className="mb-3">Reset password</h2>

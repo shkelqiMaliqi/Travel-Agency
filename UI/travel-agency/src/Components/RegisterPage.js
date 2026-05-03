@@ -37,8 +37,13 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-6">
+    <div className="auth-layout auth-layout-wide">
+      <aside className="auth-aside">
+        <p className="dashboard-kicker">Join Travel Agency</p>
+        <h1>Create an account for easier booking.</h1>
+        <p>Save your details once, reserve packages faster, and keep all trip requests in one dashboard.</p>
+      </aside>
+      <div>
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h2 className="mb-3">Create your account</h2>
