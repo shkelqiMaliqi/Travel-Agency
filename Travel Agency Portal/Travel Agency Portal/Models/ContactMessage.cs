@@ -31,5 +31,7 @@ public class ContactMessage
 
     public bool C_IsRead { get; set; }
 
+    public bool C_IsArchived { get; set; }
+
     public DateTime C_CreatedAt { get; set; }
 }

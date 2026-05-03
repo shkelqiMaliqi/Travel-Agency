@@ -26,8 +26,8 @@ public class ContactController : ControllerBase
         }
 
         const string query = @"
-            INSERT INTO dbo.Contact_Form (C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id, C_IsRead, C_CreatedAt)
-            VALUES (@C_Name, @C_Surname, @C_Email, @C_Subject, @C_Message, @U_Id, 0, SYSUTCDATETIME())";
+            INSERT INTO dbo.Contact_Form (C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id, C_IsRead, C_IsArchived, C_CreatedAt)
+            VALUES (@C_Name, @C_Surname, @C_Email, @C_Subject, @C_Message, @U_Id, 0, 0, SYSUTCDATETIME())";
 
         using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
         using var command = new SqlCommand(query, connection);
@@ -50,8 +50,9 @@ public class ContactController : ControllerBase
     public IActionResult GetMessages()
     {
         const string query = @"
-            SELECT C_Id, C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id, C_IsRead, C_CreatedAt
+            SELECT C_Id, C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id, C_IsRead, C_IsArchived, C_CreatedAt
             FROM dbo.Contact_Form
+            WHERE C_IsArchived = 0
             ORDER BY C_CreatedAt DESC, C_Id DESC";
 
         var messages = new List<ContactMessage>();
@@ -72,6 +73,7 @@ public class ContactController : ControllerBase
                 C_Message = reader.GetString(reader.GetOrdinal("C_Message")),
                 U_Id = reader.IsDBNull(reader.GetOrdinal("U_Id")) ? null : reader.GetInt32(reader.GetOrdinal("U_Id")),
                 C_IsRead = reader.GetBoolean(reader.GetOrdinal("C_IsRead")),
+                C_IsArchived = reader.GetBoolean(reader.GetOrdinal("C_IsArchived")),
                 C_CreatedAt = reader.GetDateTime(reader.GetOrdinal("C_CreatedAt"))
             });
         }
@@ -92,5 +94,35 @@ public class ContactController : ControllerBase
         var rows = command.ExecuteNonQuery();
 
         return rows > 0 ? Ok(new { message = "Message marked as read." }) : NotFound();
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpPut("{id:int}/archive")]
+    public IActionResult ArchiveMessage(int id)
+    {
+        const string query = "UPDATE dbo.Contact_Form SET C_IsArchived = 1 WHERE C_Id = @C_Id";
+        var rows = ExecuteNonQuery(query, new SqlParameter("@C_Id", id));
+
+        return rows > 0 ? Ok(new { message = "Message archived." }) : NotFound();
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpDelete("{id:int}")]
+    public IActionResult DeleteMessage(int id)
+    {
+        const string query = "DELETE FROM dbo.Contact_Form WHERE C_Id = @C_Id";
+        var rows = ExecuteNonQuery(query, new SqlParameter("@C_Id", id));
+
+        return rows > 0 ? Ok(new { message = "Message deleted." }) : NotFound();
+    }
+
+    private int ExecuteNonQuery(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+        command.Parameters.AddRange(parameters);
+
+        connection.Open();
+        return command.ExecuteNonQuery();
     }
 }

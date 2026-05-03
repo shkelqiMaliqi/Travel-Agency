@@ -188,6 +188,12 @@ export async function getMyBookings() {
   });
 }
 
+export async function getBooking(id) {
+  return request(`/bookings/${id}`, {
+    auth: true,
+  });
+}
+
 export async function cancelBooking(id) {
   return request(`/bookings/${id}/cancel`, {
     auth: true,
@@ -263,5 +269,26 @@ export async function markContactMessageRead(id) {
     auth: true,
     method: "PUT",
     body: JSON.stringify({}),
+  });
+}
+
+export async function archiveContactMessage(id) {
+  return request(`/contact/${id}/archive`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function deleteContactMessage(id) {
+  return request(`/contact/${id}`, {
+    auth: true,
+    method: "DELETE",
+  });
+}
+
+export async function getAdminStats() {
+  return request("/stats/admin", {
+    auth: true,
   });
 }

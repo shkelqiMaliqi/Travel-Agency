@@ -4,11 +4,14 @@ import {
   addHotel,
   addPackage,
   addPlace,
+  archiveContactMessage,
   deleteUser,
+  deleteContactMessage,
   deleteHotel,
   deletePackage,
   deletePlace,
   getBookings,
+  getAdminStats,
   getContactMessages,
   getHotels,
   getPackages,
@@ -20,6 +23,7 @@ import {
   updateHotel,
   updatePackage,
   updatePlace,
+  updateUserProfile,
   updateUserRole,
 } from "../services/api";
 
@@ -36,8 +40,16 @@ const initialPackageForm = {
   available_Seats: "",
   package_Url: "",
 };
+const initialUserForm = {
+  u_Name: "",
+  u_Surname: "",
+  u_Email: "",
+  u_Username: "",
+  u_Phone: "",
+};
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
+const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
 
 const AdminDashboard = () => {
   const [auth] = useState(() => getStoredAuth());
@@ -48,12 +60,15 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [contactMessages, setContactMessages] = useState([]);
   const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState(null);
   const [placeForm, setPlaceForm] = useState(initialPlaceForm);
   const [hotelForm, setHotelForm] = useState(initialHotelForm);
   const [packageForm, setPackageForm] = useState(initialPackageForm);
+  const [userForm, setUserForm] = useState(initialUserForm);
   const [editingPlaceId, setEditingPlaceId] = useState(null);
   const [editingHotelId, setEditingHotelId] = useState(null);
   const [editingPackageId, setEditingPackageId] = useState(null);
+  const [editingUserId, setEditingUserId] = useState(null);
   const [status, setStatus] = useState({ loading: false, error: "", success: "" });
 
   const isAdmin = auth?.role?.toLowerCase() === "admin";
@@ -64,14 +79,15 @@ const AdminDashboard = () => {
   );
 
   const loadAll = () => {
-    Promise.all([getPlaces(), getHotels(), getPackages(), getBookings(), getContactMessages(), getUsers()])
-      .then(([placesResponse, hotelsResponse, packagesResponse, bookingsResponse, contactMessagesResponse, usersResponse]) => {
+    Promise.all([getPlaces(), getHotels(), getPackages(), getBookings(), getContactMessages(), getUsers(), getAdminStats()])
+      .then(([placesResponse, hotelsResponse, packagesResponse, bookingsResponse, contactMessagesResponse, usersResponse, statsResponse]) => {
         setPlaces(placesResponse);
         setHotels(hotelsResponse);
         setPackages(packagesResponse);
         setBookings(bookingsResponse);
         setContactMessages(contactMessagesResponse);
         setUsers(usersResponse);
+        setStats(statsResponse);
       })
       .catch((error) => setStatus((current) => ({ ...current, error: error.message })));
   };
@@ -156,6 +172,27 @@ const AdminDashboard = () => {
     }
   };
 
+  const saveUser = async (event) => {
+    event.preventDefault();
+
+    if (!editingUserId) {
+      setStatus({ loading: false, error: "Choose a user to edit first.", success: "" });
+      return;
+    }
+
+    setStatus({ loading: true, error: "", success: "" });
+
+    try {
+      await updateUserProfile(editingUserId, userForm);
+      setUserForm(initialUserForm);
+      setEditingUserId(null);
+      setStatus({ loading: false, error: "", success: "User updated successfully." });
+      loadAll();
+    } catch (error) {
+      setStatus({ loading: false, error: error.message, success: "" });
+    }
+  };
+
   const editPlace = (place) => {
     setEditingPlaceId(valueOf(place, "place_Id", "Place_Id"));
     setPlaceForm({
@@ -189,6 +226,24 @@ const AdminDashboard = () => {
       available_Seats: valueOf(tripPackage, "available_Seats", "Available_Seats") || "",
       package_Url: valueOf(tripPackage, "package_Url", "Package_Url") || "",
     });
+  };
+
+  const editUser = (user) => {
+    setEditingUserId(valueOf(user, "u_Id", "U_Id"));
+    setUserForm({
+      u_Name: valueOf(user, "u_Name", "U_Name") || "",
+      u_Surname: valueOf(user, "u_Surname", "U_Surname") || "",
+      u_Email: valueOf(user, "u_Email", "U_Email") || "",
+      u_Username: valueOf(user, "u_Username", "U_Username") || "",
+      u_Phone: valueOf(user, "u_Phone", "U_Phone") || "",
+    });
+    setActiveTab("users");
+  };
+
+  const cancelUserEdit = () => {
+    setEditingUserId(null);
+    setUserForm(initialUserForm);
+    setStatus({ loading: false, error: "", success: "" });
   };
 
   const removeItem = async (label, action) => {
@@ -228,6 +283,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const archiveMessage = async (messageId) => {
+    setStatus({ loading: true, error: "", success: "" });
+    try {
+      await archiveContactMessage(messageId);
+      setStatus({ loading: false, error: "", success: "Message archived." });
+      loadAll();
+    } catch (error) {
+      setStatus({ loading: false, error: error.message, success: "" });
+    }
+  };
+
   const changeUserRole = async (userId, role) => {
     setStatus({ loading: true, error: "", success: "" });
     try {
@@ -258,6 +324,9 @@ const AdminDashboard = () => {
         <Link to="/packages" className="btn btn-outline-primary">
           View packages
         </Link>
+        <button type="button" className="btn btn-primary" onClick={() => setActiveTab("packages")}>
+          Manage packages
+        </button>
       </div>
 
       <div className="admin-tabs mb-4">
@@ -270,6 +339,47 @@ const AdminDashboard = () => {
 
       {status.error ? <div className="alert alert-danger">{status.error}</div> : null}
       {status.success ? <div className="alert alert-success">{status.success}</div> : null}
+
+      {stats ? (
+        <div className="row g-3 mb-4">
+          <div className="col-md-2">
+            <div className="dashboard-stat">
+              <span className="stat-label">Users</span>
+              <strong>{stats.usersCount}</strong>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="dashboard-stat">
+              <span className="stat-label">Bookings</span>
+              <strong>{stats.bookingsCount}</strong>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="dashboard-stat">
+              <span className="stat-label">Pending</span>
+              <strong>{stats.pendingBookingsCount}</strong>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="dashboard-stat">
+              <span className="stat-label">Packages</span>
+              <strong>{stats.packagesCount}</strong>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="dashboard-stat">
+              <span className="stat-label">Sold out</span>
+              <strong>{stats.soldOutPackagesCount}</strong>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="dashboard-stat">
+              <span className="stat-label">Revenue</span>
+              <strong>{money(stats.revenue)}</strong>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {activeTab === "destinations" ? (
         <div className="row g-4">
@@ -337,6 +447,16 @@ const AdminDashboard = () => {
                 <Input label="Available seats" name="available_Seats" type="number" min="0" value={packageForm.available_Seats} onChange={updateForm(setPackageForm)} required />
                 <Input label="Image URL" name="package_Url" type="url" value={packageForm.package_Url} onChange={updateForm(setPackageForm)} />
                 <SubmitButton loading={status.loading} label={editingPackageId ? "Save package" : "Add package"} />
+                {editingPackageId ? (
+                  <div className="col-12 d-grid">
+                    <button type="button" className="btn btn-outline-secondary" onClick={() => {
+                      setEditingPackageId(null);
+                      setPackageForm(initialPackageForm);
+                    }}>
+                      Cancel edit
+                    </button>
+                  </div>
+                ) : null}
               </form>
             </div>
           </div>
@@ -399,47 +519,75 @@ const AdminDashboard = () => {
       ) : null}
 
       {activeTab === "users" ? (
-        <div className="dashboard-panel">
-          <h2>Users</h2>
-          <div className="table-responsive">
-            <table className="table align-middle">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Username</th>
-                  <th>Phone</th>
-                  <th>Role</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => {
-                  const userId = valueOf(user, "u_Id", "U_Id");
-                  return (
-                    <tr key={userId}>
-                      <td>{valueOf(user, "u_Name", "U_Name")} {valueOf(user, "u_Surname", "U_Surname")}</td>
-                      <td>{valueOf(user, "u_Email", "U_Email")}</td>
-                      <td>{valueOf(user, "u_Username", "U_Username")}</td>
-                      <td>{valueOf(user, "u_Phone", "U_Phone") || "-"}</td>
-                      <td>
-                        <select className="form-select form-select-sm" value={valueOf(user, "u_Type", "U_Type")} onChange={(event) => changeUserRole(userId, event.target.value)}>
-                          <option value="user">user</option>
-                          <option value="admin">admin</option>
-                        </select>
-                      </td>
-                      <td>
-                        <button className="btn btn-outline-danger btn-sm" onClick={() => removeItem("User", () => deleteUser(userId))}>
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <div className="row g-4">
+          <div className="col-lg-5">
+            <div className="dashboard-panel">
+              <h2>{editingUserId ? "Edit user" : "User editor"}</h2>
+              <form className="row g-3" onSubmit={saveUser}>
+                <Input label="Name" name="u_Name" value={userForm.u_Name} onChange={updateForm(setUserForm)} required disabled={!editingUserId} />
+                <Input label="Surname" name="u_Surname" value={userForm.u_Surname} onChange={updateForm(setUserForm)} required disabled={!editingUserId} />
+                <Input label="Email" name="u_Email" type="email" value={userForm.u_Email} onChange={updateForm(setUserForm)} required disabled={!editingUserId} />
+                <Input label="Username" name="u_Username" value={userForm.u_Username} onChange={updateForm(setUserForm)} required disabled={!editingUserId} />
+                <Input label="Phone" name="u_Phone" value={userForm.u_Phone} onChange={updateForm(setUserForm)} disabled={!editingUserId} />
+                <SubmitButton loading={status.loading} label="Save user" />
+                {editingUserId ? (
+                  <div className="col-12 d-grid">
+                    <button type="button" className="btn btn-outline-secondary" onClick={cancelUserEdit}>
+                      Cancel edit
+                    </button>
+                  </div>
+                ) : null}
+              </form>
+            </div>
           </div>
-          {users.length === 0 ? <div className="empty-state">No users found.</div> : null}
+
+          <div className="col-lg-7">
+            <div className="dashboard-panel">
+              <h2>All users</h2>
+              <div className="table-responsive">
+                <table className="table align-middle">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Username</th>
+                      <th>Phone</th>
+                      <th>Role</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => {
+                      const userId = valueOf(user, "u_Id", "U_Id");
+                      return (
+                        <tr key={userId}>
+                          <td>{valueOf(user, "u_Name", "U_Name")} {valueOf(user, "u_Surname", "U_Surname")}</td>
+                          <td>{valueOf(user, "u_Email", "U_Email")}</td>
+                          <td>{valueOf(user, "u_Username", "U_Username")}</td>
+                          <td>{valueOf(user, "u_Phone", "U_Phone") || "-"}</td>
+                          <td>
+                            <select className="form-select form-select-sm" value={valueOf(user, "u_Type", "U_Type")} onChange={(event) => changeUserRole(userId, event.target.value)}>
+                              <option value="user">user</option>
+                              <option value="admin">admin</option>
+                            </select>
+                          </td>
+                          <td>
+                            <button className="btn btn-outline-primary btn-sm me-2" onClick={() => editUser(user)}>
+                              Edit
+                            </button>
+                            <button className="btn btn-outline-danger btn-sm" onClick={() => removeItem("User", () => deleteUser(userId))}>
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {users.length === 0 ? <div className="empty-state">No users found.</div> : null}
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -473,6 +621,12 @@ const AdminDashboard = () => {
                       <td>
                         <button type="button" className="btn btn-outline-primary btn-sm" disabled={isRead} onClick={() => markMessageRead(messageId)}>
                           Mark read
+                        </button>
+                        <button type="button" className="btn btn-outline-secondary btn-sm ms-2" onClick={() => archiveMessage(messageId)}>
+                          Archive
+                        </button>
+                        <button type="button" className="btn btn-outline-danger btn-sm ms-2" onClick={() => removeItem("Message", () => deleteContactMessage(messageId))}>
+                          Delete
                         </button>
                       </td>
                     </tr>

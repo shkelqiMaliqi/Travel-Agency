@@ -12,6 +12,7 @@ import Destinations from "./Components/Destinations";
 import Packages from "./Components/Packages";
 import PackageDetails from "./Components/PackageDetails";
 import MyBookings from "./Components/MyBookings";
+import BookingDetails from "./Components/BookingDetails";
 import Profile from "./Components/Profile";
 import AdminDashboard from "./Admin/Admin_Dashboard";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -59,6 +60,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings/:id"
+            element={
+              <ProtectedRoute>
+                <BookingDetails />
               </ProtectedRoute>
             }
           />
