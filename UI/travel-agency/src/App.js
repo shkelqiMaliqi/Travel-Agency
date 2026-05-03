@@ -10,6 +10,7 @@ import LoginPage from "./Components/LoginPage";
 import LoggedIn from "./Components/LoggedIn";
 import Destinations from "./Components/Destinations";
 import Packages from "./Components/Packages";
+import PackageDetails from "./Components/PackageDetails";
 import MyBookings from "./Components/MyBookings";
 import Profile from "./Components/Profile";
 import AdminDashboard from "./Admin/Admin_Dashboard";
@@ -52,6 +53,7 @@ function App() {
           />
           <Route path="/destinations" element={<Destinations />} />
           <Route path="/packages" element={<Packages />} />
+          <Route path="/packages/:id" element={<PackageDetails />} />
           <Route
             path="/my-bookings"
             element={

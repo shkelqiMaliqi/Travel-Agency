@@ -18,7 +18,56 @@ public class PackagesController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult GetPackages()
+    public IActionResult GetPackages([FromQuery] string? search = null, [FromQuery] int? placeId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null)
+    {
+        var query = @"
+            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id, p.Place_Name, h.Hotel_Name,
+                   tp.Package_Name, tp.Package_Description, tp.Price_Per_Person,
+                   tp.Start_Date, tp.End_Date, tp.Available_Seats, tp.Package_Url
+            FROM dbo.Travel_Packages tp
+            INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
+            INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id";
+
+        var filters = new List<string>();
+        var parameters = new List<SqlParameter>();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            filters.Add("(tp.Package_Name LIKE @Search OR tp.Package_Description LIKE @Search OR p.Place_Name LIKE @Search OR h.Hotel_Name LIKE @Search)");
+            parameters.Add(new SqlParameter("@Search", $"%{search.Trim()}%"));
+        }
+
+        if (placeId.HasValue)
+        {
+            filters.Add("tp.Place_Id = @Place_Id");
+            parameters.Add(new SqlParameter("@Place_Id", placeId.Value));
+        }
+
+        if (minPrice.HasValue)
+        {
+            filters.Add("tp.Price_Per_Person >= @MinPrice");
+            parameters.Add(new SqlParameter("@MinPrice", minPrice.Value));
+        }
+
+        if (maxPrice.HasValue)
+        {
+            filters.Add("tp.Price_Per_Person <= @MaxPrice");
+            parameters.Add(new SqlParameter("@MaxPrice", maxPrice.Value));
+        }
+
+        if (filters.Count > 0)
+        {
+            query += " WHERE " + string.Join(" AND ", filters);
+        }
+
+        query += " ORDER BY tp.Start_Date ASC, tp.Package_Id DESC";
+
+        return Ok(ExecutePackagesQuery(query, parameters.ToArray()));
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{id:int}")]
+    public IActionResult GetPackage(int id)
     {
         const string query = @"
             SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id, p.Place_Name, h.Hotel_Name,
@@ -27,9 +76,10 @@ public class PackagesController : ControllerBase
             FROM dbo.Travel_Packages tp
             INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
             INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id
-            ORDER BY tp.Start_Date ASC, tp.Package_Id DESC";
+            WHERE tp.Package_Id = @Package_Id";
 
-        return Ok(ExecutePackagesQuery(query));
+        var result = ExecutePackagesQuery(query, new SqlParameter("@Package_Id", id));
+        return result.Count > 0 ? Ok(result[0]) : NotFound();
     }
 
     [Authorize(Roles = "admin")]
@@ -44,6 +94,11 @@ public class PackagesController : ControllerBase
         if (package.End_Date.Date < package.Start_Date.Date)
         {
             return BadRequest(new { message = "End date must be after start date." });
+        }
+
+        if (!HotelBelongsToPlace(package.Hotel_Id, package.Place_Id))
+        {
+            return BadRequest(new { message = "Selected hotel does not belong to this destination." });
         }
 
         const string query = @"
@@ -80,6 +135,11 @@ public class PackagesController : ControllerBase
             return BadRequest(new { message = "End date must be after start date." });
         }
 
+        if (!HotelBelongsToPlace(package.Hotel_Id, package.Place_Id))
+        {
+            return BadRequest(new { message = "Selected hotel does not belong to this destination." });
+        }
+
         const string query = @"
             UPDATE dbo.Travel_Packages
             SET Place_Id = @Place_Id,
@@ -112,6 +172,12 @@ public class PackagesController : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult DeletePackage(int id)
     {
+        const string usageQuery = "SELECT COUNT(1) FROM dbo.Bookings WHERE Package_Id = @Package_Id";
+        if (ExecuteScalar(usageQuery, new SqlParameter("@Package_Id", id)) > 0)
+        {
+            return Conflict(new { message = "This package has bookings and cannot be deleted." });
+        }
+
         const string query = "DELETE FROM dbo.Travel_Packages WHERE Package_Id = @Package_Id";
         var rows = ExecuteNonQuery(query, new SqlParameter("@Package_Id", id));
 
@@ -157,5 +223,23 @@ public class PackagesController : ControllerBase
 
         connection.Open();
         return command.ExecuteNonQuery();
+    }
+
+    private bool HotelBelongsToPlace(int hotelId, int placeId)
+    {
+        const string query = "SELECT COUNT(1) FROM dbo.Hotels WHERE Hotel_Id = @Hotel_Id AND Place_Id = @Place_Id";
+        return ExecuteScalar(query, new SqlParameter("@Hotel_Id", hotelId), new SqlParameter("@Place_Id", placeId)) > 0;
+    }
+
+    private int ExecuteScalar(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+        command.Parameters.AddRange(parameters);
+
+        connection.Open();
+        var result = command.ExecuteScalar();
+
+        return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
     }
 }

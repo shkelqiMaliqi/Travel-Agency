@@ -41,6 +41,8 @@ CREATE TABLE dbo.Contact_Form (
     C_Subject VARCHAR(150) NOT NULL,
     C_Message VARCHAR(MAX) NOT NULL,
     U_Id INT NULL,
+    C_IsRead BIT NOT NULL CONSTRAINT DF_ContactForm_IsRead DEFAULT (0),
+    C_CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_ContactForm_CreatedAt DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT FK_ContactForm_User FOREIGN KEY (U_Id) REFERENCES dbo.Users(U_Id)
 );
 GO

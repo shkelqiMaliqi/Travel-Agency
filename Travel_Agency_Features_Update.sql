@@ -1,6 +1,20 @@
 USE Travel_Agency;
 GO
 
+IF COL_LENGTH('dbo.Contact_Form', 'C_IsRead') IS NULL
+BEGIN
+    ALTER TABLE dbo.Contact_Form
+    ADD C_IsRead BIT NOT NULL CONSTRAINT DF_ContactForm_IsRead DEFAULT (0);
+END
+GO
+
+IF COL_LENGTH('dbo.Contact_Form', 'C_CreatedAt') IS NULL
+BEGIN
+    ALTER TABLE dbo.Contact_Form
+    ADD C_CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_ContactForm_CreatedAt DEFAULT (SYSUTCDATETIME());
+END
+GO
+
 IF OBJECT_ID('dbo.Hotels', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Hotels (

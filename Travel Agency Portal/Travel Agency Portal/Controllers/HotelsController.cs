@@ -92,6 +92,12 @@ public class HotelsController : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult DeleteHotel(int id)
     {
+        const string usageQuery = "SELECT COUNT(1) FROM dbo.Travel_Packages WHERE Hotel_Id = @Hotel_Id";
+        if (ExecuteScalar(usageQuery, new SqlParameter("@Hotel_Id", id)) > 0)
+        {
+            return Conflict(new { message = "This hotel is used by packages. Delete those packages first." });
+        }
+
         const string query = "DELETE FROM dbo.Hotels WHERE Hotel_Id = @Hotel_Id";
         var rows = ExecuteNonQuery(query, new SqlParameter("@Hotel_Id", id));
 
@@ -132,5 +138,17 @@ public class HotelsController : ControllerBase
 
         connection.Open();
         return command.ExecuteNonQuery();
+    }
+
+    private int ExecuteScalar(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+        command.Parameters.AddRange(parameters);
+
+        connection.Open();
+        var result = command.ExecuteScalar();
+
+        return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
     }
 }

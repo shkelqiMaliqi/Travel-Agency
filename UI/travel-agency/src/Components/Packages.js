@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { createBooking, getPackages, getStoredAuth } from "../services/api";
+import { createBooking, getPackages, getPlaces, getStoredAuth } from "../services/api";
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
@@ -9,22 +9,47 @@ const date = (value) => (value ? new Date(value).toLocaleDateString() : "");
 const Packages = () => {
   const [auth] = useState(() => getStoredAuth());
   const [packages, setPackages] = useState([]);
+  const [places, setPlaces] = useState([]);
+  const [filters, setFilters] = useState({ search: "", placeId: "", minPrice: "", maxPrice: "" });
+  const [appliedFilters, setAppliedFilters] = useState({ search: "", placeId: "", minPrice: "", maxPrice: "" });
   const [travelersByPackage, setTravelersByPackage] = useState({});
   const [status, setStatus] = useState({ loading: true, error: "", success: "" });
 
-  const loadPackages = () => {
+  const loadPackages = useCallback((nextFilters = appliedFilters) => {
     setStatus((current) => ({ ...current, loading: true }));
-    getPackages()
+    getPackages(nextFilters)
       .then((response) => {
         setPackages(response);
         setStatus({ loading: false, error: "", success: "" });
       })
       .catch((error) => setStatus({ loading: false, error: error.message, success: "" }));
-  };
+  }, [appliedFilters]);
+
+  useEffect(() => {
+    getPlaces().then(setPlaces).catch(() => setPlaces([]));
+  }, []);
 
   useEffect(() => {
     loadPackages();
-  }, []);
+  }, [loadPackages]);
+
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+    setFilters((current) => ({ ...current, [name]: value }));
+  };
+
+  const clearFilters = () => {
+    const emptyFilters = { search: "", placeId: "", minPrice: "", maxPrice: "" };
+    setFilters(emptyFilters);
+    setAppliedFilters(emptyFilters);
+    loadPackages(emptyFilters);
+  };
+
+  const submitFilters = (event) => {
+    event.preventDefault();
+    setAppliedFilters(filters);
+    loadPackages(filters);
+  };
 
   const handleTravelerChange = (packageId, value) => {
     setTravelersByPackage((current) => ({ ...current, [packageId]: value }));
@@ -70,6 +95,44 @@ const Packages = () => {
       {status.error ? <div className="alert alert-danger">{status.error}</div> : null}
       {status.success ? <div className="alert alert-success">{status.success}</div> : null}
 
+      <form className="dashboard-panel mb-4" onSubmit={submitFilters}>
+        <div className="row g-3">
+          <div className="col-md-4">
+            <label className="form-label" htmlFor="search">Search</label>
+            <input id="search" name="search" className="form-control" value={filters.search} onChange={handleFilterChange} />
+          </div>
+          <div className="col-md-3">
+            <label className="form-label" htmlFor="placeId">Destination</label>
+            <select id="placeId" name="placeId" className="form-select" value={filters.placeId} onChange={handleFilterChange}>
+              <option value="">All destinations</option>
+              {places.map((place) => (
+                <option key={valueOf(place, "place_Id", "Place_Id")} value={valueOf(place, "place_Id", "Place_Id")}>
+                  {valueOf(place, "place_Name", "Place_Name")}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-2">
+            <label className="form-label" htmlFor="minPrice">Min price</label>
+            <input id="minPrice" name="minPrice" type="number" min="0" className="form-control" value={filters.minPrice} onChange={handleFilterChange} />
+          </div>
+          <div className="col-md-2">
+            <label className="form-label" htmlFor="maxPrice">Max price</label>
+            <input id="maxPrice" name="maxPrice" type="number" min="0" className="form-control" value={filters.maxPrice} onChange={handleFilterChange} />
+          </div>
+          <div className="col-md-1 d-grid align-items-end">
+            <button type="submit" className="btn btn-primary">
+              Search
+            </button>
+          </div>
+          <div className="col-md-1 d-grid align-items-end">
+            <button type="button" className="btn btn-outline-secondary" onClick={clearFilters}>
+              Clear
+            </button>
+          </div>
+        </div>
+      </form>
+
       <div className="row g-4">
         {packages.map((tripPackage) => {
           const packageId = valueOf(tripPackage, "package_Id", "Package_Id");
@@ -108,6 +171,9 @@ const Packages = () => {
                   </dl>
 
                   <div className="mt-auto">
+                    <Link to={`/packages/${packageId}`} className="btn btn-outline-primary w-100 mb-2">
+                      Details
+                    </Link>
                     {auth ? (
                       <div className="booking-controls">
                         <input

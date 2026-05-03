@@ -67,3 +67,10 @@ public class UpdateUserProfileRequest
 
     public string? U_Phone { get; set; }
 }
+
+public class UpdateUserRoleRequest
+{
+    [Required]
+    [RegularExpression("^(admin|user)$", ErrorMessage = "Role must be admin or user.")]
+    public string U_Type { get; set; } = "user";
+}

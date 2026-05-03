@@ -4,18 +4,23 @@ import {
   addHotel,
   addPackage,
   addPlace,
+  deleteUser,
   deleteHotel,
   deletePackage,
   deletePlace,
   getBookings,
+  getContactMessages,
   getHotels,
   getPackages,
   getPlaces,
   getStoredAuth,
+  getUsers,
+  markContactMessageRead,
   updateBookingStatus,
   updateHotel,
   updatePackage,
   updatePlace,
+  updateUserRole,
 } from "../services/api";
 
 const initialPlaceForm = { place_Name: "", place_Description: "", place_Url: "" };
@@ -41,6 +46,8 @@ const AdminDashboard = () => {
   const [hotels, setHotels] = useState([]);
   const [packages, setPackages] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [contactMessages, setContactMessages] = useState([]);
+  const [users, setUsers] = useState([]);
   const [placeForm, setPlaceForm] = useState(initialPlaceForm);
   const [hotelForm, setHotelForm] = useState(initialHotelForm);
   const [packageForm, setPackageForm] = useState(initialPackageForm);
@@ -57,12 +64,14 @@ const AdminDashboard = () => {
   );
 
   const loadAll = () => {
-    Promise.all([getPlaces(), getHotels(), getPackages(), getBookings()])
-      .then(([placesResponse, hotelsResponse, packagesResponse, bookingsResponse]) => {
+    Promise.all([getPlaces(), getHotels(), getPackages(), getBookings(), getContactMessages(), getUsers()])
+      .then(([placesResponse, hotelsResponse, packagesResponse, bookingsResponse, contactMessagesResponse, usersResponse]) => {
         setPlaces(placesResponse);
         setHotels(hotelsResponse);
         setPackages(packagesResponse);
         setBookings(bookingsResponse);
+        setContactMessages(contactMessagesResponse);
+        setUsers(usersResponse);
       })
       .catch((error) => setStatus((current) => ({ ...current, error: error.message })));
   };
@@ -208,6 +217,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const markMessageRead = async (messageId) => {
+    setStatus({ loading: true, error: "", success: "" });
+    try {
+      await markContactMessageRead(messageId);
+      setStatus({ loading: false, error: "", success: "Message marked as read." });
+      loadAll();
+    } catch (error) {
+      setStatus({ loading: false, error: error.message, success: "" });
+    }
+  };
+
+  const changeUserRole = async (userId, role) => {
+    setStatus({ loading: true, error: "", success: "" });
+    try {
+      await updateUserRole(userId, role);
+      setStatus({ loading: false, error: "", success: "User role updated." });
+      loadAll();
+    } catch (error) {
+      setStatus({ loading: false, error: error.message, success: "" });
+    }
+  };
+
   if (!auth) {
     return <Navigate to="/loginpage" replace />;
   }
@@ -230,7 +261,7 @@ const AdminDashboard = () => {
       </div>
 
       <div className="admin-tabs mb-4">
-        {["destinations", "hotels", "packages", "bookings"].map((tab) => (
+        {["destinations", "hotels", "packages", "bookings", "messages", "users"].map((tab) => (
           <button key={tab} type="button" className={`btn ${activeTab === tab ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setActiveTab(tab)}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
@@ -328,6 +359,9 @@ const AdminDashboard = () => {
               <thead>
                 <tr>
                   <th>Package</th>
+                  <th>Customer</th>
+                  <th>Email</th>
+                  <th>Phone</th>
                   <th>Destination</th>
                   <th>Hotel</th>
                   <th>Travelers</th>
@@ -341,6 +375,9 @@ const AdminDashboard = () => {
                   return (
                     <tr key={bookingId}>
                       <td>{valueOf(booking, "package_Name", "Package_Name")}</td>
+                      <td>{valueOf(booking, "customer_Name", "Customer_Name")}</td>
+                      <td>{valueOf(booking, "customer_Email", "Customer_Email")}</td>
+                      <td>{valueOf(booking, "customer_Phone", "Customer_Phone") || "-"}</td>
                       <td>{valueOf(booking, "place_Name", "Place_Name")}</td>
                       <td>{valueOf(booking, "hotel_Name", "Hotel_Name")}</td>
                       <td>{valueOf(booking, "travelers", "Travelers")}</td>
@@ -358,6 +395,93 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
+        </div>
+      ) : null}
+
+      {activeTab === "users" ? (
+        <div className="dashboard-panel">
+          <h2>Users</h2>
+          <div className="table-responsive">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Username</th>
+                  <th>Phone</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => {
+                  const userId = valueOf(user, "u_Id", "U_Id");
+                  return (
+                    <tr key={userId}>
+                      <td>{valueOf(user, "u_Name", "U_Name")} {valueOf(user, "u_Surname", "U_Surname")}</td>
+                      <td>{valueOf(user, "u_Email", "U_Email")}</td>
+                      <td>{valueOf(user, "u_Username", "U_Username")}</td>
+                      <td>{valueOf(user, "u_Phone", "U_Phone") || "-"}</td>
+                      <td>
+                        <select className="form-select form-select-sm" value={valueOf(user, "u_Type", "U_Type")} onChange={(event) => changeUserRole(userId, event.target.value)}>
+                          <option value="user">user</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button className="btn btn-outline-danger btn-sm" onClick={() => removeItem("User", () => deleteUser(userId))}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {users.length === 0 ? <div className="empty-state">No users found.</div> : null}
+        </div>
+      ) : null}
+
+      {activeTab === "messages" ? (
+        <div className="dashboard-panel">
+          <h2>Contact messages</h2>
+          <div className="table-responsive">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contactMessages.map((message) => {
+                  const messageId = valueOf(message, "c_Id", "C_Id");
+                  const isRead = valueOf(message, "c_IsRead", "C_IsRead");
+
+                  return (
+                    <tr key={messageId}>
+                      <td>{valueOf(message, "c_Name", "C_Name")} {valueOf(message, "c_Surname", "C_Surname")}</td>
+                      <td>{valueOf(message, "c_Email", "C_Email")}</td>
+                      <td>{valueOf(message, "c_Subject", "C_Subject")}</td>
+                      <td>{valueOf(message, "c_Message", "C_Message")}</td>
+                      <td>{isRead ? "Read" : "Unread"}</td>
+                      <td>
+                        <button type="button" className="btn btn-outline-primary btn-sm" disabled={isRead} onClick={() => markMessageRead(messageId)}>
+                          Mark read
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {contactMessages.length === 0 ? <div className="empty-state">No contact messages yet.</div> : null}
         </div>
       ) : null}
     </section>

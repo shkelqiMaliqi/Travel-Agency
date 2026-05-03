@@ -23,12 +23,15 @@ public class BookingsController : ControllerBase
     {
         var userId = GetCurrentUserId();
         const string query = @"
-            SELECT b.Booking_Id, b.Package_Id, b.U_Id, tp.Package_Name, p.Place_Name, h.Hotel_Name,
+            SELECT b.Booking_Id, b.Package_Id, b.U_Id,
+                   (u.U_Name + ' ' + u.U_Surname) AS Customer_Name, u.U_Email, u.U_Phone,
+                   tp.Package_Name, p.Place_Name, h.Hotel_Name,
                    b.Travelers, b.Total_Price, b.Booking_Status, b.Booking_Date
             FROM dbo.Bookings b
             INNER JOIN dbo.Travel_Packages tp ON tp.Package_Id = b.Package_Id
             INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
             INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id
+            INNER JOIN dbo.Users u ON u.U_Id = b.U_Id
             WHERE b.U_Id = @U_Id
             ORDER BY b.Booking_Date DESC";
 
@@ -40,12 +43,15 @@ public class BookingsController : ControllerBase
     public IActionResult GetBookings()
     {
         const string query = @"
-            SELECT b.Booking_Id, b.Package_Id, b.U_Id, tp.Package_Name, p.Place_Name, h.Hotel_Name,
+            SELECT b.Booking_Id, b.Package_Id, b.U_Id,
+                   (u.U_Name + ' ' + u.U_Surname) AS Customer_Name, u.U_Email, u.U_Phone,
+                   tp.Package_Name, p.Place_Name, h.Hotel_Name,
                    b.Travelers, b.Total_Price, b.Booking_Status, b.Booking_Date
             FROM dbo.Bookings b
             INNER JOIN dbo.Travel_Packages tp ON tp.Package_Id = b.Package_Id
             INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
             INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id
+            INNER JOIN dbo.Users u ON u.U_Id = b.U_Id
             ORDER BY b.Booking_Date DESC";
 
         return Ok(ExecuteBookingsQuery(query));
@@ -78,6 +84,8 @@ public class BookingsController : ControllerBase
             using var reader = packageCommand.ExecuteReader();
             if (!reader.Read())
             {
+                reader.Close();
+                transaction.Rollback();
                 return NotFound(new { message = "Package not found." });
             }
 
@@ -87,6 +95,7 @@ public class BookingsController : ControllerBase
 
             if (availableSeats < request.Travelers)
             {
+                transaction.Rollback();
                 return BadRequest(new { message = "Not enough seats are available for this package." });
             }
 
@@ -126,18 +135,104 @@ public class BookingsController : ControllerBase
             return BadRequest(new { message = "Status must be Pending, Confirmed, or Cancelled." });
         }
 
-        const string query = "UPDATE dbo.Bookings SET Booking_Status = @Booking_Status WHERE Booking_Id = @Booking_Id";
-        var rows = ExecuteNonQuery(query,
-            new SqlParameter("@Booking_Id", id),
-            new SqlParameter("@Booking_Status", status));
+        return ChangeBookingStatus(id, status, null);
+    }
 
-        return rows > 0 ? Ok(new { message = "Booking status updated successfully." }) : NotFound();
+    [Authorize]
+    [HttpPut("{id:int}/cancel")]
+    public IActionResult CancelMyBooking(int id)
+    {
+        return ChangeBookingStatus(id, "Cancelled", GetCurrentUserId());
     }
 
     private int GetCurrentUserId()
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(value, out var userId) ? userId : 0;
+    }
+
+    private IActionResult ChangeBookingStatus(int bookingId, string nextStatus, int? ownerUserId)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        connection.Open();
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            const string bookingQuery = @"
+                SELECT Booking_Id, Package_Id, U_Id, Travelers, Booking_Status
+                FROM dbo.Bookings WITH (UPDLOCK)
+                WHERE Booking_Id = @Booking_Id";
+
+            using var bookingCommand = new SqlCommand(bookingQuery, connection, transaction);
+            bookingCommand.Parameters.AddWithValue("@Booking_Id", bookingId);
+
+            using var reader = bookingCommand.ExecuteReader();
+            if (!reader.Read())
+            {
+                reader.Close();
+                transaction.Rollback();
+                return NotFound();
+            }
+
+            var packageId = reader.GetInt32(reader.GetOrdinal("Package_Id"));
+            var userId = reader.GetInt32(reader.GetOrdinal("U_Id"));
+            var travelers = reader.GetInt32(reader.GetOrdinal("Travelers"));
+            var currentStatus = reader.GetString(reader.GetOrdinal("Booking_Status"));
+            reader.Close();
+
+            if (ownerUserId.HasValue && ownerUserId.Value != userId)
+            {
+                transaction.Rollback();
+                return Forbid();
+            }
+
+            if (currentStatus == nextStatus)
+            {
+                transaction.Commit();
+                return Ok(new { message = "Booking status already updated." });
+            }
+
+            if (currentStatus == "Cancelled" && nextStatus != "Cancelled")
+            {
+                const string seatsQuery = "SELECT Available_Seats FROM dbo.Travel_Packages WITH (UPDLOCK) WHERE Package_Id = @Package_Id";
+                using var seatsCommand = new SqlCommand(seatsQuery, connection, transaction);
+                seatsCommand.Parameters.AddWithValue("@Package_Id", packageId);
+                var availableSeats = Convert.ToInt32(seatsCommand.ExecuteScalar());
+
+                if (availableSeats < travelers)
+                {
+                    transaction.Rollback();
+                    return BadRequest(new { message = "Not enough seats are available to reactivate this booking." });
+                }
+
+                ExecuteNonQuery(connection, transaction,
+                    "UPDATE dbo.Travel_Packages SET Available_Seats = Available_Seats - @Travelers WHERE Package_Id = @Package_Id",
+                    new SqlParameter("@Travelers", travelers),
+                    new SqlParameter("@Package_Id", packageId));
+            }
+
+            if (currentStatus != "Cancelled" && nextStatus == "Cancelled")
+            {
+                ExecuteNonQuery(connection, transaction,
+                    "UPDATE dbo.Travel_Packages SET Available_Seats = Available_Seats + @Travelers WHERE Package_Id = @Package_Id",
+                    new SqlParameter("@Travelers", travelers),
+                    new SqlParameter("@Package_Id", packageId));
+            }
+
+            ExecuteNonQuery(connection, transaction,
+                "UPDATE dbo.Bookings SET Booking_Status = @Booking_Status WHERE Booking_Id = @Booking_Id",
+                new SqlParameter("@Booking_Status", nextStatus),
+                new SqlParameter("@Booking_Id", bookingId));
+
+            transaction.Commit();
+            return Ok(new { message = "Booking status updated successfully." });
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     private List<Booking> ExecuteBookingsQuery(string query, params SqlParameter[] parameters)
@@ -156,6 +251,9 @@ public class BookingsController : ControllerBase
                 Booking_Id = reader.GetInt32(reader.GetOrdinal("Booking_Id")),
                 Package_Id = reader.GetInt32(reader.GetOrdinal("Package_Id")),
                 U_Id = reader.GetInt32(reader.GetOrdinal("U_Id")),
+                Customer_Name = reader.GetString(reader.GetOrdinal("Customer_Name")),
+                Customer_Email = reader.GetString(reader.GetOrdinal("U_Email")),
+                Customer_Phone = reader.IsDBNull(reader.GetOrdinal("U_Phone")) ? null : reader.GetString(reader.GetOrdinal("U_Phone")),
                 Package_Name = reader.GetString(reader.GetOrdinal("Package_Name")),
                 Place_Name = reader.GetString(reader.GetOrdinal("Place_Name")),
                 Hotel_Name = reader.GetString(reader.GetOrdinal("Hotel_Name")),
@@ -176,6 +274,14 @@ public class BookingsController : ControllerBase
         command.Parameters.AddRange(parameters);
 
         connection.Open();
+        return command.ExecuteNonQuery();
+    }
+
+    private static int ExecuteNonQuery(SqlConnection connection, SqlTransaction transaction, string query, params SqlParameter[] parameters)
+    {
+        using var command = new SqlCommand(query, connection, transaction);
+        command.Parameters.AddRange(parameters);
+
         return command.ExecuteNonQuery();
     }
 }

@@ -18,10 +18,19 @@ public class PlacesController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult GetPlaces()
+    public IActionResult GetPlaces([FromQuery] string? search = null)
     {
-        const string query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places ORDER BY Place_Id DESC";
-        return Ok(ExecutePlacesQuery(query));
+        var query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places";
+        var parameters = new List<SqlParameter>();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query += " WHERE Place_Name LIKE @Search OR Place_Description LIKE @Search";
+            parameters.Add(new SqlParameter("@Search", $"%{search.Trim()}%"));
+        }
+
+        query += " ORDER BY Place_Id DESC";
+        return Ok(ExecutePlacesQuery(query, parameters.ToArray()));
     }
 
     [AllowAnonymous]
@@ -84,6 +93,16 @@ public class PlacesController : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult DeletePlace(int id)
     {
+        const string usageQuery = @"
+            SELECT
+                (SELECT COUNT(1) FROM dbo.Hotels WHERE Place_Id = @Place_Id) +
+                (SELECT COUNT(1) FROM dbo.Travel_Packages WHERE Place_Id = @Place_Id)";
+
+        if (ExecuteScalar(usageQuery, new SqlParameter("@Place_Id", id)) > 0)
+        {
+            return Conflict(new { message = "This destination has hotels or packages. Delete those first." });
+        }
+
         const string query = "DELETE FROM dbo.Places WHERE Place_Id = @Place_Id";
         var rows = ExecuteNonQuery(query, new SqlParameter("@Place_Id", id));
 
@@ -131,5 +150,21 @@ public class PlacesController : ControllerBase
 
         connection.Open();
         return command.ExecuteNonQuery();
+    }
+
+    private int ExecuteScalar(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+
+        if (parameters.Length > 0)
+        {
+            command.Parameters.AddRange(parameters);
+        }
+
+        connection.Open();
+        var result = command.ExecuteScalar();
+
+        return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
     }
 }

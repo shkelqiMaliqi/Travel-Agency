@@ -26,8 +26,8 @@ public class ContactController : ControllerBase
         }
 
         const string query = @"
-            INSERT INTO dbo.Contact_Form (C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id)
-            VALUES (@C_Name, @C_Surname, @C_Email, @C_Subject, @C_Message, @U_Id)";
+            INSERT INTO dbo.Contact_Form (C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id, C_IsRead, C_CreatedAt)
+            VALUES (@C_Name, @C_Surname, @C_Email, @C_Subject, @C_Message, @U_Id, 0, SYSUTCDATETIME())";
 
         using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
         using var command = new SqlCommand(query, connection);
@@ -43,5 +43,54 @@ public class ContactController : ControllerBase
         command.ExecuteNonQuery();
 
         return Ok(new { message = "Message sent successfully." });
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpGet]
+    public IActionResult GetMessages()
+    {
+        const string query = @"
+            SELECT C_Id, C_Name, C_Surname, C_Email, C_Subject, C_Message, U_Id, C_IsRead, C_CreatedAt
+            FROM dbo.Contact_Form
+            ORDER BY C_CreatedAt DESC, C_Id DESC";
+
+        var messages = new List<ContactMessage>();
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+
+        connection.Open();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            messages.Add(new ContactMessage
+            {
+                C_Id = reader.GetInt32(reader.GetOrdinal("C_Id")),
+                C_Name = reader.GetString(reader.GetOrdinal("C_Name")),
+                C_Surname = reader.GetString(reader.GetOrdinal("C_Surname")),
+                C_Email = reader.GetString(reader.GetOrdinal("C_Email")),
+                C_Subject = reader.GetString(reader.GetOrdinal("C_Subject")),
+                C_Message = reader.GetString(reader.GetOrdinal("C_Message")),
+                U_Id = reader.IsDBNull(reader.GetOrdinal("U_Id")) ? null : reader.GetInt32(reader.GetOrdinal("U_Id")),
+                C_IsRead = reader.GetBoolean(reader.GetOrdinal("C_IsRead")),
+                C_CreatedAt = reader.GetDateTime(reader.GetOrdinal("C_CreatedAt"))
+            });
+        }
+
+        return Ok(messages);
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpPut("{id:int}/read")]
+    public IActionResult MarkAsRead(int id)
+    {
+        const string query = "UPDATE dbo.Contact_Form SET C_IsRead = 1 WHERE C_Id = @C_Id";
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("@C_Id", id);
+
+        connection.Open();
+        var rows = command.ExecuteNonQuery();
+
+        return rows > 0 ? Ok(new { message = "Message marked as read." }) : NotFound();
     }
 }

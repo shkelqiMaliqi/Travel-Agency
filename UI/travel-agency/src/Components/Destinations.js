@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { getPlaces } from "../services/api";
 
 const Destinations = () => {
   const [places, setPlaces] = useState([]);
+  const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const loadPlaces = useCallback((nextSearch = appliedSearch) => {
     let active = true;
 
-    getPlaces()
+    setLoading(true);
+    getPlaces({ search: nextSearch })
       .then((response) => {
         if (active) {
           setPlaces(response);
@@ -30,7 +33,21 @@ const Destinations = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [appliedSearch]);
+
+  useEffect(() => loadPlaces(), [loadPlaces]);
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    setAppliedSearch(search);
+    loadPlaces(search);
+  };
+
+  const clearSearch = () => {
+    setSearch("");
+    setAppliedSearch("");
+    loadPlaces("");
+  };
 
   return (
     <section>
@@ -38,6 +55,21 @@ const Destinations = () => {
         <h1 className="mb-2">Destinations</h1>
         <p className="text-muted">Explore destinations loaded directly from the Travel Agency API.</p>
       </div>
+
+      <form className="dashboard-panel mb-4" onSubmit={handleSearch}>
+        <div className="row g-3">
+          <div className="col-md-8">
+            <label className="form-label" htmlFor="destinationSearch">Search destinations</label>
+            <input id="destinationSearch" className="form-control" value={search} onChange={(event) => setSearch(event.target.value)} />
+          </div>
+          <div className="col-md-2 d-grid align-items-end">
+            <button type="submit" className="btn btn-primary">Search</button>
+          </div>
+          <div className="col-md-2 d-grid align-items-end">
+            <button type="button" className="btn btn-outline-secondary" onClick={clearSearch}>Clear</button>
+          </div>
+        </div>
+      </form>
 
       {loading ? <div className="alert alert-info">Loading destinations...</div> : null}
       {error ? <div className="alert alert-danger">{error}</div> : null}

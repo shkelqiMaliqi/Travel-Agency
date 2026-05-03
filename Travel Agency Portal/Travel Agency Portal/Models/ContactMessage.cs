@@ -28,4 +28,8 @@ public class ContactMessage
     public string C_Message { get; set; } = string.Empty;
 
     public int? U_Id { get; set; }
+
+    public bool C_IsRead { get; set; }
+
+    public DateTime C_CreatedAt { get; set; }
 }

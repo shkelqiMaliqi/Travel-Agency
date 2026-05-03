@@ -93,10 +93,49 @@ public class UsersController : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult DeleteUser(int id)
     {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.Equals(currentUserId, id.ToString(), StringComparison.Ordinal))
+        {
+            return BadRequest(new { message = "You cannot delete your own account." });
+        }
+
+        const string usageQuery = @"
+            SELECT
+                (SELECT COUNT(1) FROM dbo.Bookings WHERE U_Id = @U_Id) +
+                (SELECT COUNT(1) FROM dbo.Contact_Form WHERE U_Id = @U_Id)";
+
+        if (ExecuteScalar(usageQuery, new SqlParameter("@U_Id", id)) > 0)
+        {
+            return Conflict(new { message = "This user has bookings or contact messages and cannot be deleted." });
+        }
+
         const string query = "DELETE FROM dbo.Users WHERE U_Id = @U_Id";
         var rows = ExecuteNonQuery(query, new SqlParameter("@U_Id", id));
 
         return rows > 0 ? Ok(new { message = "User deleted successfully." }) : NotFound();
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpPut("{id:int}/role")]
+    public IActionResult UpdateUserRole(int id, [FromBody] UpdateUserRoleRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.Equals(currentUserId, id.ToString(), StringComparison.Ordinal) && request.U_Type != "admin")
+        {
+            return BadRequest(new { message = "You cannot remove admin access from your own account." });
+        }
+
+        const string query = "UPDATE dbo.Users SET U_Type = @U_Type WHERE U_Id = @U_Id";
+        var rows = ExecuteNonQuery(query,
+            new SqlParameter("@U_Id", id),
+            new SqlParameter("@U_Type", request.U_Type));
+
+        return rows > 0 ? Ok(new { message = "User role updated successfully." }) : NotFound();
     }
 
     private bool CanAccessUser(int id)

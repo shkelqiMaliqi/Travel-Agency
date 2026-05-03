@@ -9,6 +9,9 @@ public class Booking
 
     public int Package_Id { get; set; }
     public int U_Id { get; set; }
+    public string? Customer_Name { get; set; }
+    public string? Customer_Email { get; set; }
+    public string? Customer_Phone { get; set; }
     public string? Package_Name { get; set; }
     public string? Place_Name { get; set; }
     public string? Hotel_Name { get; set; }

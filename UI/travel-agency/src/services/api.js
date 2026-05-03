@@ -70,8 +70,17 @@ export async function loginUser(formData) {
   });
 }
 
-export async function getPlaces() {
-  return request("/places");
+export async function getPlaces(filters = {}) {
+  const params = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.set(key, value);
+    }
+  });
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request(`/places${query}`);
 }
 
 export async function addPlace(formData) {
@@ -125,8 +134,17 @@ export async function deleteHotel(id) {
   });
 }
 
-export async function getPackages() {
-  return request("/packages");
+export async function getPackages(filters = {}) {
+  const params = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.set(key, value);
+    }
+  });
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request(`/packages${query}`);
 }
 
 export async function addPackage(formData) {
@@ -152,6 +170,10 @@ export async function deletePackage(id) {
   });
 }
 
+export async function getPackage(id) {
+  return request(`/packages/${id}`);
+}
+
 export async function createBooking(formData) {
   return request("/bookings", {
     auth: true,
@@ -163,6 +185,14 @@ export async function createBooking(formData) {
 export async function getMyBookings() {
   return request("/bookings/mine", {
     auth: true,
+  });
+}
+
+export async function cancelBooking(id) {
+  return request(`/bookings/${id}/cancel`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify({}),
   });
 }
 
@@ -194,9 +224,44 @@ export async function updateUserProfile(id, formData) {
   });
 }
 
+export async function getUsers() {
+  return request("/users", {
+    auth: true,
+  });
+}
+
+export async function updateUserRole(id, role) {
+  return request(`/users/${id}/role`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify({ u_Type: role }),
+  });
+}
+
+export async function deleteUser(id) {
+  return request(`/users/${id}`, {
+    auth: true,
+    method: "DELETE",
+  });
+}
+
 export async function sendContactMessage(formData) {
   return request("/contact", {
     method: "POST",
     body: JSON.stringify(formData),
+  });
+}
+
+export async function getContactMessages() {
+  return request("/contact", {
+    auth: true,
+  });
+}
+
+export async function markContactMessageRead(id) {
+  return request(`/contact/${id}/read`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify({}),
   });
 }
