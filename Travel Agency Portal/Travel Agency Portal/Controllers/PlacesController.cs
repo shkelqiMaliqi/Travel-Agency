@@ -29,7 +29,7 @@ public class PlacesController : ControllerBase
             parameters.Add(new SqlParameter("@Search", $"%{search.Trim()}%"));
         }
 
-        query += " ORDER BY Place_Id DESC";
+        query += " ORDER BY Place_Name ASC";
         return Ok(ExecutePlacesQuery(query, parameters.ToArray()));
     }
 
