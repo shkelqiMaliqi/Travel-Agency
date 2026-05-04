@@ -22,7 +22,7 @@ public class StatsController : ControllerBase
         const string query = @"
             SELECT
                 (SELECT COUNT(1) FROM dbo.Users) AS UsersCount,
-                (SELECT COUNT(1) FROM dbo.Bookings) AS BookingsCount,
+                (SELECT COUNT(1) FROM dbo.Bookings WHERE Booking_Status <> 'Cancelled') AS BookingsCount,
                 (SELECT COUNT(1) FROM dbo.Bookings WHERE Booking_Status = 'Pending') AS PendingBookingsCount,
                 (SELECT COUNT(1) FROM dbo.Travel_Packages) AS PackagesCount,
                 (SELECT COUNT(1) FROM dbo.Travel_Packages WHERE Available_Seats = 0) AS SoldOutPackagesCount,

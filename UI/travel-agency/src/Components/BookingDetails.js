@@ -4,6 +4,7 @@ import { cancelBooking, getBooking, getStoredAuth } from "../services/api";
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
+const date = (value) => (value ? new Date(value).toLocaleDateString() : "-");
 const dateTime = (value) => (value ? new Date(value).toLocaleString() : "");
 
 const BookingDetails = () => {
@@ -81,6 +82,8 @@ const BookingDetails = () => {
           <dd>{valueOf(booking, "customer_Email", "Customer_Email")}</dd>
           <dt>Phone</dt>
           <dd>{valueOf(booking, "customer_Phone", "Customer_Phone") || "-"}</dd>
+          <dt>Travel date</dt>
+          <dd>{date(valueOf(booking, "travel_Date", "Travel_Date"))}</dd>
           <dt>Travelers</dt>
           <dd>{valueOf(booking, "travelers", "Travelers")}</dd>
           <dt>Total price</dt>

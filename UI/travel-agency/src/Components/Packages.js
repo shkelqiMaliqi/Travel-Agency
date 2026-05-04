@@ -1,33 +1,75 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { createBooking, getPackages, getPlaces, getStoredAuth } from "../services/api";
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
 const date = (value) => (value ? new Date(value).toLocaleDateString() : "");
+const startsWithSearch = (value, search) => String(value || "").toLowerCase().startsWith(search);
 const byPackageName = (first, second) =>
   String(valueOf(first, "package_Name", "Package_Name") || "").localeCompare(String(valueOf(second, "package_Name", "Package_Name") || ""), undefined, {
     sensitivity: "base",
   });
+const groupPackageCards = (items) => {
+  const grouped = new Map();
+
+  items.forEach((item) => {
+    const key = [
+      valueOf(item, "package_Name", "Package_Name"),
+      valueOf(item, "place_Id", "Place_Id"),
+      valueOf(item, "hotel_Id", "Hotel_Id"),
+    ].join("|");
+    const current = grouped.get(key);
+
+    if (!current || new Date(valueOf(item, "start_Date", "Start_Date")) < new Date(valueOf(current, "start_Date", "Start_Date"))) {
+      grouped.set(key, item);
+    }
+  });
+
+  return [...grouped.values()];
+};
 
 const Packages = () => {
   const [auth] = useState(() => getStoredAuth());
-  const [packages, setPackages] = useState([]);
+  const [allPackages, setAllPackages] = useState([]);
   const [places, setPlaces] = useState([]);
   const [filters, setFilters] = useState({ search: "", placeId: "", minPrice: "", maxPrice: "" });
-  const [appliedFilters, setAppliedFilters] = useState({ search: "", placeId: "", minPrice: "", maxPrice: "" });
   const [travelersByPackage, setTravelersByPackage] = useState({});
   const [status, setStatus] = useState({ loading: true, error: "", success: "" });
 
-  const loadPackages = useCallback((nextFilters = appliedFilters) => {
+  const loadPackages = useCallback(() => {
     setStatus((current) => ({ ...current, loading: true }));
-    getPackages(nextFilters)
+    getPackages()
       .then((response) => {
-        setPackages([...response].sort(byPackageName));
+        setAllPackages(response);
         setStatus({ loading: false, error: "", success: "" });
       })
       .catch((error) => setStatus({ loading: false, error: error.message, success: "" }));
-  }, [appliedFilters]);
+  }, []);
+
+  const packages = useMemo(() => {
+    const search = filters.search.trim().toLowerCase();
+    const minPrice = filters.minPrice === "" ? null : Number(filters.minPrice);
+    const maxPrice = filters.maxPrice === "" ? null : Number(filters.maxPrice);
+
+    return groupPackageCards(allPackages)
+      .filter((tripPackage) => {
+        const matchesSearch =
+          !search ||
+          startsWithSearch(valueOf(tripPackage, "package_Name", "Package_Name"), search) ||
+          startsWithSearch(valueOf(tripPackage, "place_Name", "Place_Name"), search);
+        const packagePrice = Number(valueOf(tripPackage, "price_Per_Person", "Price_Per_Person") || 0);
+        const packagePlaceId = String(valueOf(tripPackage, "place_Id", "Place_Id") || "");
+
+        return (
+          matchesSearch &&
+          (!filters.placeId || packagePlaceId === String(filters.placeId)) &&
+          (minPrice === null || packagePrice >= minPrice) &&
+          (maxPrice === null || packagePrice <= maxPrice)
+        );
+      })
+      .sort(byPackageName);
+  }, [allPackages, filters]);
 
   useEffect(() => {
     getPlaces().then(setPlaces).catch(() => setPlaces([]));
@@ -45,8 +87,6 @@ const Packages = () => {
   const clearFilters = () => {
     const emptyFilters = { search: "", placeId: "", minPrice: "", maxPrice: "" };
     setFilters(emptyFilters);
-    setAppliedFilters(emptyFilters);
-    loadPackages(emptyFilters);
   };
 
   const submitFilters = (event) => {
@@ -56,9 +96,6 @@ const Packages = () => {
       setStatus({ loading: false, error: "Minimum price cannot be greater than maximum price.", success: "" });
       return;
     }
-
-    setAppliedFilters(filters);
-    loadPackages(filters);
   };
 
   const handleTravelerChange = (packageId, value) => {

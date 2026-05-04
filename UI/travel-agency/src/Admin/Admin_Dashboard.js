@@ -50,10 +50,12 @@ const initialUserForm = {
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
+const date = (value) => (value ? new Date(value).toLocaleDateString() : "-");
 
 const AdminDashboard = () => {
   const [auth] = useState(() => getStoredAuth());
   const [activeTab, setActiveTab] = useState("destinations");
+  const [bookingFilter, setBookingFilter] = useState("booked");
   const [places, setPlaces] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [packages, setPackages] = useState([]);
@@ -77,6 +79,22 @@ const AdminDashboard = () => {
     () => hotels.filter((hotel) => String(valueOf(hotel, "place_Id", "Place_Id")) === String(packageForm.place_Id)),
     [hotels, packageForm.place_Id]
   );
+
+  const filteredBookings = useMemo(() => {
+    if (bookingFilter === "cancelled") {
+      return bookings.filter((booking) => valueOf(booking, "booking_Status", "Booking_Status") === "Cancelled");
+    }
+
+    if (bookingFilter === "pending") {
+      return bookings.filter((booking) => valueOf(booking, "booking_Status", "Booking_Status") === "Pending");
+    }
+
+    if (bookingFilter === "booked") {
+      return bookings.filter((booking) => valueOf(booking, "booking_Status", "Booking_Status") !== "Cancelled");
+    }
+
+    return bookings;
+  }, [bookings, bookingFilter]);
 
   const loadAll = () => {
     Promise.all([getPlaces(), getHotels(), getPackages(), getBookings(), getContactMessages(), getUsers(), getAdminStats()])
@@ -473,7 +491,26 @@ const AdminDashboard = () => {
 
       {activeTab === "bookings" ? (
         <div className="dashboard-panel">
-          <h2>Customer bookings</h2>
+          <div className="panel-heading">
+            <div>
+              <h2>Customer bookings</h2>
+              <p className="text-muted mb-0">{filteredBookings.length} records shown.</p>
+            </div>
+            <div className="admin-tabs">
+              <button type="button" className={`btn ${bookingFilter === "booked" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setBookingFilter("booked")}>
+                Booked
+              </button>
+              <button type="button" className={`btn ${bookingFilter === "pending" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setBookingFilter("pending")}>
+                Pending
+              </button>
+              <button type="button" className={`btn ${bookingFilter === "cancelled" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setBookingFilter("cancelled")}>
+                Cancelled
+              </button>
+              <button type="button" className={`btn ${bookingFilter === "all" ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setBookingFilter("all")}>
+                All
+              </button>
+            </div>
+          </div>
           <div className="table-responsive">
             <table className="table align-middle">
               <thead>
@@ -484,13 +521,14 @@ const AdminDashboard = () => {
                   <th>Phone</th>
                   <th>Destination</th>
                   <th>Hotel</th>
+                  <th>Travel date</th>
                   <th>Travelers</th>
                   <th>Status</th>
                   <th>Change status</th>
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((booking) => {
+                {filteredBookings.map((booking) => {
                   const bookingId = valueOf(booking, "booking_Id", "Booking_Id");
                   return (
                     <tr key={bookingId}>
@@ -500,6 +538,7 @@ const AdminDashboard = () => {
                       <td>{valueOf(booking, "customer_Phone", "Customer_Phone") || "-"}</td>
                       <td>{valueOf(booking, "place_Name", "Place_Name")}</td>
                       <td>{valueOf(booking, "hotel_Name", "Hotel_Name")}</td>
+                      <td>{date(valueOf(booking, "travel_Date", "Travel_Date"))}</td>
                       <td>{valueOf(booking, "travelers", "Travelers")}</td>
                       <td>{valueOf(booking, "booking_Status", "Booking_Status")}</td>
                       <td>
@@ -515,6 +554,7 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
+          {filteredBookings.length === 0 ? <div className="empty-state">No bookings match this filter.</div> : null}
         </div>
       ) : null}
 

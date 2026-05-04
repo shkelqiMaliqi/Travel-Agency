@@ -26,7 +26,7 @@ public class BookingsController : ControllerBase
             SELECT b.Booking_Id, b.Package_Id, b.U_Id,
                    (u.U_Name + ' ' + u.U_Surname) AS Customer_Name, u.U_Email, u.U_Phone,
                    tp.Package_Name, p.Place_Name, h.Hotel_Name,
-                   b.Travelers, b.Total_Price, b.Booking_Status, b.Booking_Date
+                   b.Travelers, b.Total_Price, b.Booking_Status, b.Travel_Date, b.Booking_Date
             FROM dbo.Bookings b
             INNER JOIN dbo.Travel_Packages tp ON tp.Package_Id = b.Package_Id
             INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
@@ -46,7 +46,7 @@ public class BookingsController : ControllerBase
             SELECT b.Booking_Id, b.Package_Id, b.U_Id,
                    (u.U_Name + ' ' + u.U_Surname) AS Customer_Name, u.U_Email, u.U_Phone,
                    tp.Package_Name, p.Place_Name, h.Hotel_Name,
-                   b.Travelers, b.Total_Price, b.Booking_Status, b.Booking_Date
+                   b.Travelers, b.Total_Price, b.Booking_Status, b.Travel_Date, b.Booking_Date
             FROM dbo.Bookings b
             INNER JOIN dbo.Travel_Packages tp ON tp.Package_Id = b.Package_Id
             INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
@@ -66,7 +66,7 @@ public class BookingsController : ControllerBase
             SELECT b.Booking_Id, b.Package_Id, b.U_Id,
                    (u.U_Name + ' ' + u.U_Surname) AS Customer_Name, u.U_Email, u.U_Phone,
                    tp.Package_Name, p.Place_Name, h.Hotel_Name,
-                   b.Travelers, b.Total_Price, b.Booking_Status, b.Booking_Date
+                   b.Travelers, b.Total_Price, b.Booking_Status, b.Travel_Date, b.Booking_Date
             FROM dbo.Bookings b
             INNER JOIN dbo.Travel_Packages tp ON tp.Package_Id = b.Package_Id
             INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
@@ -100,7 +100,7 @@ public class BookingsController : ControllerBase
         try
         {
             const string packageQuery = @"
-                SELECT Price_Per_Person, Available_Seats
+                SELECT Price_Per_Person, Available_Seats, Start_Date, End_Date
                 FROM dbo.Travel_Packages WITH (UPDLOCK)
                 WHERE Package_Id = @Package_Id";
 
@@ -117,7 +117,16 @@ public class BookingsController : ControllerBase
 
             var pricePerPerson = reader.GetDecimal(reader.GetOrdinal("Price_Per_Person"));
             var availableSeats = reader.GetInt32(reader.GetOrdinal("Available_Seats"));
+            var startDate = reader.GetDateTime(reader.GetOrdinal("Start_Date")).Date;
+            var endDate = reader.GetDateTime(reader.GetOrdinal("End_Date")).Date;
             reader.Close();
+
+            var travelDate = (request.Travel_Date ?? startDate).Date;
+            if (travelDate < startDate || travelDate > endDate)
+            {
+                transaction.Rollback();
+                return BadRequest(new { message = "Travel date must be between the package start and end dates." });
+            }
 
             if (availableSeats < request.Travelers)
             {
@@ -125,21 +134,35 @@ public class BookingsController : ControllerBase
                 return BadRequest(new { message = "Not enough seats are available for this package." });
             }
 
-            var totalPrice = pricePerPerson * request.Travelers;
-            const string insertQuery = @"
-                INSERT INTO dbo.Bookings (Package_Id, U_Id, Travelers, Total_Price, Booking_Status, Booking_Date)
-                VALUES (@Package_Id, @U_Id, @Travelers, @Total_Price, 'Pending', GETUTCDATE());
-
+            const string updateSeatsQuery = @"
                 UPDATE dbo.Travel_Packages
                 SET Available_Seats = Available_Seats - @Travelers
-                WHERE Package_Id = @Package_Id";
+                WHERE Package_Id = @Package_Id
+                  AND Available_Seats >= @Travelers";
 
-            using var insertCommand = new SqlCommand(insertQuery, connection, transaction);
-            insertCommand.Parameters.AddWithValue("@Package_Id", request.Package_Id);
-            insertCommand.Parameters.AddWithValue("@U_Id", userId);
-            insertCommand.Parameters.AddWithValue("@Travelers", request.Travelers);
-            insertCommand.Parameters.AddWithValue("@Total_Price", totalPrice);
-            insertCommand.ExecuteNonQuery();
+            var updatedSeats = ExecuteNonQuery(connection, transaction,
+                updateSeatsQuery,
+                new SqlParameter("@Package_Id", request.Package_Id),
+                new SqlParameter("@Travelers", request.Travelers));
+
+            if (updatedSeats == 0)
+            {
+                transaction.Rollback();
+                return BadRequest(new { message = "Not enough seats are available for this package." });
+            }
+
+            var totalPrice = pricePerPerson * request.Travelers;
+            const string insertQuery = @"
+                INSERT INTO dbo.Bookings (Package_Id, U_Id, Travelers, Total_Price, Booking_Status, Travel_Date, Booking_Date)
+                VALUES (@Package_Id, @U_Id, @Travelers, @Total_Price, 'Pending', @Travel_Date, GETUTCDATE())";
+
+            ExecuteNonQuery(connection, transaction,
+                insertQuery,
+                new SqlParameter("@Package_Id", request.Package_Id),
+                new SqlParameter("@U_Id", userId),
+                new SqlParameter("@Travelers", request.Travelers),
+                new SqlParameter("@Total_Price", totalPrice),
+                new SqlParameter("@Travel_Date", travelDate));
 
             transaction.Commit();
             return Ok(new { message = "Booking created successfully." });
@@ -225,26 +248,24 @@ public class BookingsController : ControllerBase
                 return Ok(new { message = "Booking status already updated." });
             }
 
-            if (currentStatus == "Cancelled" && nextStatus != "Cancelled")
+            if (IsCancelled(currentStatus) && !IsCancelled(nextStatus))
             {
-                const string seatsQuery = "SELECT Available_Seats FROM dbo.Travel_Packages WITH (UPDLOCK) WHERE Package_Id = @Package_Id";
-                using var seatsCommand = new SqlCommand(seatsQuery, connection, transaction);
-                seatsCommand.Parameters.AddWithValue("@Package_Id", packageId);
-                var availableSeats = Convert.ToInt32(seatsCommand.ExecuteScalar());
+                var updatedSeats = ExecuteNonQuery(connection, transaction,
+                    @"UPDATE dbo.Travel_Packages
+                      SET Available_Seats = Available_Seats - @Travelers
+                      WHERE Package_Id = @Package_Id
+                        AND Available_Seats >= @Travelers",
+                    new SqlParameter("@Travelers", travelers),
+                    new SqlParameter("@Package_Id", packageId));
 
-                if (availableSeats < travelers)
+                if (updatedSeats == 0)
                 {
                     transaction.Rollback();
                     return BadRequest(new { message = "Not enough seats are available to reactivate this booking." });
                 }
-
-                ExecuteNonQuery(connection, transaction,
-                    "UPDATE dbo.Travel_Packages SET Available_Seats = Available_Seats - @Travelers WHERE Package_Id = @Package_Id",
-                    new SqlParameter("@Travelers", travelers),
-                    new SqlParameter("@Package_Id", packageId));
             }
 
-            if (currentStatus != "Cancelled" && nextStatus == "Cancelled")
+            if (!IsCancelled(currentStatus) && IsCancelled(nextStatus))
             {
                 ExecuteNonQuery(connection, transaction,
                     "UPDATE dbo.Travel_Packages SET Available_Seats = Available_Seats + @Travelers WHERE Package_Id = @Package_Id",
@@ -292,6 +313,7 @@ public class BookingsController : ControllerBase
                 Travelers = reader.GetInt32(reader.GetOrdinal("Travelers")),
                 Total_Price = reader.GetDecimal(reader.GetOrdinal("Total_Price")),
                 Booking_Status = reader.GetString(reader.GetOrdinal("Booking_Status")),
+                Travel_Date = reader.IsDBNull(reader.GetOrdinal("Travel_Date")) ? null : reader.GetDateTime(reader.GetOrdinal("Travel_Date")),
                 Booking_Date = reader.GetDateTime(reader.GetOrdinal("Booking_Date"))
             });
         }
@@ -315,5 +337,10 @@ public class BookingsController : ControllerBase
         command.Parameters.AddRange(parameters);
 
         return command.ExecuteNonQuery();
+    }
+
+    private static bool IsCancelled(string status)
+    {
+        return string.Equals(status, "Cancelled", StringComparison.OrdinalIgnoreCase);
     }
 }

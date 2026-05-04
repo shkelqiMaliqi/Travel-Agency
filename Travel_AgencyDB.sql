@@ -94,6 +94,7 @@ CREATE TABLE dbo.Bookings (
     Travelers INT NOT NULL CONSTRAINT CK_Bookings_Travelers CHECK (Travelers > 0),
     Total_Price DECIMAL(10,2) NOT NULL,
     Booking_Status VARCHAR(30) NOT NULL CONSTRAINT DF_Bookings_Status DEFAULT ('Pending'),
+    Travel_Date DATE NULL,
     Booking_Date DATETIME2 NOT NULL CONSTRAINT DF_Bookings_Date DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT FK_Bookings_Packages FOREIGN KEY (Package_Id) REFERENCES dbo.Travel_Packages(Package_Id),
     CONSTRAINT FK_Bookings_Users FOREIGN KEY (U_Id) REFERENCES dbo.Users(U_Id),

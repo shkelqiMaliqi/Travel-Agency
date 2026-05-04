@@ -4,6 +4,7 @@ import { cancelBooking, getMyBookings, getStoredAuth } from "../services/api";
 
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
+const date = (value) => (value ? new Date(value).toLocaleDateString() : "-");
 
 const MyBookings = () => {
   const [auth] = useState(() => getStoredAuth());
@@ -71,6 +72,7 @@ const MyBookings = () => {
                   <th>Package</th>
                   <th>Destination</th>
                   <th>Hotel</th>
+                  <th>Travel date</th>
                   <th>Travelers</th>
                   <th>Total</th>
                   <th>Status</th>
@@ -87,6 +89,7 @@ const MyBookings = () => {
                       <td>{valueOf(booking, "package_Name", "Package_Name")}</td>
                       <td>{valueOf(booking, "place_Name", "Place_Name")}</td>
                       <td>{valueOf(booking, "hotel_Name", "Hotel_Name")}</td>
+                      <td>{date(valueOf(booking, "travel_Date", "Travel_Date"))}</td>
                       <td>{valueOf(booking, "travelers", "Travelers")}</td>
                       <td>{money(valueOf(booking, "total_Price", "Total_Price"))}</td>
                       <td>

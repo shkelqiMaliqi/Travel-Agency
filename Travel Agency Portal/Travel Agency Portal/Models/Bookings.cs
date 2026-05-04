@@ -18,6 +18,7 @@ public class Booking
     public int Travelers { get; set; }
     public decimal Total_Price { get; set; }
     public string Booking_Status { get; set; } = "Pending";
+    public DateTime? Travel_Date { get; set; }
     public DateTime Booking_Date { get; set; }
 }
 
@@ -28,4 +29,6 @@ public class CreateBookingRequest
 
     [Range(1, 20)]
     public int Travelers { get; set; } = 1;
+
+    public DateTime? Travel_Date { get; set; }
 }
