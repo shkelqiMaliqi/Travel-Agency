@@ -1,6 +1,7 @@
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Travel_Agency_Portal.Models;
 
 namespace Travel_Agency_Portal.Controllers;
@@ -10,16 +11,25 @@ namespace Travel_Agency_Portal.Controllers;
 public class PlacesController : ControllerBase
 {
     private readonly IConfiguration _configuration;
+    private readonly IMemoryCache _cache;
 
-    public PlacesController(IConfiguration configuration)
+    public PlacesController(IConfiguration configuration, IMemoryCache cache)
     {
         _configuration = configuration;
+        _cache = cache;
     }
 
     [AllowAnonymous]
     [HttpGet]
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "search" })]
     public IActionResult GetPlaces([FromQuery] string? search = null)
     {
+        var cacheKey = $"places:{search?.Trim().ToLowerInvariant()}";
+        if (_cache.TryGetValue(cacheKey, out List<Place>? cachedPlaces))
+        {
+            return Ok(cachedPlaces);
+        }
+
         var query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places";
         var parameters = new List<SqlParameter>();
 
@@ -30,17 +40,33 @@ public class PlacesController : ControllerBase
         }
 
         query += " ORDER BY Place_Name ASC";
-        return Ok(ExecutePlacesQuery(query, parameters.ToArray()));
+        var places = ExecutePlacesQuery(query, parameters.ToArray());
+        _cache.Set(cacheKey, places, TimeSpan.FromMinutes(5));
+
+        return Ok(places);
     }
 
     [AllowAnonymous]
     [HttpGet("{id:int}")]
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
     public IActionResult GetPlace(int id)
     {
+        var cacheKey = $"places:id:{id}";
+        if (_cache.TryGetValue(cacheKey, out Place? cachedPlace))
+        {
+            return Ok(cachedPlace);
+        }
+
         const string query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places WHERE Place_Id = @Place_Id";
         var result = ExecutePlacesQuery(query, new SqlParameter("@Place_Id", id));
 
-        return result.Count > 0 ? Ok(result[0]) : NotFound();
+        if (result.Count == 0)
+        {
+            return NotFound();
+        }
+
+        _cache.Set(cacheKey, result[0], TimeSpan.FromMinutes(5));
+        return Ok(result[0]);
     }
 
     [Authorize(Roles = "admin")]
@@ -61,6 +87,7 @@ public class PlacesController : ControllerBase
             new SqlParameter("@Place_Description", place.Place_Description),
             new SqlParameter("@Place_Url", (object?)place.Place_Url ?? DBNull.Value));
 
+        _cache.Remove("places:");
         return Ok(new { message = "Place added successfully." });
     }
 
@@ -86,6 +113,8 @@ public class PlacesController : ControllerBase
             new SqlParameter("@Place_Description", place.Place_Description),
             new SqlParameter("@Place_Url", (object?)place.Place_Url ?? DBNull.Value));
 
+        _cache.Remove("places:");
+        _cache.Remove($"places:id:{id}");
         return rows > 0 ? Ok(new { message = "Place updated successfully." }) : NotFound();
     }
 
@@ -106,6 +135,8 @@ public class PlacesController : ControllerBase
         const string query = "DELETE FROM dbo.Places WHERE Place_Id = @Place_Id";
         var rows = ExecuteNonQuery(query, new SqlParameter("@Place_Id", id));
 
+        _cache.Remove("places:");
+        _cache.Remove($"places:id:{id}");
         return rows > 0 ? Ok(new { message = "Place deleted successfully." }) : NotFound();
     }
 

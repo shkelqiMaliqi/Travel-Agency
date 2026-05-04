@@ -1,6 +1,7 @@
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Travel_Agency_Portal.Models;
 
 namespace Travel_Agency_Portal.Controllers;
@@ -18,6 +19,7 @@ public class ContactController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost]
+    [EnableRateLimiting("PublicWritePolicy")]
     public IActionResult CreateMessage([FromBody] ContactMessage message)
     {
         if (!ModelState.IsValid)

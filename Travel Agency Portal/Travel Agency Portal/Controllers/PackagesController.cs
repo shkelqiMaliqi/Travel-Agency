@@ -1,6 +1,7 @@
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Travel_Agency_Portal.Dtos;
 using Travel_Agency_Portal.Models;
 
@@ -11,16 +12,25 @@ namespace Travel_Agency_Portal.Controllers;
 public class PackagesController : ControllerBase
 {
     private readonly IConfiguration _configuration;
+    private readonly IMemoryCache _cache;
 
-    public PackagesController(IConfiguration configuration)
+    public PackagesController(IConfiguration configuration, IMemoryCache cache)
     {
         _configuration = configuration;
+        _cache = cache;
     }
 
     [AllowAnonymous]
     [HttpGet]
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "search", "placeId", "minPrice", "maxPrice" })]
     public IActionResult GetPackages([FromQuery] string? search = null, [FromQuery] int? placeId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null)
     {
+        var cacheKey = $"packages:{search?.Trim().ToLowerInvariant()}:{placeId}:{minPrice}:{maxPrice}";
+        if (_cache.TryGetValue(cacheKey, out List<TravelPackage>? cachedPackages))
+        {
+            return Ok(cachedPackages);
+        }
+
         var query = @"
             SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
                    p.Place_Name, p.Place_Description,
@@ -65,13 +75,23 @@ public class PackagesController : ControllerBase
 
         query += " ORDER BY tp.Package_Name ASC, p.Place_Name ASC";
 
-        return Ok(ExecutePackagesQuery(query, parameters.ToArray()));
+        var packages = ExecutePackagesQuery(query, parameters.ToArray());
+        _cache.Set(cacheKey, packages, TimeSpan.FromMinutes(5));
+
+        return Ok(packages);
     }
 
     [AllowAnonymous]
     [HttpGet("{id:int}")]
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
     public IActionResult GetPackage(int id)
     {
+        var cacheKey = $"packages:id:{id}";
+        if (_cache.TryGetValue(cacheKey, out TravelPackage? cachedPackage))
+        {
+            return Ok(cachedPackage);
+        }
+
         const string query = @"
             SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
                    p.Place_Name, p.Place_Description,
@@ -84,7 +104,13 @@ public class PackagesController : ControllerBase
             WHERE tp.Package_Id = @Package_Id";
 
         var result = ExecutePackagesQuery(query, new SqlParameter("@Package_Id", id));
-        return result.Count > 0 ? Ok(result[0]) : NotFound();
+        if (result.Count == 0)
+        {
+            return NotFound();
+        }
+
+        _cache.Set(cacheKey, result[0], TimeSpan.FromMinutes(5));
+        return Ok(result[0]);
     }
 
     [Authorize(Roles = "admin")]
@@ -123,6 +149,7 @@ public class PackagesController : ControllerBase
             new SqlParameter("@Available_Seats", package.Available_Seats),
             new SqlParameter("@Package_Url", (object?)package.Package_Url ?? DBNull.Value));
 
+        _cache.Remove("packages::::");
         return Ok(new { message = "Package added successfully." });
     }
 
@@ -170,6 +197,8 @@ public class PackagesController : ControllerBase
             new SqlParameter("@Available_Seats", package.Available_Seats),
             new SqlParameter("@Package_Url", (object?)package.Package_Url ?? DBNull.Value));
 
+        _cache.Remove("packages::::");
+        _cache.Remove($"packages:id:{id}");
         return rows > 0 ? Ok(new { message = "Package updated successfully." }) : NotFound();
     }
 
@@ -186,6 +215,8 @@ public class PackagesController : ControllerBase
         const string query = "DELETE FROM dbo.Travel_Packages WHERE Package_Id = @Package_Id";
         var rows = ExecuteNonQuery(query, new SqlParameter("@Package_Id", id));
 
+        _cache.Remove("packages::::");
+        _cache.Remove($"packages:id:{id}");
         return rows > 0 ? Ok(new { message = "Package deleted successfully." }) : NotFound();
     }
 

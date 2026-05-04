@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Travel_Agency_Portal.Models;
 using Travel_Agency_Portal.Services;
 
@@ -9,6 +10,7 @@ namespace Travel_Agency_Portal.Controllers;
 
 [Route("api/v1/[controller]")]
 [ApiController]
+[EnableRateLimiting("AuthPolicy")]
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
@@ -103,9 +105,7 @@ public class AuthController : ControllerBase
 
         var row = table.Rows[0];
         var storedHash = row["U_Password"]?.ToString() ?? string.Empty;
-        var incomingHash = PasswordHasher.Hash(request.Password);
-
-        if (!string.Equals(storedHash, incomingHash, StringComparison.Ordinal))
+        if (!PasswordHasher.Verify(request.Password, storedHash))
         {
             return Unauthorized(new { message = "Invalid credentials." });
         }
@@ -142,7 +142,7 @@ public class AuthController : ControllerBase
         }
 
         var resetCode = Random.Shared.Next(100000, 999999).ToString();
-        var resetCodeHash = PasswordHasher.Hash(resetCode);
+        var resetCodeHash = PasswordHasher.HashToken(resetCode);
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(15);
 
         const string expireOldCodesQuery = @"
@@ -188,7 +188,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = PasswordPolicy.Message });
         }
 
-        var resetCodeHash = PasswordHasher.Hash(request.ResetCode.Trim());
+        var resetCodeHash = PasswordHasher.HashToken(request.ResetCode.Trim());
         const string codeQuery = @"
             SELECT TOP 1 Reset_Id
             FROM dbo.Password_Reset_Codes

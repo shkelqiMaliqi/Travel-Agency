@@ -4,6 +4,9 @@ Use these checks in Swagger or Postman to demonstrate the Web API behavior.
 
 ## Public Requests
 
+0. `GET /health`
+   - Expected: returns `Healthy`.
+
 1. `GET /api/v1/places`
    - Expected: returns destinations in a standard API response wrapper.
 
@@ -129,3 +132,6 @@ Use the admin JWT token.
 
 4. Try to book more travelers than available seats.
    - Expected: error message about unavailable seats.
+
+5. Send repeated login or forgot-password requests quickly.
+   - Expected: API eventually returns `429 Too Many Requests`.

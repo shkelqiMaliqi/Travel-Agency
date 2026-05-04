@@ -15,6 +15,7 @@ Travel Agency is a React and ASP.NET Core Web API project with JWT login, user d
 - .NET SDK
 - SQL Server
 - SQL Server instance named `SHKELQIM`, or update `CRUDCS` in `appsettings.json`
+- Docker Desktop, optional, if running with `docker compose`
 
 ## Database Setup
 
@@ -72,6 +73,12 @@ Swagger:
 
 ```text
 http://localhost:5132/swagger
+```
+
+Health check:
+
+```text
+http://localhost:5132/health
 ```
 
 ## Run Frontend
@@ -192,7 +199,66 @@ Unhandled backend errors are processed by global middleware and returned as clea
 - Role-based authorization protects admin endpoints.
 - Swagger/OpenAPI is enabled in development.
 - CORS allows the React frontend to call the API from `localhost:3000`.
+- `/health` exposes a simple service health endpoint.
+- API request logging records method, path, status code, and elapsed time through ASP.NET logging.
+- Public read endpoints use short-lived response caching and in-memory caching.
+- Login, password reset, and public contact writes are rate limited.
+- Passwords are stored with salted PBKDF2 hashes; legacy SHA256 hashes are still accepted so existing seeded users continue to work.
 - `Travel_Agency_Features_Update.sql` safely updates existing databases.
+
+## Architecture Notes
+
+This project is implemented as a monolithic ASP.NET Core REST API plus a React client. REST was selected instead of SOAP because the app mainly exposes JSON resources such as users, destinations, hotels, packages, bookings, and contact messages.
+
+The PDF requirements mention microservices, API gateways, load balancing, WAF, Grafana, Prometheus, and distributed caching. Those are deployment-scale concerns and are not necessary for this coursework-sized project. They are documented as future production improvements rather than implemented as extra infrastructure.
+
+## Security Notes
+
+For local development, `appsettings.json` contains development configuration. For production or Docker, override sensitive values with environment variables:
+
+```text
+Jwt__Secret
+Jwt__Issuer
+Jwt__Audience
+ConnectionStrings__CRUDCS
+```
+
+Never commit real production secrets.
+
+## Backend Tests
+
+Run the API test project from the solution folder:
+
+```powershell
+cd "C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal"
+dotnet test
+```
+
+The automated tests currently cover password hashing compatibility, the health endpoint, and authentication protection on secured endpoints.
+
+## Docker
+
+Run the API and SQL Server with Docker Compose:
+
+```powershell
+docker compose up --build
+```
+
+After SQL Server starts, apply `Travel_AgencyDB.sql` to create and seed the database. The API will be available at:
+
+```text
+http://localhost:5132
+```
+
+## CI/CD
+
+The repository includes a backend-only GitHub Actions workflow at:
+
+```text
+.github/workflows/backend-ci.yml
+```
+
+It restores, builds, and tests the ASP.NET solution on pushes and pull requests.
 
 ## API Testing
 
