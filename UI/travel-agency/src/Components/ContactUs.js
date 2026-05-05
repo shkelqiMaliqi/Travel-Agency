@@ -39,7 +39,7 @@ const ContactUs = () => {
 
     try {
       await sendContactMessage(formData);
-      setStatus({ loading: false, error: "", success: "Your message has been sent." });
+      setStatus({ loading: false, error: "", success: "Your message has been sent to the admin team." });
       setFormData(initialForm);
     } catch (error) {
       setStatus({ loading: false, error: error.message, success: "" });

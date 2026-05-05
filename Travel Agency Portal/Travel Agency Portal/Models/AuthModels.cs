@@ -35,7 +35,8 @@ public static class PasswordPolicy
 
     public static bool IsValid(string password)
     {
-        return password.Length >= 8 &&
+        return !string.IsNullOrWhiteSpace(password) &&
+               password.Length >= 8 &&
                password.Any(char.IsUpper) &&
                password.Any(char.IsLower) &&
                password.Any(char.IsDigit) &&

@@ -61,7 +61,21 @@ Authorization: Bearer <token>
 2. `PUT /api/v1/users/{id}`
    - Expected: user can update own profile.
 
-3. `POST /api/v1/bookings`
+3. `PUT /api/v1/users/{id}/password`
+   - Body:
+
+```json
+{
+  "currentPassword": "OldPass123!",
+  "newPassword": "NewPass123!",
+  "confirmPassword": "NewPass123!"
+}
+```
+
+   - Expected: user can change own password after current password is verified.
+   - Validation: new password must match the password policy and confirmation.
+
+4. `POST /api/v1/bookings`
    - Body:
 
 ```json
@@ -73,11 +87,15 @@ Authorization: Bearer <token>
 
    - Expected: creates pending booking and reduces seats.
 
-4. `GET /api/v1/bookings/mine`
+5. `GET /api/v1/bookings/mine`
    - Expected: returns current user's bookings.
 
-5. `PUT /api/v1/bookings/{id}/cancel`
+6. `PUT /api/v1/bookings/{id}/cancel`
    - Expected: only pending bookings can be cancelled by user.
+
+7. `POST /api/v1/contact`
+   - Expected: creates an unread message for the admin Messages tab.
+   - Logged-in users should have the message linked through their JWT user id.
 
 ## Admin Requests
 

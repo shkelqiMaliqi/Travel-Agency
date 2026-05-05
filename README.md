@@ -103,6 +103,7 @@ http://localhost:3000
 - JWT session expiry set to 1 hour
 - User dashboard with booking counts, upcoming booking, and package options
 - User profile view/edit
+- User password change from profile with current password verification
 - Public destination catalog with search
 - Public package catalog with filters
 - Package details page
@@ -181,9 +182,10 @@ Unhandled backend errors are processed by global middleware and returned as clea
 | `GET` | `/api/v1/users` | Admin | List users |
 | `GET` | `/api/v1/users/{id}` | User/Admin | User profile |
 | `PUT` | `/api/v1/users/{id}` | User/Admin | Update user |
+| `PUT` | `/api/v1/users/{id}/password` | User | Change own password |
 | `PUT` | `/api/v1/users/{id}/role` | Admin | Change role |
 | `DELETE` | `/api/v1/users/{id}` | Admin | Delete user |
-| `POST` | `/api/v1/contact` | Public | Send contact message |
+| `POST` | `/api/v1/contact` | Public/User | Send contact message to admin |
 | `GET` | `/api/v1/contact` | Admin | List messages |
 | `PUT` | `/api/v1/contact/{id}/read` | Admin | Mark message read |
 | `PUT` | `/api/v1/contact/{id}/archive` | Admin | Archive message |
@@ -295,7 +297,7 @@ API_TESTS.md
 - Admin actions require a user with `U_Type = 'admin'`.
 - Normal users cannot access `/admin`.
 - Public users can view destinations and packages.
-- Logged-in users can book packages and submit contact messages linked to their account.
+- Logged-in users can book packages, change their password from profile, and submit contact messages linked to their account.
 - Users can cancel only pending bookings.
 - Packages with zero seats are shown as sold out and cannot be booked.
 - Registration and password reset require passwords with at least 8 characters, uppercase, lowercase, number, and special character.

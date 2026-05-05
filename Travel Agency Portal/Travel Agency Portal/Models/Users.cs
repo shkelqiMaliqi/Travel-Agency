@@ -74,3 +74,16 @@ public class UpdateUserRoleRequest
     [RegularExpression("^(admin|user)$", ErrorMessage = "Role must be admin or user.")]
     public string U_Type { get; set; } = "user";
 }
+
+public class ChangePasswordRequest
+{
+    [Required]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(8)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required]
+    public string ConfirmPassword { get; set; } = string.Empty;
+}

@@ -252,6 +252,14 @@ export async function updateUserProfile(id, formData) {
   });
 }
 
+export async function changeUserPassword(id, formData) {
+  return request(`/users/${id}/password`, {
+    auth: true,
+    method: "PUT",
+    body: JSON.stringify(formData),
+  });
+}
+
 export async function getUsers() {
   return request("/users", {
     auth: true,
@@ -275,6 +283,7 @@ export async function deleteUser(id) {
 
 export async function sendContactMessage(formData) {
   return request("/contact", {
+    auth: true,
     method: "POST",
     body: JSON.stringify(formData),
   });

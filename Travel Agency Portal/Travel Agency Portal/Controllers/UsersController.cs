@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Travel_Agency_Portal.Models;
+using Travel_Agency_Portal.Services;
 
 namespace Travel_Agency_Portal.Controllers;
 
@@ -87,6 +88,62 @@ public class UsersController : ControllerBase
             new SqlParameter("@U_Phone", string.IsNullOrWhiteSpace(user.U_Phone) ? DBNull.Value : user.U_Phone));
 
         return rows > 0 ? Ok(new { message = "User updated successfully." }) : NotFound();
+    }
+
+    [Authorize]
+    [HttpPut("{id:int}/password")]
+    public IActionResult ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.Equals(currentUserId, id.ToString(), StringComparison.Ordinal))
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (!string.Equals(request.NewPassword, request.ConfirmPassword, StringComparison.Ordinal))
+        {
+            return BadRequest(new { message = "Passwords do not match." });
+        }
+
+        if (!PasswordPolicy.IsValid(request.NewPassword))
+        {
+            return BadRequest(new { message = PasswordPolicy.Message });
+        }
+
+        const string passwordQuery = "SELECT U_Password FROM dbo.Users WHERE U_Id = @U_Id";
+        var storedHash = ExecuteScalarString(passwordQuery, new SqlParameter("@U_Id", id));
+        if (string.IsNullOrWhiteSpace(storedHash))
+        {
+            return NotFound();
+        }
+
+        if (!PasswordHasher.Verify(request.CurrentPassword, storedHash))
+        {
+            return BadRequest(new { message = "Current password is incorrect." });
+        }
+
+        if (PasswordHasher.Verify(request.NewPassword, storedHash))
+        {
+            return BadRequest(new { message = "New password must be different from the current password." });
+        }
+
+        var nextHash = PasswordHasher.Hash(request.NewPassword);
+        const string updateQuery = @"
+            UPDATE dbo.Users
+            SET U_Password = @U_Password,
+                U_RepeatPassword = @U_Password
+            WHERE U_Id = @U_Id";
+
+        var rows = ExecuteNonQuery(updateQuery,
+            new SqlParameter("@U_Id", id),
+            new SqlParameter("@U_Password", nextHash));
+
+        return rows > 0 ? Ok(new { message = "Password changed successfully." }) : NotFound();
     }
 
     [Authorize(Roles = "admin")]
@@ -204,5 +261,21 @@ public class UsersController : ControllerBase
         var result = command.ExecuteScalar();
 
         return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+    }
+
+    private string ExecuteScalarString(string query, params SqlParameter[] parameters)
+    {
+        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
+        using var command = new SqlCommand(query, connection);
+
+        if (parameters.Length > 0)
+        {
+            command.Parameters.AddRange(parameters);
+        }
+
+        connection.Open();
+        var result = command.ExecuteScalar();
+
+        return result is null || result == DBNull.Value ? string.Empty : result.ToString() ?? string.Empty;
     }
 }

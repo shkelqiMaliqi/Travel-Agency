@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStoredAuth, getUserProfile, saveAuth, updateUserProfile } from "../services/api";
+import { changeUserPassword, getStoredAuth, getUserProfile, saveAuth, updateUserProfile } from "../services/api";
 
 const initialForm = {
   u_Name: "",
@@ -10,10 +10,30 @@ const initialForm = {
   u_Phone: "",
 };
 
+const initialPasswordForm = {
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+};
+
+const passwordRulesText = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+
+function isPasswordValid(password) {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
 const Profile = () => {
   const [auth, setAuth] = useState(() => getStoredAuth());
   const [formData, setFormData] = useState(initialForm);
+  const [passwordForm, setPasswordForm] = useState(initialPasswordForm);
   const [status, setStatus] = useState({ loading: true, saving: false, error: "", success: "" });
+  const [passwordStatus, setPasswordStatus] = useState({ saving: false, error: "", success: "" });
 
   useEffect(() => {
     let active = true;
@@ -54,6 +74,11 @@ const Profile = () => {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
+  const handlePasswordChange = (event) => {
+    const { name, value } = event.target;
+    setPasswordForm((current) => ({ ...current, [name]: value }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus({ loading: false, saving: true, error: "", success: "" });
@@ -70,6 +95,30 @@ const Profile = () => {
       setStatus({ loading: false, saving: false, error: "", success: "Profile updated successfully." });
     } catch (error) {
       setStatus({ loading: false, saving: false, error: error.message, success: "" });
+    }
+  };
+
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!isPasswordValid(passwordForm.newPassword)) {
+      setPasswordStatus({ saving: false, error: passwordRulesText, success: "" });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordStatus({ saving: false, error: "Passwords do not match.", success: "" });
+      return;
+    }
+
+    setPasswordStatus({ saving: true, error: "", success: "" });
+
+    try {
+      const response = await changeUserPassword(auth.userId, passwordForm);
+      setPasswordForm(initialPasswordForm);
+      setPasswordStatus({ saving: false, error: "", success: response.message || "Password changed successfully." });
+    } catch (error) {
+      setPasswordStatus({ saving: false, error: error.message, success: "" });
     }
   };
 
@@ -159,6 +208,42 @@ const Profile = () => {
               <dt>Session expires</dt>
               <dd>{auth.expiresAtUtc ? new Date(auth.expiresAtUtc).toLocaleString() : "Not available"}</dd>
             </dl>
+          </div>
+
+          <div className="dashboard-panel mt-4">
+            <h2>Change password</h2>
+            <form onSubmit={handlePasswordSubmit} className="row g-3">
+              <div className="col-12">
+                <label htmlFor="currentPassword" className="form-label">
+                  Current password
+                </label>
+                <input id="currentPassword" name="currentPassword" type="password" className="form-control" value={passwordForm.currentPassword} onChange={handlePasswordChange} required />
+              </div>
+
+              <div className="col-12">
+                <label htmlFor="newPassword" className="form-label">
+                  New password
+                </label>
+                <input id="newPassword" name="newPassword" type="password" className="form-control" value={passwordForm.newPassword} onChange={handlePasswordChange} required />
+                <div className="form-text">{passwordRulesText}</div>
+              </div>
+
+              <div className="col-12">
+                <label htmlFor="confirmPassword" className="form-label">
+                  Confirm new password
+                </label>
+                <input id="confirmPassword" name="confirmPassword" type="password" className="form-control" value={passwordForm.confirmPassword} onChange={handlePasswordChange} required />
+              </div>
+
+              {passwordStatus.error ? <div className="alert alert-danger mb-0">{passwordStatus.error}</div> : null}
+              {passwordStatus.success ? <div className="alert alert-success mb-0">{passwordStatus.success}</div> : null}
+
+              <div className="col-12 d-grid">
+                <button type="submit" className="btn btn-primary" disabled={passwordStatus.saving}>
+                  {passwordStatus.saving ? "Changing password..." : "Change password"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

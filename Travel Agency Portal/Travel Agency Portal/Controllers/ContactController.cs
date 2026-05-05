@@ -1,4 +1,5 @@
 using System.Data.SqlClient;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -33,13 +34,14 @@ public class ContactController : ControllerBase
 
         using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
         using var command = new SqlCommand(query, connection);
+        var userId = GetCurrentUserId();
 
         command.Parameters.AddWithValue("@C_Name", message.C_Name);
         command.Parameters.AddWithValue("@C_Surname", message.C_Surname);
         command.Parameters.AddWithValue("@C_Email", message.C_Email);
         command.Parameters.AddWithValue("@C_Subject", message.C_Subject);
         command.Parameters.AddWithValue("@C_Message", message.C_Message);
-        command.Parameters.AddWithValue("@U_Id", (object?)message.U_Id ?? DBNull.Value);
+        command.Parameters.AddWithValue("@U_Id", userId.HasValue ? userId.Value : DBNull.Value);
 
         connection.Open();
         command.ExecuteNonQuery();
@@ -126,5 +128,11 @@ public class ContactController : ControllerBase
 
         connection.Open();
         return command.ExecuteNonQuery();
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(value, out var userId) ? userId : null;
     }
 }
