@@ -46,7 +46,7 @@ public class ContactController : ControllerBase
         connection.Open();
         command.ExecuteNonQuery();
 
-        return Ok(new { message = "Message sent successfully." });
+        return Ok(new { message = "Your message has been sent to the travel agency staff. We will respond as fast as we can." });
     }
 
     [Authorize(Roles = "admin")]

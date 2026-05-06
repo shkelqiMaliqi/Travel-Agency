@@ -8,21 +8,95 @@ info: Microsoft.Hosting.Lifetime[0]
       Hosting environment: Development
 info: Microsoft.Hosting.Lifetime[0]
       Content root path: C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger/index.html responded 200 in 113.0171 ms
 warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
       Failed to determine the https port for redirect.
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP POST /api/v1/auth/register responded 200 in 651.969 ms
+      HTTP OPTIONS /api/v1/contact responded 204 in 16.0764 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP PUT /api/v1/users/6/password responded 200 in 323.3568 ms
+      HTTP POST /api/v1/contact responded 200 in 365.4056 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP POST /api/v1/auth/login responded 200 in 127.5564 ms
+      HTTP OPTIONS /api/v1/auth/login responded 204 in 1.4313 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP POST /api/v1/contact responded 200 in 73.5418 ms
+      HTTP POST /api/v1/auth/login responded 200 in 158.1983 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP POST /api/v1/auth/login responded 200 in 11.7947 ms
+      HTTP OPTIONS /api/v1/places responded 204 in 0.1916 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP GET /api/v1/contact responded 200 in 59.7162 ms
+      HTTP OPTIONS /api/v1/packages responded 204 in 0.1823 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP DELETE /api/v1/contact/1 responded 200 in 12.5252 ms
+      HTTP OPTIONS /api/v1/bookings/mine responded 204 in 0.2144 ms
 info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
-      HTTP DELETE /api/v1/users/6 responded 200 in 17.4899 ms
+      HTTP OPTIONS /api/v1/places responded 204 in 0.1832 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/packages responded 204 in 0.5093 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/bookings/mine responded 204 in 0.2994 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/places responded 200 in 57.0459 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/packages responded 200 in 60.7848 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/packages responded 200 in 12.0335 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/bookings/mine responded 200 in 178.3954 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/bookings/mine responded 200 in 7.4274 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/hotels responded 204 in 0.2243 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/bookings responded 204 in 0.3055 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/contact responded 204 in 0.4903 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/users responded 204 in 0.1526 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/stats/admin responded 204 in 0.1335 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/hotels responded 204 in 0.195 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/bookings responded 204 in 0.154 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/contact responded 204 in 0.1527 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/users responded 204 in 0.1624 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP OPTIONS /api/v1/stats/admin responded 204 in 0.0808 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/hotels responded 200 in 33.5152 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/contact responded 200 in 36.3494 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/hotels responded 200 in 3.8175 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/bookings responded 200 in 44.3472 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/packages responded 200 in 30.2161 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/users responded 200 in 27.5028 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/contact responded 200 in 4.6149 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/bookings responded 200 in 6.1342 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/packages responded 200 in 7.4783 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/users responded 200 in 12.7252 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/stats/admin responded 200 in 49.7604 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /api/v1/stats/admin responded 200 in 3.5423 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger responded 301 in 1.4081 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger/index.html responded 200 in 0.902 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger/swagger-ui.css responded 200 in 35.8895 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger/swagger-ui-bundle.js responded 200 in 69.8754 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger/swagger-ui-standalone-preset.js responded 200 in 357.681 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET /swagger/v1/swagger.json responded 200 in 152.0698 ms
+info: Travel_Agency_Portal.Middleware.RequestLoggingMiddleware[0]
+      HTTP GET / responded 404 in 0.7112 ms
