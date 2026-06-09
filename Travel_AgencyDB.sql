@@ -5,6 +5,9 @@ USE Travel_Agency;
 GO
 
 IF OBJECT_ID('dbo.Bookings', 'U') IS NOT NULL DROP TABLE dbo.Bookings;
+IF OBJECT_ID('dbo.Metrics_Snapshots', 'U') IS NOT NULL DROP TABLE dbo.Metrics_Snapshots;
+IF OBJECT_ID('dbo.Audit_Logs', 'U') IS NOT NULL DROP TABLE dbo.Audit_Logs;
+IF OBJECT_ID('dbo.User_Mfa_Codes', 'U') IS NOT NULL DROP TABLE dbo.User_Mfa_Codes;
 IF OBJECT_ID('dbo.Password_Reset_Codes', 'U') IS NOT NULL DROP TABLE dbo.Password_Reset_Codes;
 IF OBJECT_ID('dbo.Travel_Packages', 'U') IS NOT NULL DROP TABLE dbo.Travel_Packages;
 IF OBJECT_ID('dbo.Hotels', 'U') IS NOT NULL DROP TABLE dbo.Hotels;
@@ -56,6 +59,41 @@ CREATE TABLE dbo.Password_Reset_Codes (
     Expires_At DATETIME2 NOT NULL,
     Is_Used BIT NOT NULL CONSTRAINT DF_ResetCodes_IsUsed DEFAULT (0),
     Created_At DATETIME2 NOT NULL CONSTRAINT DF_ResetCodes_CreatedAt DEFAULT (SYSUTCDATETIME())
+);
+GO
+
+CREATE TABLE dbo.User_Mfa_Codes (
+    Mfa_Id INT PRIMARY KEY IDENTITY(1,1),
+    U_Id INT NOT NULL,
+    U_Email VARCHAR(255) NOT NULL,
+    Code_Hash VARCHAR(255) NOT NULL,
+    Expires_At DATETIME2 NOT NULL,
+    Is_Used BIT NOT NULL CONSTRAINT DF_UserMfaCodes_IsUsed DEFAULT (0),
+    Created_At DATETIME2 NOT NULL CONSTRAINT DF_UserMfaCodes_CreatedAt DEFAULT (SYSUTCDATETIME()),
+    CONSTRAINT FK_UserMfaCodes_User FOREIGN KEY (U_Id) REFERENCES dbo.Users(U_Id)
+);
+GO
+
+CREATE TABLE dbo.Audit_Logs (
+    Audit_Id INT PRIMARY KEY IDENTITY(1,1),
+    Event_Type VARCHAR(100) NOT NULL,
+    User_Email VARCHAR(255) NULL,
+    U_Id INT NULL,
+    Request_Path VARCHAR(255) NOT NULL,
+    Http_Method VARCHAR(20) NOT NULL,
+    Status_Code INT NOT NULL,
+    Details VARCHAR(MAX) NULL,
+    Created_At DATETIME2 NOT NULL CONSTRAINT DF_AuditLogs_CreatedAt DEFAULT (SYSUTCDATETIME())
+);
+GO
+
+CREATE TABLE dbo.Metrics_Snapshots (
+    Snapshot_Id INT PRIMARY KEY IDENTITY(1,1),
+    Users_Count INT NOT NULL,
+    Bookings_Count INT NOT NULL,
+    Packages_Count INT NOT NULL,
+    Unread_Messages_Count INT NOT NULL,
+    Recorded_At DATETIME2 NOT NULL CONSTRAINT DF_MetricsSnapshots_RecordedAt DEFAULT (SYSUTCDATETIME())
 );
 GO
 

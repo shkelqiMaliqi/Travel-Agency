@@ -2,6 +2,8 @@
 
 Use these checks in Swagger or Postman to demonstrate the Web API behavior.
 
+Swagger usage notes and the recommended presentation flow are also documented in `Documentation/SWAGGER_GUIDE.md`.
+
 ## Public Requests
 
 0. `GET /health`
@@ -21,8 +23,21 @@ Use these checks in Swagger or Postman to demonstrate the Web API behavior.
 
 5. `POST /api/v1/auth/login`
    - Expected: returns token, role, user id, name, and email.
+   - Admin/demo MFA behavior: if MFA is required for the role, the response returns `requiresMfa = true` and a demo verification code.
 
-6. `POST /api/v1/auth/forgot-password`
+6. `POST /api/v1/auth/verify-mfa`
+   - Body:
+
+```json
+{
+  "email": "admin@travelagency.com",
+  "code": "123456"
+}
+```
+
+   - Expected: verifies the one-time MFA code and returns the final JWT token.
+
+7. `POST /api/v1/auth/forgot-password`
    - Body:
 
 ```json
@@ -33,7 +48,7 @@ Use these checks in Swagger or Postman to demonstrate the Web API behavior.
 
    - Expected: returns a reset code for copy/paste testing.
 
-7. `POST /api/v1/auth/reset-password`
+8. `POST /api/v1/auth/reset-password`
    - Body:
 
 ```json
@@ -137,6 +152,18 @@ Use the admin JWT token.
 9. `GET /api/v1/stats/admin`
    - Expected: returns users, bookings, pending bookings, packages, sold out packages, and revenue.
 
+10. `GET /api/v1/infrastructure/audit-logs`
+   - Expected: returns recent audit entries stored through Entity Framework Core.
+
+11. `GET /api/v1/infrastructure/metrics-snapshots`
+   - Expected: returns periodic background-worker metrics snapshots.
+
+12. `POST /api/v1/infrastructure/analytics-events`
+   - Expected: stores a demo analytics event in MongoDB if Mongo is configured.
+
+13. `POST /api/v1/infrastructure/storage-demo`
+   - Expected: uploads a text payload to S3-compatible storage if MinIO/S3 config is available.
+
 ## Error Tests
 
 1. Call an admin endpoint without a token.
@@ -153,3 +180,51 @@ Use the admin JWT token.
 
 5. Send repeated login or forgot-password requests quickly.
    - Expected: API eventually returns `429 Too Many Requests`.
+
+6. Visit `/metrics`.
+   - Expected: Prometheus-compatible metrics output is returned.
+
+## Infrastructure Demonstrations
+
+1. Run the enterprise stack:
+
+```powershell
+docker compose -f docker-compose.enterprise.yml up --build
+```
+
+   - Expected: NGINX gateway, Redis, RabbitMQ, notification service, SQL Server, MongoDB, MinIO, ELK, Prometheus, Grafana, Alertmanager, and backup helper services are defined.
+
+2. Open RabbitMQ management:
+
+```text
+http://localhost:15672
+```
+
+   - Expected: the `travel-agency.mfa.delivery` queue can receive MFA delivery messages when admin MFA is triggered.
+
+3. Open Kibana:
+
+```text
+http://localhost:5601
+```
+
+   - Expected: Logstash receives JSON log lines from the API when `Logging__Logstash__Host=logstash`.
+
+4. Open Prometheus and Alertmanager:
+
+```text
+http://localhost:9090
+http://localhost:9093
+```
+
+   - Expected: Prometheus scrapes `/metrics` and Alertmanager is configured for email/webhook alert routing.
+
+5. Run E2E tests:
+
+```powershell
+cd "UI/travel-agency"
+npx playwright install chromium
+npm run e2e
+```
+
+   - Expected: browser tests verify public navigation and authentication form rendering.

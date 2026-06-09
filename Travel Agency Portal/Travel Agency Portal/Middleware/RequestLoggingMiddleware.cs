@@ -1,3 +1,5 @@
+using Travel_Agency_Portal.Services;
+
 namespace Travel_Agency_Portal.Middleware;
 
 public class RequestLoggingMiddleware
@@ -24,5 +26,15 @@ public class RequestLoggingMiddleware
             context.Request.Path,
             context.Response.StatusCode,
             elapsedMs);
+
+        var shouldAudit = context.User.Identity?.IsAuthenticated == true ||
+                          context.Request.Path.StartsWithSegments("/api/v1/auth") ||
+                          context.Request.Path.StartsWithSegments("/api/v1/contact");
+
+        if (shouldAudit)
+        {
+            var auditLogService = context.RequestServices.GetRequiredService<AuditLogService>();
+            await auditLogService.WriteAsync(context, "http.request", $"ElapsedMs={elapsedMs:F2}");
+        }
     }
 }

@@ -1,6 +1,8 @@
 using System.Data.SqlClient;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Travel_Agency_Portal.Dtos;
 using Travel_Agency_Portal.Models;
 
@@ -11,16 +13,32 @@ namespace Travel_Agency_Portal.Controllers;
 public class PackagesController : ControllerBase
 {
     private readonly IConfiguration _configuration;
+    private readonly IDistributedCache? _distributedCache;
 
-    public PackagesController(IConfiguration configuration)
+    public PackagesController(IConfiguration configuration, IDistributedCache? distributedCache = null)
     {
         _configuration = configuration;
+        _distributedCache = distributedCache;
     }
 
     [AllowAnonymous]
     [HttpGet]
     public IActionResult GetPackages([FromQuery] string? search = null, [FromQuery] int? placeId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null)
     {
+        var cacheKey = $"packages:{search}:{placeId}:{minPrice}:{maxPrice}";
+        if (_distributedCache is not null)
+        {
+            var cachedJson = _distributedCache.GetString(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cachedJson))
+            {
+                var cachedPackages = JsonSerializer.Deserialize<List<TravelPackage>>(cachedJson);
+                if (cachedPackages is not null)
+                {
+                    return Ok(cachedPackages);
+                }
+            }
+        }
+
         var query = @"
             SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
                    p.Place_Name, p.Place_Description,
@@ -65,13 +83,33 @@ public class PackagesController : ControllerBase
 
         query += " ORDER BY tp.Package_Name ASC, p.Place_Name ASC";
 
-        return Ok(ExecutePackagesQuery(query, parameters.ToArray()));
+        var packages = ExecutePackagesQuery(query, parameters.ToArray());
+        _distributedCache?.SetString(cacheKey, JsonSerializer.Serialize(packages), new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        });
+
+        return Ok(packages);
     }
 
     [AllowAnonymous]
     [HttpGet("{id:int}")]
     public IActionResult GetPackage(int id)
     {
+        var cacheKey = $"packages:id:{id}";
+        if (_distributedCache is not null)
+        {
+            var cachedJson = _distributedCache.GetString(cacheKey);
+            if (!string.IsNullOrWhiteSpace(cachedJson))
+            {
+                var cachedPackage = JsonSerializer.Deserialize<TravelPackage>(cachedJson);
+                if (cachedPackage is not null)
+                {
+                    return Ok(cachedPackage);
+                }
+            }
+        }
+
         const string query = @"
             SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
                    p.Place_Name, p.Place_Description,
@@ -89,6 +127,10 @@ public class PackagesController : ControllerBase
             return NotFound();
         }
 
+        _distributedCache?.SetString(cacheKey, JsonSerializer.Serialize(result[0]), new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        });
         return Ok(result[0]);
     }
 

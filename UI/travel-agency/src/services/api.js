@@ -1,5 +1,8 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5132/api/v1";
 const AUTH_STORAGE_KEY = "travelAgency.auth";
+const CACHE_TTL_MS = 20000;
+const responseCache = new Map();
+const pendingRequests = new Map();
 
 export function getStoredAuth() {
   const raw = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -31,37 +34,67 @@ export function getAuthToken() {
 async function request(path, options = {}) {
   const { auth = false, ...fetchOptions } = options;
   const token = auth ? getAuthToken() : "";
+  const method = (fetchOptions.method || "GET").toUpperCase();
+  const canCache = method === "GET";
+  const cacheKey = canCache ? `${token || "public"}:${path}` : "";
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(fetchOptions.headers || {}),
-    },
-    ...fetchOptions,
-  });
-
-  const isJson = response.headers.get("content-type")?.includes("application/json");
-  const payload = isJson ? await response.json() : await response.text();
-
-  if (!response.ok) {
-    if (auth && response.status === 401) {
-      clearAuth();
+  if (canCache) {
+    const cached = responseCache.get(cacheKey);
+    if (cached && Date.now() - cached.createdAt < CACHE_TTL_MS) {
+      return cached.payload;
     }
 
-    const message =
-      (typeof payload === "object" && payload?.message) ||
-      (typeof payload === "string" && payload) ||
-      "Request failed.";
-
-    throw new Error(message);
+    if (pendingRequests.has(cacheKey)) {
+      return pendingRequests.get(cacheKey);
+    }
   }
 
-  if (payload && typeof payload === "object" && "success" in payload && "data" in payload) {
-    return payload.data;
+  const requestPromise = fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(fetchOptions.headers || {}),
+      },
+      ...fetchOptions,
+    })
+    .then(async (response) => {
+      const isJson = response.headers.get("content-type")?.includes("application/json");
+      const payload = isJson ? await response.json() : await response.text();
+
+      if (!response.ok) {
+        if (auth && response.status === 401) {
+          clearAuth();
+        }
+
+        const message =
+          (typeof payload === "object" && payload?.message) ||
+          (typeof payload === "string" && payload) ||
+          "Request failed.";
+
+        throw new Error(message);
+      }
+
+      const result = payload && typeof payload === "object" && "success" in payload && "data" in payload ? payload.data : payload;
+
+      if (canCache) {
+        responseCache.set(cacheKey, { payload: result, createdAt: Date.now() });
+      } else {
+        responseCache.clear();
+      }
+
+      return result;
+    })
+    .finally(() => {
+      if (canCache) {
+        pendingRequests.delete(cacheKey);
+      }
+    });
+
+  if (canCache) {
+    pendingRequests.set(cacheKey, requestPromise);
   }
 
-  return payload;
+  return requestPromise;
 }
 
 export async function registerUser(formData) {
@@ -73,6 +106,13 @@ export async function registerUser(formData) {
 
 export async function loginUser(formData) {
   return request("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+}
+
+export async function verifyMfa(formData) {
+  return request("/auth/verify-mfa", {
     method: "POST",
     body: JSON.stringify(formData),
   });

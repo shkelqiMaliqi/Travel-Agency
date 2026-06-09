@@ -6,8 +6,10 @@ Travel Agency is a React and ASP.NET Core Web API project with JWT login, user d
 
 - `UI/travel-agency` - React frontend
 - `Travel Agency Portal/Travel Agency Portal` - ASP.NET Core Web API
+- `Microservices/NotificationService` - RabbitMQ-driven notification/MFA delivery microservice
 - `Travel_AgencyDB.sql` - full SQL Server setup and seed script
 - `Travel_Agency_Features_Update.sql` - safe update script for an existing database
+- `Documentation` - report-ready documentation, requirement mapping, API testing notes, and submission support
 
 ## Requirements
 
@@ -117,6 +119,20 @@ http://localhost:3000
 - Admin user management with edit, role change, and delete
 - Contact form
 - Admin contact message read/archive/delete
+- Demo MFA flow for protected roles such as admin
+- Production-style MFA delivery through RabbitMQ and the notification microservice
+- Redis-ready distributed caching with in-memory fallback
+- RabbitMQ asynchronous processing
+- Background cleanup and metrics snapshot workers
+- Prometheus `/metrics` endpoint
+- Audit log persistence through Entity Framework Core
+- Logstash TCP log shipping into ELK
+- Slack/webhook or email alerting hooks
+- Optional MongoDB analytics integration endpoint
+- Optional S3-compatible storage integration endpoint
+- Kubernetes deployment manifests
+- Automated SQL Server backup examples
+- Playwright E2E browser tests
 
 ## API Versioning
 
@@ -197,13 +213,18 @@ Unhandled backend errors are processed by global middleware and returned as clea
 - Controllers expose REST endpoints.
 - DTOs are used for API request models where input differs from database objects.
 - A shared `DatabaseService` provides reusable ADO.NET database access.
+- Entity Framework Core is also used for advanced support tables such as MFA codes, audit logs, and metrics snapshots.
+- A separate notification microservice consumes RabbitMQ messages for MFA email delivery.
 - JWT bearer authentication protects user/admin endpoints.
 - Role-based authorization protects admin endpoints.
+- Admin login supports an MFA verification step.
 - Swagger/OpenAPI is enabled in development.
 - CORS allows the React frontend to call the API from `localhost:3000`.
 - `/health` exposes a simple service health endpoint.
+- `/metrics` exposes Prometheus-compatible application metrics.
+- Application logs can be shipped to Logstash when `Logging__Logstash__Host` is configured.
 - API request logging records method, path, status code, and elapsed time through ASP.NET logging.
-- Public read endpoints use short-lived response caching and in-memory caching.
+- Public read endpoints use short-lived response caching and distributed cache support with Redis fallback to memory cache.
 - Login, password reset, and public contact writes are rate limited.
 - Passwords are stored with salted PBKDF2 hashes; legacy SHA256 hashes are still accepted so existing seeded users continue to work.
 - `Travel_Agency_Features_Update.sql` safely updates existing databases.
@@ -212,7 +233,9 @@ Unhandled backend errors are processed by global middleware and returned as clea
 
 This project is implemented as a monolithic ASP.NET Core REST API plus a React client. REST was selected instead of SOAP because the app mainly exposes JSON resources such as users, destinations, hotels, packages, bookings, and contact messages.
 
-The PDF requirements mention microservices, API gateways, load balancing, WAF, Grafana, Prometheus, and distributed caching. Those are deployment-scale concerns and are not necessary for this coursework-sized project. They are documented as future production improvements rather than implemented as extra infrastructure.
+The repository now includes a demo-level enterprise infrastructure option with NGINX gateway/load balancing, Redis, MongoDB, MinIO, ELK, Prometheus, Grafana, and Alertmanager. The application still remains a modular monolith, but the repo now contains runnable support for those surrounding infrastructure requirements.
+
+The repository also includes a notification microservice and RabbitMQ queue for asynchronous MFA delivery, plus Kubernetes manifests for a production-style deployment shape.
 
 ## Security Notes
 
@@ -252,15 +275,75 @@ After SQL Server starts, apply `Travel_AgencyDB.sql` to create and seed the data
 http://localhost:5132
 ```
 
+For the advanced requirement stack, use:
+
+```powershell
+docker compose -f docker-compose.enterprise.yml up --build
+```
+
+That compose file adds:
+
+- NGINX API Gateway and load balancing
+- Redis
+- RabbitMQ
+- Notification service
+- MongoDB
+- MinIO S3-compatible storage
+- ELK stack
+- Prometheus + Grafana + Alertmanager
+- SQL Server backup helper
+
+## Kubernetes
+
+Kubernetes manifests are available at:
+
+```text
+Infrastructure/kubernetes
+```
+
+Apply them with:
+
+```powershell
+kubectl apply -k Infrastructure/kubernetes
+```
+
+Before using them in a real cluster, replace the example secret values in `secret.example.yaml`.
+
 ## CI/CD
 
-The repository includes a backend-only GitHub Actions workflow at:
+The repository includes GitHub Actions workflows at:
 
 ```text
 .github/workflows/backend-ci.yml
+.github/workflows/frontend-ci.yml
 ```
 
-It restores, builds, and tests the ASP.NET solution on pushes and pull requests.
+They validate:
+
+- ASP.NET Core restore, build, and backend tests
+- React install, test, and production build
+
+This satisfies the project's continuous testing requirement at coursework level, even though it does not yet include automated deployment to staging/production.
+
+## Documentation Bundle
+
+The repository now includes documentation files that directly support the PDF requirements:
+
+- `Documentation/PROJECT_REPORT.md` - report-ready technical writeup
+- `Documentation/REQUIREMENTS_MATRIX.md` - honest requirement-by-requirement status mapping
+- `Documentation/ARCHITECTURE.md` - architecture explanation
+- `Documentation/API_TESTS.md` - manual API demonstration checklist
+- `Documentation/BACKUP_RECOVERY.md` - backup and recovery notes
+- `Documentation/SUBMISSION_CHECKLIST.md` - final hand-in checklist
+- `Documentation/ENTERPRISE_STACK.md` - advanced infrastructure overview
+- `Documentation/SWAGGER_GUIDE.md` - OpenAPI/Swagger usage and demo walkthrough
+- `CHANGELOG.md` - version/change communication support
+
+If you need a `.docx` version for Moodle submission, run:
+
+```powershell
+python tools_create_report.py
+```
 
 ## API Testing
 
@@ -274,6 +357,16 @@ Extra manual testing notes are in:
 
 ```text
 API_TESTS.md
+```
+
+## E2E Testing
+
+Run browser tests from the frontend folder:
+
+```powershell
+cd "C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\UI\travel-agency"
+npx playwright install chromium
+npm run e2e
 ```
 
 ## Useful Routes

@@ -240,3 +240,45 @@ WHERE NOT EXISTS (
     WHERE tp.Package_Name = v.Package_Name
 );
 GO
+IF OBJECT_ID('dbo.User_Mfa_Codes', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.User_Mfa_Codes (
+        Mfa_Id INT PRIMARY KEY IDENTITY(1,1),
+        U_Id INT NOT NULL,
+        U_Email VARCHAR(255) NOT NULL,
+        Code_Hash VARCHAR(255) NOT NULL,
+        Expires_At DATETIME2 NOT NULL,
+        Is_Used BIT NOT NULL CONSTRAINT DF_UserMfaCodes_IsUsed DEFAULT (0),
+        Created_At DATETIME2 NOT NULL CONSTRAINT DF_UserMfaCodes_CreatedAt DEFAULT (SYSUTCDATETIME())
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.Audit_Logs', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Audit_Logs (
+        Audit_Id INT PRIMARY KEY IDENTITY(1,1),
+        Event_Type VARCHAR(100) NOT NULL,
+        User_Email VARCHAR(255) NULL,
+        U_Id INT NULL,
+        Request_Path VARCHAR(255) NOT NULL,
+        Http_Method VARCHAR(20) NOT NULL,
+        Status_Code INT NOT NULL,
+        Details VARCHAR(MAX) NULL,
+        Created_At DATETIME2 NOT NULL CONSTRAINT DF_AuditLogs_CreatedAt DEFAULT (SYSUTCDATETIME())
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.Metrics_Snapshots', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Metrics_Snapshots (
+        Snapshot_Id INT PRIMARY KEY IDENTITY(1,1),
+        Users_Count INT NOT NULL,
+        Bookings_Count INT NOT NULL,
+        Packages_Count INT NOT NULL,
+        Unread_Messages_Count INT NOT NULL,
+        Recorded_At DATETIME2 NOT NULL CONSTRAINT DF_MetricsSnapshots_RecordedAt DEFAULT (SYSUTCDATETIME())
+    );
+END
+GO

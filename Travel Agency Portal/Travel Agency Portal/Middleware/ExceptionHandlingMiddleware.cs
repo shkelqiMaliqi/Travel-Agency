@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Travel_Agency_Portal.Models;
+using Travel_Agency_Portal.Services;
 
 namespace Travel_Agency_Portal.Middleware;
 
@@ -24,6 +25,8 @@ public class ExceptionHandlingMiddleware
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unhandled API exception.");
+            var alertingService = context.RequestServices.GetRequiredService<AlertingService>();
+            await alertingService.NotifyAsync("Travel Agency API exception", exception.Message);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

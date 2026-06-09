@@ -1,25 +1,25 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\",
+  "WorkspaceRootPath": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\projects\\travel agency\\travel agency portal\\travel agency portal\\controllers\\placescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\controllers\\placescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\controllers\\placescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\projects\\travel agency\\travel agency portal\\travel agency portal\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\projects\\travel agency\\travel agency portal\\travel agency portal\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\projects\\travel agency\\travel agency portal\\travel agency portal\\models\\places.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\models\\places.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\models\\places.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\projects\\travel agency\\travel agency portal\\travel agency portal\\models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|c:\\users\\lenovo\\onedrive\\desktop\\travel agency\\travel agency portal\\travel agency portal\\models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E709B5D6-F586-49C5-8DD7-E1E1A29A36A1}|Travel Agency Portal\\Travel Agency Portal.csproj|solutionrelative:travel agency portal\\models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -44,9 +44,9 @@
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\appsettings.json",
               "RelativeDocumentMoniker": "Travel Agency Portal\\appsettings.json",
-              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\appsettings.json",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\appsettings.json",
               "RelativeToolTip": "Travel Agency Portal\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
@@ -56,11 +56,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "PlacesController.cs",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\PlacesController.cs",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\PlacesController.cs",
               "RelativeDocumentMoniker": "Travel Agency Portal\\Controllers\\PlacesController.cs",
-              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\PlacesController.cs",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\PlacesController.cs",
               "RelativeToolTip": "Travel Agency Portal\\Controllers\\PlacesController.cs",
-              "ViewState": "AgIAAE4AAAAAAAAAAAAowGAAAAA5AAAAAAAAAA==",
+              "ViewState": "AgIAAE4AAAAAAAAAAAAowGAAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-12-23T23:55:29.072Z",
               "EditorCaption": ""
@@ -69,9 +69,9 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "UsersController.cs",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\UsersController.cs",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\UsersController.cs",
               "RelativeDocumentMoniker": "Travel Agency Portal\\Controllers\\UsersController.cs",
-              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\UsersController.cs",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Controllers\\UsersController.cs",
               "RelativeToolTip": "Travel Agency Portal\\Controllers\\UsersController.cs",
               "ViewState": "AgIAABsAAAAAAAAAAAAywIEAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -81,9 +81,9 @@
               "$type": "Document",
               "DocumentIndex": 3,
               "Title": "Places.cs",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Places.cs",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Places.cs",
               "RelativeDocumentMoniker": "Travel Agency Portal\\Models\\Places.cs",
-              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Places.cs",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Places.cs",
               "RelativeToolTip": "Travel Agency Portal\\Models\\Places.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -93,9 +93,9 @@
               "$type": "Document",
               "DocumentIndex": 4,
               "Title": "Users.cs",
-              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
+              "DocumentMoniker": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
               "RelativeDocumentMoniker": "Travel Agency Portal\\Models\\Users.cs",
-              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\PROJECTS\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
+              "ToolTip": "C:\\Users\\Lenovo\\OneDrive\\Desktop\\Travel Agency\\Travel Agency Portal\\Travel Agency Portal\\Models\\Users.cs",
               "RelativeToolTip": "Travel Agency Portal\\Models\\Users.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",

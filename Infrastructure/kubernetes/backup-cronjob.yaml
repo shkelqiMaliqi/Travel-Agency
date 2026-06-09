@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sqlserver-nightly-backup
+  namespace: travel-agency
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sqlserver-backup
+              image: mcr.microsoft.com/mssql-tools
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "BACKUP DATABASE [Travel_Agency] TO DISK = N'/var/opt/mssql/backup/Travel_Agency_$(date -u +%Y%m%dT%H%M%SZ).bak' WITH INIT, COMPRESSION"
+              env:
+                - name: MSSQL_SA_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: travel-agency-secrets
+                      key: MSSQL_SA_PASSWORD

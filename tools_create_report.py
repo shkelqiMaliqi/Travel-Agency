@@ -244,10 +244,10 @@ def build_report():
         "per ruajtjen e te dhenave."
     )
     document.add_paragraph(
-        "Sistemi perfshin autentifikim me JWT, autorizim sipas roleve admin/user, validim te input-eve, password hashing, "
-        "rate limiting, logging, exception handling, Dockerfile dhe docker-compose. Ai permbush kerkesat kryesore te lendes "
-        "Web Services dhe Web API, ndersa funksionalitete enterprise si microservices, Redis, API Gateway, WAF, "
-        "Prometheus/Grafana dhe Kubernetes paraqiten si permiresime te ardhshme."
+        "Sistemi perfshin autentifikim me JWT, autorizim sipas roleve admin/user, MFA per role te mbrojtura me queue/email delivery, "
+        "validim te input-eve, password hashing, rate limiting, audit logging, distributed caching, RabbitMQ, Swagger examples, "
+        "Prometheus metrics, ELK log shipping, Kubernetes manifests, Playwright E2E tests, Dockerfile dhe docker-compose baze/enterprise. "
+        "Ai permbush kerkesat kryesore te lendes Web Services dhe Web API dhe demonstron ne menyre konkrete kerkesat e avancuara."
     )
 
     document.add_heading("2. Qellimi dhe objektivat e projektit", level=1)
@@ -259,10 +259,12 @@ def build_report():
     add_bullets(document, [
         "Te implementohet REST API me endpoint-e te qarta per users, places, hotels, packages, bookings dhe contact messages.",
         "Te perdoret JWT per autentifikim stateless dhe RBAC per ndarjen e lejeve admin/user.",
+        "Te shtohet MFA per role te ndjeshme si admin me delivery permes RabbitMQ/email.",
         "Te perdoret SQL Server per model relacional te te dhenave.",
         "Te dokumentohet API me Swagger/OpenAPI dhe te perdoret versionim /api/v1.",
         "Te ofrohet React frontend qe konsumon API-ne per funksionalitetet e perdoruesit dhe administratorit.",
         "Te perfshihen praktika sigurie si input validation, parameterized SQL, password hashing dhe rate limiting.",
+        "Te demonstrohen caching, monitoring, logging qendror, microservice, queue processing, Kubernetes dhe integrime te jashtme.",
     ])
 
     document.add_heading("3. Analiza e kerkesave funksionale dhe jofunksionale", level=1)
@@ -280,10 +282,14 @@ def build_report():
     document.add_heading("3.2 Kerkesat jofunksionale", level=2)
     add_bullets(document, [
         "Siguri permes JWT, RBAC, password hashing dhe validimit te te dhenave.",
-        "Dokumentim interaktiv permes Swagger UI.",
+        "Dokumentim interaktiv permes Swagger UI me shembuj kerkesash/pergjigjesh.",
         "Versionim i API-se permes /api/v1.",
-        "Logging dhe global exception handling per diagnostikim.",
-        "Docker dhe Docker Compose per mjedis te izoluar API + SQL Server.",
+        "Logging, audit logging dhe global exception handling per diagnostikim.",
+        "Caching i shperndare me Redis-ready configuration.",
+        "Asynchronous processing permes RabbitMQ dhe notification microservice.",
+        "Monitoring me metrics endpoint, snapshots dhe konfigurim Prometheus/Grafana.",
+        "Docker, Docker Compose dhe Kubernetes manifests per deployment.",
+        "Playwright E2E tests per browser-level validation.",
         "Teste automatike bazike per health endpoint, authentication protection dhe password hashing.",
     ])
 
@@ -300,7 +306,11 @@ def build_report():
         ("Database", "SQL Server", "Ruajtja e users, places, hotels, packages, bookings dhe contact messages."),
         ("Documentation", "Swagger/OpenAPI", "Dokumentim dhe testim interaktiv i endpoint-eve."),
         ("Security", "JWT + RBAC", "Autentifikim dhe autorizim sipas roleve."),
-        ("Deployment", "Docker + Docker Compose", "Mjedis i izoluar per API dhe SQL Server."),
+        ("Observability", "Prometheus + audit logs", "Metrics dhe gjurme auditimi per monitorim."),
+        ("Messaging", "RabbitMQ", "Queue per MFA delivery dhe async processing."),
+        ("Microservice", "NotificationService", "Sherbim i ndare per dergim MFA me email."),
+        ("Infrastructure", "NGINX + Redis + ELK + MinIO + Mongo + Kubernetes", "Gateway, cache, logging, deployment dhe integrime te jashtme."),
+        ("Deployment", "Docker + Docker Compose", "Mjedis i izoluar per API dhe stack-un mbeshtetes."),
     ], widths=[Inches(1.4), Inches(1.7), Inches(3.3)])
 
     document.add_heading("4.2 Modeli i te dhenave", level=2)
@@ -316,6 +326,9 @@ def build_report():
         ("Bookings", "Rezervimet e user-ave per paketa."),
         ("Contact_Form", "Mesazhet e kontaktit qe lexohen nga admin."),
         ("Password_Reset_Codes", "Kodet e perkohshme per reset password."),
+        ("User_Mfa_Codes", "Kodet e perkohshme per MFA challenge."),
+        ("Audit_Logs", "Ngjarjet e audituara te kerkesave dhe autentifikimit."),
+        ("Metrics_Snapshots", "Statistika periodike te ruajtura nga background worker."),
     ], widths=[Inches(1.8), Inches(4.6)])
 
     document.add_heading("5. Pershkrimi i implementimit", level=1)
@@ -326,7 +339,8 @@ def build_report():
     )
     add_table(document, ["Endpoint", "Autorizimi", "Qellimi"], [
         ("POST /api/v1/auth/register", "Public", "Regjistrim i user-it."),
-        ("POST /api/v1/auth/login", "Public", "Login dhe kthim JWT token."),
+        ("POST /api/v1/auth/login", "Public", "Login dhe kthim JWT ose MFA challenge me queue/email delivery."),
+        ("POST /api/v1/auth/verify-mfa", "Public", "Verifikim MFA dhe leshim i JWT final."),
         ("POST /api/v1/auth/forgot-password", "Public", "Gjenerim reset code."),
         ("POST /api/v1/auth/reset-password", "Public", "Ndryshim password-i me reset code."),
         ("GET /api/v1/packages", "Public", "Lista/filter i paketave."),
@@ -334,8 +348,8 @@ def build_report():
         ("GET /api/v1/bookings", "Admin", "Shfaqja e te gjitha bookings."),
         ("GET /api/v1/users", "Admin", "Lista e perdoruesve."),
         ("PUT /api/v1/users/{id}/password", "User", "Ndryshim password-i nga profili."),
-        ("POST /api/v1/contact", "Public/User", "Dergim mesazhi te travel agency staff."),
-        ("GET /api/v1/contact", "Admin", "Leximi i mesazheve nga admin."),
+        ("GET /api/v1/infrastructure/audit-logs", "Admin", "Shfaq audit logs te ruajtura."),
+        ("POST /api/v1/infrastructure/storage-demo", "Admin", "Demonstrim i ruajtjes ne S3-compatible storage."),
     ], widths=[Inches(2.6), Inches(1.2), Inches(2.6)])
 
     document.add_heading("6. Siguria dhe arsyetimet teknike", level=1)
@@ -372,17 +386,21 @@ def build_report():
         "SQL queries perdorin parametra per te ulur rrezikun e SQL Injection.",
         "Input validation aplikohet ne request models.",
         "Rate limiting aplikohet per login, password reset dhe public writes.",
+        "MFA aplikohet per role te konfiguruara si admin dhe mund te dergohet permes RabbitMQ/email.",
+        "Audit logs ruhen ne databaze per qellime gjurmimi.",
         "Contact form lidh user-in nga JWT token, jo nga U_Id i derguar nga browser-i.",
     ])
 
     document.add_heading("7. Dokumentimi, versionimi dhe infrastruktura API", level=1)
     document.add_paragraph(
-        "API eshte e dokumentuar me Swagger/OpenAPI dhe mund te testohet nga /swagger. Endpoint-et jane versionuar ne URL me /api/v1, "
+        "API eshte e dokumentuar me Swagger/OpenAPI dhe mund te testohet nga /swagger. Dokumentimi tani perfshin bearer auth, "
+        "shembuj kerkesash/pergjigjesh dhe kode gabimesh te zakonshme. Endpoint-et jane versionuar ne URL me /api/v1, "
         "qe lejon shtimin e /api/v2 ne te ardhmen pa prishur klientet ekzistues."
     )
     add_bullets(document, [
         "Swagger UI: http://localhost:5132/swagger",
         "Health check: http://localhost:5132/health",
+        "Metrics: http://localhost:5132/metrics",
         "Frontend: http://localhost:3000",
         "API base URL: http://localhost:5132/api/v1",
     ])
@@ -396,41 +414,51 @@ def build_report():
         ("HealthEndpoint_ReturnsHealthy", "Automatik", "GET /health kthen 200 OK."),
         ("ProtectedEndpoint_RequiresAuthentication", "Automatik", "GET /api/v1/users pa token kthen 401 Unauthorized."),
         ("PasswordHasherTests", "Automatik", "Hash i ri verifikohet dhe password i gabuar refuzohet."),
+        ("Swagger example flow", "Manual", "Login/MFA demo testohet direkt ne Swagger."),
+        ("Playwright E2E", "Automatik", "Browser teston home, login dhe forgot-password flow."),
         ("Register/Login", "Manual", "User krijohet dhe merr JWT token."),
         ("Booking flow", "Manual", "User ben booking dhe vendet e lira ulen."),
-        ("Admin messages", "Manual", "Admin sheh contact messages te derguara nga user-at."),
+        ("Infrastructure demo", "Manual", "Audit logs, metrics snapshots dhe storage endpoint demonstrohen."),
     ], widths=[Inches(2.3), Inches(1.2), Inches(2.9)])
 
     document.add_heading("9. DevOps, dorezimi dhe kufizimet", level=1)
     document.add_paragraph(
-        "Projekti perfshin Dockerfile dhe docker-compose.yml per ekzekutim te API-se dhe SQL Server ne containers. Gjithashtu u shtua "
-        "workflow GitHub Actions per backend CI, i cili ben restore, build dhe test te ASP.NET Core API."
+        "Projekti perfshin Dockerfile, docker-compose.yml, docker-compose.enterprise.yml dhe Kubernetes manifests per ekzekutim baze "
+        "dhe per demonstrim te gateway/load balancing, Redis, RabbitMQ, notification microservice, MongoDB, MinIO, ELK, Prometheus, "
+        "Grafana, Alertmanager dhe automated backups. Gjithashtu ekzistojne workflow GitHub Actions per backend, frontend dhe E2E CI."
     )
     document.add_heading("9.1 Statusi kundrejt kerkesave teknike", level=2)
     add_status_table(document, [
         ("REST API", "Po", "Endpoint-et perdorin HTTP methods dhe JSON."),
-        ("Swagger/OpenAPI", "Po", "Dokumentim interaktiv ne /swagger."),
+        ("Swagger/OpenAPI", "Po", "Dokumentim interaktiv ne /swagger me shembuj dhe bearer auth."),
         ("JWT Authentication", "Po", "Login gjeneron JWT dhe endpoint-et e mbrojtura kerkojne Bearer token."),
         ("RBAC", "Po", "Role admin/user per autorizim."),
+        ("MFA", "Po", "MFA per role te konfiguruara, me queue/email delivery dhe local demo mode."),
         ("SQL Server", "Po", "Databaze relacionale me tables per user, packages, bookings, contact."),
+        ("ORM", "Po", "EF Core perdoret per support tables si audit logs dhe MFA."),
         ("Docker", "Po", "Dockerfile dhe docker-compose.yml ekzistojne."),
-        ("CI/CD", "Pjeserisht", "U shtua GitHub Actions per build/test; deployment automatik nuk eshte implementuar."),
-        ("Microservices", "Jo", "Projekti eshte monolithic API; microservices jane future improvement."),
-        ("Redis/Advanced cache", "Jo", "Ka memory/response caching, por jo Redis."),
-        ("Load balancing", "Jo", "Nuk ka NGINX/HAProxy/AWS ELB."),
-        ("Prometheus/Grafana", "Jo", "Ka logs, por jo monitoring stack."),
-        ("MFA", "Jo", "Mund te shtohet per admin ne te ardhmen."),
+        ("CI/CD", "Po", "Ekzistojne workflow backend dhe frontend per build/test."),
+        ("Redis/Advanced cache", "Po", "Distributed cache me Redis-ready configuration dhe fallback local."),
+        ("Load balancing", "Po", "NGINX gateway me dy API instances ne compose enterprise."),
+        ("Prometheus/Grafana", "Po", "Metrics endpoint dhe konfigurim monitorimi ekzistojne."),
+        ("ELK Logging", "Po", "API mund te dergoje JSON logs ne Logstash permes TCP."),
+        ("Asynchronous processing", "Po", "RabbitMQ dhe NotificationService procesojne MFA delivery ne sfond."),
+        ("API Gateway", "Po", "NGINX gateway i perfshire ne stack."),
+        ("Microservices", "Po", "NotificationService eshte microservice i ndare nga API kryesore."),
+        ("Kubernetes", "Po", "Manifests per deployments, services, ingress, HPA dhe backup CronJob."),
+        ("Automated backups", "Po", "Docker backup helper dhe Kubernetes CronJob ekzistojne."),
+        ("E2E tests", "Po", "Playwright E2E tests dhe CI workflow ekzistojne."),
     ])
 
     document.add_heading("10. Perfundime dhe rekomandime", level=1)
     document.add_paragraph(
         "Travel Agency Portal permbush qellimin kryesor te projektit: ofron REST API funksionale, te dokumentuar dhe te siguruar "
-        "per menaxhimin e nje agjencie udhetimi. Projekti demonstron perdorimin e Web API, JWT, RBAC, SQL Server, Swagger, Docker "
-        "dhe React frontend qe konsumon sherbimet."
+        "per menaxhimin e nje agjencie udhetimi. Projekti demonstron perdorimin e Web API, JWT, RBAC, MFA, SQL Server, Swagger, "
+        "Docker, RabbitMQ, microservices, Kubernetes, caching, monitoring dhe React frontend qe konsumon sherbimet."
     )
     document.add_paragraph(
-        "Per nje version production/enterprise rekomandohet ndarja ne microservices, shtimi i Redis caching, API Gateway, WAF, "
-        "monitoring me Prometheus/Grafana, central logging me ELK/Graylog, MFA per admin, backup policy dhe deployment me Kubernetes."
+        "Per nje version production/enterprise rekomandohet konfigurimi i sekreteve reale, TLS certificates, SMTP/webhook providers, "
+        "cloud deployment dhe restore drills periodike."
     )
 
     document.add_heading("11. Referencat", level=1)
@@ -450,6 +478,9 @@ def build_report():
         "Frontend: cd \"UI/travel-agency\" dhe npm start.",
         "Swagger: http://localhost:5132/swagger.",
         "Admin login: admin@travelagency.com / Admin123!.",
+        "Admin MFA: ne local demo kodi mund te kthehet ne pergjigje; ne production dergohet permes RabbitMQ/email.",
+        "Kubernetes: kubectl apply -k Infrastructure/kubernetes.",
+        "E2E: cd UI/travel-agency dhe npm run e2e.",
     ])
     document.add_heading("12.2 Deklarata e origjinalitetit", level=2)
     document.add_paragraph(

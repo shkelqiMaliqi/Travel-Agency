@@ -1,51 +1,52 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { getPlaces } from "../services/api";
 
 const Destinations = () => {
   const [places, setPlaces] = useState([]);
   const [search, setSearch] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requestIdRef = useRef(0);
 
-  const loadPlaces = useCallback((nextSearch = appliedSearch) => {
-    let active = true;
+  const loadPlaces = useCallback((nextSearch = "") => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
 
     setLoading(true);
     getPlaces({ search: nextSearch })
       .then((response) => {
-        if (active) {
+        if (requestIdRef.current === requestId) {
           setPlaces(response);
           setError("");
         }
       })
       .catch((requestError) => {
-        if (active) {
+        if (requestIdRef.current === requestId) {
           setError(requestError.message);
         }
       })
       .finally(() => {
-        if (active) {
+        if (requestIdRef.current === requestId) {
           setLoading(false);
         }
       });
+  }, []);
 
-    return () => {
-      active = false;
-    };
-  }, [appliedSearch]);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadPlaces(search);
+    }, 200);
 
-  useEffect(() => loadPlaces(), [loadPlaces]);
+    return () => clearTimeout(timeoutId);
+  }, [loadPlaces, search]);
 
   const handleSearch = (event) => {
     event.preventDefault();
-    setAppliedSearch(search);
     loadPlaces(search);
   };
 
   const clearSearch = () => {
     setSearch("");
-    setAppliedSearch("");
     loadPlaces("");
   };
 
@@ -80,12 +81,15 @@ const Destinations = () => {
       <div className="row g-4">
         {places.map((place) => (
           <div className="col-md-6 col-lg-4" key={place.place_Id ?? place.Place_Id}>
-            <article className="card h-100 shadow-sm">
+            <article className="card h-100 shadow-sm catalog-card">
               <img
                 src={place.place_Url ?? place.Place_Url ?? "https://via.placeholder.com/600x300?text=Destination"}
-                className="card-img-top"
+                className="card-img-top catalog-card-image"
                 alt={place.place_Name ?? place.Place_Name}
-                style={{ height: "220px", objectFit: "cover" }}
+                width="600"
+                height="330"
+                loading="lazy"
+                decoding="async"
               />
               <div className="card-body">
                 <h3 className="h5">{place.place_Name ?? place.Place_Name}</h3>

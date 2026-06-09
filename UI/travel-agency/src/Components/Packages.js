@@ -194,11 +194,15 @@ const Packages = () => {
 
           return (
             <div className="col-md-6 col-lg-4" key={packageId}>
-              <article className="card h-100 shadow-sm package-card">
+              <article className="card h-100 shadow-sm package-card catalog-card">
                 <img
                   src={valueOf(tripPackage, "package_Url", "Package_Url") || "https://via.placeholder.com/600x300?text=Travel+Package"}
-                  className="card-img-top"
+                  className="card-img-top catalog-card-image"
                   alt={valueOf(tripPackage, "package_Name", "Package_Name")}
+                  width="600"
+                  height="330"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="card-body d-flex flex-column">
                   <h2 className="h5">{valueOf(tripPackage, "package_Name", "Package_Name")}</h2>

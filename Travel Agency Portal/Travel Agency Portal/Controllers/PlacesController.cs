@@ -1,6 +1,8 @@
 using System.Data.SqlClient;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Travel_Agency_Portal.Models;
 
@@ -12,11 +14,13 @@ public class PlacesController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly IMemoryCache _cache;
+    private readonly IDistributedCache? _distributedCache;
 
-    public PlacesController(IConfiguration configuration, IMemoryCache cache)
+    public PlacesController(IConfiguration configuration, IMemoryCache cache, IDistributedCache? distributedCache = null)
     {
         _configuration = configuration;
         _cache = cache;
+        _distributedCache = distributedCache;
     }
 
     [AllowAnonymous]
@@ -30,18 +34,36 @@ public class PlacesController : ControllerBase
             return Ok(cachedPlaces);
         }
 
+        if (_distributedCache is not null)
+        {
+            var distributedJson = _distributedCache.GetString(cacheKey);
+            if (!string.IsNullOrWhiteSpace(distributedJson))
+            {
+                var distributedPlaces = JsonSerializer.Deserialize<List<Place>>(distributedJson);
+                if (distributedPlaces is not null)
+                {
+                    _cache.Set(cacheKey, distributedPlaces, TimeSpan.FromMinutes(2));
+                    return Ok(distributedPlaces);
+                }
+            }
+        }
+
         var query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places";
         var parameters = new List<SqlParameter>();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query += " WHERE Place_Name LIKE @Search OR Place_Description LIKE @Search";
-            parameters.Add(new SqlParameter("@Search", $"%{search.Trim()}%"));
+            query += " WHERE Place_Name LIKE @Search";
+            parameters.Add(new SqlParameter("@Search", $"{search.Trim()}%"));
         }
 
         query += " ORDER BY Place_Name ASC";
         var places = ExecutePlacesQuery(query, parameters.ToArray());
         _cache.Set(cacheKey, places, TimeSpan.FromMinutes(5));
+        _distributedCache?.SetString(cacheKey, JsonSerializer.Serialize(places), new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        });
 
         return Ok(places);
     }
@@ -57,6 +79,20 @@ public class PlacesController : ControllerBase
             return Ok(cachedPlace);
         }
 
+        if (_distributedCache is not null)
+        {
+            var distributedJson = _distributedCache.GetString(cacheKey);
+            if (!string.IsNullOrWhiteSpace(distributedJson))
+            {
+                var distributedPlace = JsonSerializer.Deserialize<Place>(distributedJson);
+                if (distributedPlace is not null)
+                {
+                    _cache.Set(cacheKey, distributedPlace, TimeSpan.FromMinutes(2));
+                    return Ok(distributedPlace);
+                }
+            }
+        }
+
         const string query = "SELECT Place_Id, Place_Name, Place_Description, Place_Url FROM dbo.Places WHERE Place_Id = @Place_Id";
         var result = ExecutePlacesQuery(query, new SqlParameter("@Place_Id", id));
 
@@ -66,6 +102,10 @@ public class PlacesController : ControllerBase
         }
 
         _cache.Set(cacheKey, result[0], TimeSpan.FromMinutes(5));
+        _distributedCache?.SetString(cacheKey, JsonSerializer.Serialize(result[0]), new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        });
         return Ok(result[0]);
     }
 
@@ -88,6 +128,7 @@ public class PlacesController : ControllerBase
             new SqlParameter("@Place_Url", (object?)place.Place_Url ?? DBNull.Value));
 
         _cache.Remove("places:");
+        _distributedCache?.Remove("places:");
         return Ok(new { message = "Place added successfully." });
     }
 
@@ -115,6 +156,8 @@ public class PlacesController : ControllerBase
 
         _cache.Remove("places:");
         _cache.Remove($"places:id:{id}");
+        _distributedCache?.Remove("places:");
+        _distributedCache?.Remove($"places:id:{id}");
         return rows > 0 ? Ok(new { message = "Place updated successfully." }) : NotFound();
     }
 
@@ -137,6 +180,8 @@ public class PlacesController : ControllerBase
 
         _cache.Remove("places:");
         _cache.Remove($"places:id:{id}");
+        _distributedCache?.Remove("places:");
+        _distributedCache?.Remove($"places:id:{id}");
         return rows > 0 ? Ok(new { message = "Place deleted successfully." }) : NotFound();
     }
 

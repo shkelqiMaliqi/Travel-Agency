@@ -1,16 +1,27 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
+using Travel_Agency_Portal.Data;
 using Travel_Agency_Portal.Filters;
+using Travel_Agency_Portal.Logging;
 using Travel_Agency_Portal.Middleware;
 using Travel_Agency_Portal.Models;
 using Travel_Agency_Portal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logstashHost = builder.Configuration["Logging:Logstash:Host"];
+if (!string.IsNullOrWhiteSpace(logstashHost))
+{
+    var logstashPort = builder.Configuration.GetValue("Logging:Logstash:Port", 5044);
+    builder.Logging.AddProvider(new LogstashLoggerProvider(logstashHost, logstashPort, "travel-agency-api"));
+}
 
 builder.Services.AddControllers(options =>
 {
@@ -36,8 +47,17 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Travel Agency API",
         Version = "v1",
-        Description = "Travel Agency REST API with JWT authentication."
+        Description = "Travel Agency REST API with JWT authentication, MFA, infrastructure demos, and documented request/response examples."
     });
+
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+
+    options.OperationFilter<SwaggerExamplesOperationFilter>();
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -82,6 +102,23 @@ builder.Services.AddCors(options =>
 builder.Services.AddHealthChecks();
 builder.Services.AddMemoryCache();
 builder.Services.AddResponseCaching();
+builder.Services.AddHttpClient();
+builder.Services.AddDbContext<TravelAgencyDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CRUDCS")));
+
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "travel-agency:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -109,6 +146,14 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<DatabaseService>();
+builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddScoped<MfaService>();
+builder.Services.AddScoped<MfaDeliveryService>();
+builder.Services.AddScoped<AlertingService>();
+builder.Services.AddScoped<MongoAnalyticsService>();
+builder.Services.AddScoped<S3StorageService>();
+builder.Services.AddHostedService<CleanupWorker>();
+builder.Services.AddHostedService<MetricsSnapshotWorker>();
 
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
 var issuer = builder.Configuration["Jwt:Issuer"] ?? "TravelAgency.Api";
@@ -141,16 +186,23 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.DocumentTitle = "Travel Agency API Docs";
+        options.DisplayRequestDuration();
+        options.EnablePersistAuthorization();
+    });
 }
 
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
+app.UseHttpMetrics();
 app.UseResponseCaching();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health");
+app.MapMetrics("/metrics");
 app.MapControllers();
 
 app.Run();

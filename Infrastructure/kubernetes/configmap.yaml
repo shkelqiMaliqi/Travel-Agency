@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: travel-agency-config
+  namespace: travel-agency
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  Jwt__Issuer: "TravelAgency.Api"
+  Jwt__Audience: "TravelAgency.Client"
+  Security__MfaRequiredRoles: "admin"
+  Security__ExposeMfaCodeInResponse: "false"
+  Redis__ConnectionString: "redis:6379"
+  RabbitMq__ConnectionString: "amqp://travelagency:travelagency-pass@rabbitmq:5672"
+  RabbitMq__MfaQueue: "travel-agency.mfa.delivery"
+  Mongo__ConnectionString: "mongodb://mongo:27017"
+  Storage__S3__ServiceUrl: "http://minio:9000"
+  Logging__Logstash__Host: "logstash"
+  Logging__Logstash__Port: "5044"
+  Email__Smtp__Host: ""
+  Email__Smtp__Port: "587"
+  Email__Smtp__From: "no-reply@travel-agency.local"
+  Email__Smtp__EnableSsl: "true"

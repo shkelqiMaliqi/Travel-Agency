@@ -15,11 +15,22 @@ public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly JwtTokenService _jwtTokenService;
+    private readonly MfaService _mfaService;
+    private readonly AuditLogService _auditLogService;
+    private readonly MongoAnalyticsService _mongoAnalyticsService;
 
-    public AuthController(IConfiguration configuration, JwtTokenService jwtTokenService)
+    public AuthController(
+        IConfiguration configuration,
+        JwtTokenService jwtTokenService,
+        MfaService mfaService,
+        AuditLogService auditLogService,
+        MongoAnalyticsService mongoAnalyticsService)
     {
         _configuration = configuration;
         _jwtTokenService = jwtTokenService;
+        _mfaService = mfaService;
+        _auditLogService = auditLogService;
+        _mongoAnalyticsService = mongoAnalyticsService;
     }
 
     [AllowAnonymous]
@@ -80,12 +91,14 @@ public class AuthController : ControllerBase
             U_Type = publicRegistrationRole
         };
 
+        _ = _mongoAnalyticsService.TrackAsync("user.registered", "auth", user.U_Email);
+
         return Ok(_jwtTokenService.CreateToken(user));
     }
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -121,6 +134,65 @@ public class AuthController : ControllerBase
             U_Type = row["U_Type"]?.ToString() ?? "user"
         };
 
+        if (_mfaService.IsRequiredForRole(user.U_Type))
+        {
+            var (code, expiresAt) = await _mfaService.CreateCodeAsync(user);
+            var exposeMfaCode = _configuration.GetValue("Security:ExposeMfaCodeInResponse", false);
+            _ = _auditLogService.WriteSystemEventAsync("auth.mfa.challenge", $"MFA challenge created for {user.U_Email}.");
+            return Ok(new AuthResponse
+            {
+                RequiresMfa = true,
+                Role = user.U_Type,
+                UserId = user.U_Id,
+                Name = $"{user.U_Name} {user.U_Surname}".Trim(),
+                Email = user.U_Email,
+                MfaCode = exposeMfaCode ? code : null,
+                MfaExpiresAtUtc = expiresAt
+            });
+        }
+
+        _ = _mongoAnalyticsService.TrackAsync("user.logged_in", "auth", user.U_Email);
+        return Ok(_jwtTokenService.CreateToken(user));
+    }
+
+    [AllowAnonymous]
+    [HttpPost("verify-mfa")]
+    public async Task<IActionResult> VerifyMfa([FromBody] MfaVerifyRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (!await _mfaService.VerifyCodeAsync(request.Email, request.Code))
+        {
+            return Unauthorized(new { message = "MFA code is invalid or expired." });
+        }
+
+        const string query = @"
+            SELECT TOP 1 U_Id, U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Type
+            FROM dbo.Users
+            WHERE U_Email = @U_Email";
+
+        var table = ExecuteQuery(query, new SqlParameter("@U_Email", request.Email));
+        if (table.Rows.Count == 0)
+        {
+            return Unauthorized(new { message = "User not found for MFA verification." });
+        }
+
+        var row = table.Rows[0];
+        var user = new Users
+        {
+            U_Id = Convert.ToInt32(row["U_Id"]),
+            U_Name = row["U_Name"]?.ToString() ?? string.Empty,
+            U_Surname = row["U_Surname"]?.ToString() ?? string.Empty,
+            U_Email = row["U_Email"]?.ToString() ?? string.Empty,
+            U_Username = row["U_Username"]?.ToString() ?? string.Empty,
+            U_Phone = row["U_Phone"] == DBNull.Value ? null : row["U_Phone"]?.ToString(),
+            U_Type = row["U_Type"]?.ToString() ?? "user"
+        };
+
+        _ = _mongoAnalyticsService.TrackAsync("user.logged_in_mfa", "auth", user.U_Email);
         return Ok(_jwtTokenService.CreateToken(user));
     }
 

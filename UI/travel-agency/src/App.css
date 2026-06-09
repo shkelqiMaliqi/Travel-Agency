@@ -187,8 +187,24 @@
 }
 
 .package-card img {
-  height: 220px;
+  aspect-ratio: 20 / 11;
   object-fit: cover;
+  width: 100%;
+}
+
+.catalog-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 430px;
+  transform: translateZ(0);
+}
+
+.catalog-card-image {
+  aspect-ratio: 20 / 11;
+  background: #e9eef3;
+  display: block;
+  height: auto;
+  object-fit: cover;
+  width: 100%;
 }
 
 .package-facts {
@@ -679,11 +695,11 @@ h6 {
 }
 
 .package-card {
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition: border-color 160ms ease;
 }
 
 .package-card:hover {
-  transform: translateY(-2px);
+  border-color: rgba(15, 111, 122, 0.35);
 }
 
 .package-card .card-body > p:not(.text-muted) {
@@ -717,12 +733,11 @@ h6 {
 
 .destination-row {
   background: #ffffff;
-  transition: border-color 160ms ease, transform 160ms ease;
+  transition: border-color 160ms ease;
 }
 
 .destination-row:hover {
   border-color: rgba(15, 111, 122, 0.35);
-  transform: translateY(-1px);
 }
 
 .table {
