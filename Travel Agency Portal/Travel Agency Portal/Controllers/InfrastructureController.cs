@@ -9,7 +9,7 @@ namespace Travel_Agency_Portal.Controllers;
 
 [Route("api/v1/[controller]")]
 [ApiController]
-[Authorize(Roles = "admin")]
+[Authorize(Roles = "admin,auditor")]
 public class InfrastructureController : ControllerBase
 {
     private readonly TravelAgencyDbContext _dbContext;
@@ -49,6 +49,7 @@ public class InfrastructureController : ControllerBase
     }
 
     [HttpPost("analytics-events")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> PushAnalyticsEvent([FromBody] AnalyticsEventRequest request)
     {
         if (!ModelState.IsValid)
@@ -78,6 +79,7 @@ public class InfrastructureController : ControllerBase
     }
 
     [HttpPost("storage-demo")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> UploadStorageDemo([FromBody] StorageUploadRequest request)
     {
         if (!ModelState.IsValid)

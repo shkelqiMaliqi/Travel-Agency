@@ -6,6 +6,7 @@ All notable changes to this coursework project should be documented in this file
 
 ### Added
 
+- Read-only auditor role with seeded demo account, MFA protection, and reporting/audit endpoint access
 - Requirements traceability document in `Documentation/REQUIREMENTS_MATRIX.md`
 - Report-ready written project documentation in `Documentation/PROJECT_REPORT.md`
 - Architecture notes in `Documentation/ARCHITECTURE.md`

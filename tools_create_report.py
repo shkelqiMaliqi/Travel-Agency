@@ -244,7 +244,7 @@ def build_report():
         "per ruajtjen e te dhenave."
     )
     document.add_paragraph(
-        "Sistemi perfshin autentifikim me JWT, autorizim sipas roleve admin/user, MFA per role te mbrojtura me queue/email delivery, "
+        "Sistemi perfshin autentifikim me JWT, autorizim sipas roleve admin/user/auditor, MFA per role te mbrojtura me queue/email delivery, "
         "validim te input-eve, password hashing, rate limiting, audit logging, distributed caching, RabbitMQ, Swagger examples, "
         "Prometheus metrics, ELK log shipping, Kubernetes manifests, Playwright E2E tests, Dockerfile dhe docker-compose baze/enterprise. "
         "Ai permbush kerkesat kryesore te lendes Web Services dhe Web API dhe demonstron ne menyre konkrete kerkesat e avancuara."
@@ -253,13 +253,13 @@ def build_report():
     document.add_heading("2. Qellimi dhe objektivat e projektit", level=1)
     document.add_paragraph(
         "Qellimi i projektit eshte krijimi i nje platforme funksionale per agjenci udhetimi, ku perdoruesit mund te shohin "
-        "destinacione dhe paketa, te bejne rezervime dhe te komunikojne me stafin, ndersa administratori menaxhon katalogun "
-        "dhe te dhenat operative."
+        "destinacione dhe paketa, te bejne rezervime dhe te komunikojne me stafin. Administratori menaxhon katalogun "
+        "dhe te dhenat operative, kurse auditori ka qasje vetem per lexim ne auditim dhe raportim."
     )
     add_bullets(document, [
         "Te implementohet REST API me endpoint-e te qarta per users, places, hotels, packages, bookings dhe contact messages.",
-        "Te perdoret JWT per autentifikim stateless dhe RBAC per ndarjen e lejeve admin/user.",
-        "Te shtohet MFA per role te ndjeshme si admin me delivery permes RabbitMQ/email.",
+        "Te perdoret JWT per autentifikim stateless dhe RBAC per ndarjen e lejeve admin/user/auditor.",
+        "Te shtohet MFA per role te ndjeshme si admin dhe auditor me delivery permes RabbitMQ/email.",
         "Te perdoret SQL Server per model relacional te te dhenave.",
         "Te dokumentohet API me Swagger/OpenAPI dhe te perdoret versionim /api/v1.",
         "Te ofrohet React frontend qe konsumon API-ne per funksionalitetet e perdoruesit dhe administratorit.",
@@ -305,7 +305,7 @@ def build_report():
         ("Backend", "ASP.NET Core Web API", "Ekspozon endpoint-et REST dhe logjiken e biznesit."),
         ("Database", "SQL Server", "Ruajtja e users, places, hotels, packages, bookings dhe contact messages."),
         ("Documentation", "Swagger/OpenAPI", "Dokumentim dhe testim interaktiv i endpoint-eve."),
-        ("Security", "JWT + RBAC", "Autentifikim dhe autorizim sipas roleve."),
+        ("Security", "JWT + RBAC", "Autentifikim dhe autorizim sipas roleve admin/user/auditor."),
         ("Observability", "Prometheus + audit logs", "Metrics dhe gjurme auditimi per monitorim."),
         ("Messaging", "RabbitMQ", "Queue per MFA delivery dhe async processing."),
         ("Microservice", "NotificationService", "Sherbim i ndare per dergim MFA me email."),
@@ -371,22 +371,22 @@ def build_report():
     add_bullets(document, [
         "JWT punon mire me REST API dhe React frontend.",
         "API mund te lexoje user id dhe role nga token-i.",
-        "Lejon ndarjen e autorizimeve admin/user.",
+        "Lejon ndarjen e autorizimeve admin/user/auditor.",
         "E ben sistemin me te pershtatshem per shkallezim ne te ardhmen.",
     ])
 
     document.add_heading("6.3 RBAC dhe mbrojtja e te dhenave", level=2)
     document.add_paragraph(
-        "Role-Based Access Control ndan funksionet e user-it normal nga funksionet administrative. Admin menaxhon katalogun, "
+        "Role-Based Access Control ndan funksionet e user-it normal, auditorit read-only dhe funksioneve administrative. Admin menaxhon katalogun, "
         "bookings, users dhe messages. User mund te beje booking, te shikoje rezervimet e veta, te ndryshoje profilin/password "
-        "dhe te dergoje mesazhe kontakti."
+        "dhe te dergoje mesazhe kontakti. Auditor mund te lexoje audit logs, metrics, bookings, users, contact messages dhe stats pa leje ndryshimi."
     )
     add_bullets(document, [
         "Password-et ruhen me salted PBKDF2 hashing.",
         "SQL queries perdorin parametra per te ulur rrezikun e SQL Injection.",
         "Input validation aplikohet ne request models.",
         "Rate limiting aplikohet per login, password reset dhe public writes.",
-        "MFA aplikohet per role te konfiguruara si admin dhe mund te dergohet permes RabbitMQ/email.",
+        "MFA aplikohet per role te konfiguruara si admin dhe auditor dhe mund te dergohet permes RabbitMQ/email.",
         "Audit logs ruhen ne databaze per qellime gjurmimi.",
         "Contact form lidh user-in nga JWT token, jo nga U_Id i derguar nga browser-i.",
     ])
@@ -432,7 +432,7 @@ def build_report():
         ("REST API", "Po", "Endpoint-et perdorin HTTP methods dhe JSON."),
         ("Swagger/OpenAPI", "Po", "Dokumentim interaktiv ne /swagger me shembuj dhe bearer auth."),
         ("JWT Authentication", "Po", "Login gjeneron JWT dhe endpoint-et e mbrojtura kerkojne Bearer token."),
-        ("RBAC", "Po", "Role admin/user per autorizim."),
+        ("RBAC", "Po", "Role admin/user/auditor per autorizim."),
         ("MFA", "Po", "MFA per role te konfiguruara, me queue/email delivery dhe local demo mode."),
         ("SQL Server", "Po", "Databaze relacionale me tables per user, packages, bookings, contact."),
         ("ORM", "Po", "EF Core perdoret per support tables si audit logs dhe MFA."),
@@ -478,7 +478,8 @@ def build_report():
         "Frontend: cd \"UI/travel-agency\" dhe npm start.",
         "Swagger: http://localhost:5132/swagger.",
         "Admin login: admin@travelagency.com / Admin123!.",
-        "Admin MFA: ne local demo kodi mund te kthehet ne pergjigje; ne production dergohet permes RabbitMQ/email.",
+        "Auditor login: auditor@travelagency.com / Auditor123!.",
+        "Admin dhe auditor MFA: ne local demo kodi mund te kthehet ne pergjigje; ne production dergohet permes RabbitMQ/email.",
         "Kubernetes: kubectl apply -k Infrastructure/kubernetes.",
         "E2E: cd UI/travel-agency dhe npm run e2e.",
     ])

@@ -15,8 +15,8 @@ The project now covers the core Web API coursework requirements and the advanced
 | REST API with JSON | Yes | `Controllers/*.cs` | Uses standard HTTP methods and JSON responses |
 | Stateless communication | Yes | JWT bearer auth in [`Program.cs`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Travel%20Agency%20Portal/Travel%20Agency%20Portal/Program.cs) | No server-side session dependency |
 | JWT authentication | Yes | `AuthController`, `JwtTokenService` | Login/register return JWT |
-| RBAC | Yes | `[Authorize(Roles = "...")]` | Admin and user roles are enforced |
-| MFA | Yes | `MfaService`, `MfaDeliveryService`, `NotificationService`, `User_Mfa_Codes` | Local demo can expose the code; production config delivers by queue/email |
+| RBAC | Yes | `[Authorize(Roles = "...")]` | Admin, user, and read-only auditor roles are enforced |
+| MFA | Yes | `MfaService`, `MfaDeliveryService`, `NotificationService`, `User_Mfa_Codes` | Admin and auditor require MFA; local demo can expose the code; production config delivers by queue/email |
 | HTTPS/TLS | Partial | `app.UseHttpsRedirection()` | App-level HTTPS redirection exists; production certificates are environment-specific |
 | SQL injection protection | Yes | Parameterized queries in controllers/services | ADO.NET parameters are used |
 | XSS / CSRF / WAF | Partial | React escaping, validation, bearer-token auth, NGINX gateway | No full WAF appliance, but gateway scaffolding exists |

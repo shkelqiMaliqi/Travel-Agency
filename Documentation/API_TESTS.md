@@ -23,7 +23,7 @@ Swagger usage notes and the recommended presentation flow are also documented in
 
 5. `POST /api/v1/auth/login`
    - Expected: returns token, role, user id, name, and email.
-   - Admin/demo MFA behavior: if MFA is required for the role, the response returns `requiresMfa = true` and a demo verification code.
+   - Admin/auditor demo MFA behavior: if MFA is required for the role, the response returns `requiresMfa = true` and a demo verification code.
 
 6. `POST /api/v1/auth/verify-mfa`
    - Body:
@@ -163,6 +163,41 @@ Use the admin JWT token.
 
 13. `POST /api/v1/infrastructure/storage-demo`
    - Expected: uploads a text payload to S3-compatible storage if MinIO/S3 config is available.
+
+## Auditor Requests
+
+Login with:
+
+```text
+auditor@travelagency.com
+Auditor123!
+```
+
+Verify MFA and use the auditor JWT token.
+
+1. `GET /api/v1/infrastructure/audit-logs`
+   - Expected: auditor can read recent audit entries.
+
+2. `GET /api/v1/infrastructure/metrics-snapshots`
+   - Expected: auditor can read background metrics snapshots.
+
+3. `GET /api/v1/bookings`
+   - Expected: auditor can read all bookings.
+
+4. `GET /api/v1/users`
+   - Expected: auditor can read user list.
+
+5. `GET /api/v1/contact`
+   - Expected: auditor can read unarchived contact messages.
+
+6. `GET /api/v1/stats/admin`
+   - Expected: auditor can read dashboard statistics.
+
+7. `POST /api/v1/infrastructure/storage-demo`
+   - Expected: `403 Forbidden` because auditor is read-only.
+
+8. `PUT /api/v1/users/{id}/role`
+   - Expected: `403 Forbidden` because only admin can change roles.
 
 ## Error Tests
 

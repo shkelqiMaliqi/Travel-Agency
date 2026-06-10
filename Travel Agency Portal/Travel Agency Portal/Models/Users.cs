@@ -71,7 +71,7 @@ public class UpdateUserProfileRequest
 public class UpdateUserRoleRequest
 {
     [Required]
-    [RegularExpression("^(admin|user)$", ErrorMessage = "Role must be admin or user.")]
+    [RegularExpression("^(admin|user|auditor)$", ErrorMessage = "Role must be admin, user, or auditor.")]
     public string U_Type { get; set; } = "user";
 }
 

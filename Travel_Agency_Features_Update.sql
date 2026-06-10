@@ -1,6 +1,13 @@
 USE Travel_Agency;
 GO
 
+IF COL_LENGTH('dbo.Users', 'U_Type') IS NULL
+BEGIN
+    ALTER TABLE dbo.Users
+    ADD U_Type VARCHAR(20) NOT NULL CONSTRAINT DF_Users_U_Type DEFAULT ('user');
+END
+GO
+
 IF COL_LENGTH('dbo.Contact_Form', 'C_IsRead') IS NULL
 BEGIN
     ALTER TABLE dbo.Contact_Form
@@ -89,6 +96,22 @@ BEGIN
         Expires_At DATETIME2 NOT NULL,
         Is_Used BIT NOT NULL CONSTRAINT DF_ResetCodes_IsUsed DEFAULT (0),
         Created_At DATETIME2 NOT NULL CONSTRAINT DF_ResetCodes_CreatedAt DEFAULT (SYSUTCDATETIME())
+    );
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Users WHERE U_Email = 'auditor@travelagency.com')
+BEGIN
+    INSERT INTO dbo.Users (U_Name, U_Surname, U_Email, U_Username, U_Phone, U_Password, U_RepeatPassword, U_Type)
+    VALUES (
+        'Audit',
+        'Reviewer',
+        'auditor@travelagency.com',
+        'auditor',
+        '',
+        'FC3152BA74C04A29D7ABFF83F689D7641F6289EA84D3FF033E1D2667D765A03D',
+        'FC3152BA74C04A29D7ABFF83F689D7641F6289EA84D3FF033E1D2667D765A03D',
+        'auditor'
     );
 END
 GO

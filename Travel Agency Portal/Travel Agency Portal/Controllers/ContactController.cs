@@ -49,7 +49,7 @@ public class ContactController : ControllerBase
         return Ok(new { message = "Your message has been sent to the travel agency staff. We will respond as fast as we can." });
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,auditor")]
     [HttpGet]
     public IActionResult GetMessages()
     {

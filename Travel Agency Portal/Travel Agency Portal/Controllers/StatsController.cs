@@ -15,7 +15,7 @@ public class StatsController : ControllerBase
         _databaseService = databaseService;
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,auditor")]
     [HttpGet("admin")]
     public IActionResult GetAdminStats()
     {

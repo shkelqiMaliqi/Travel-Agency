@@ -15,7 +15,7 @@ The goal is to build a functional travel-agency portal where users browse destin
 - Build a real REST API using ASP.NET Core Web API.
 - Build a React frontend that consumes the API.
 - Use JWT and RBAC for stateless authentication and authorization.
-- Add MFA for sensitive roles such as admin.
+- Add MFA for sensitive roles such as admin and auditor.
 - Use SQL Server as the primary relational database.
 - Document the API through OpenAPI/Swagger UI.
 - Demonstrate microservices through a notification service.
@@ -77,7 +77,7 @@ The enterprise stack includes two API instances behind NGINX, Redis, RabbitMQ, n
 
 REST was chosen because the application is resource-oriented and serves a JavaScript frontend. JSON is lightweight and easy to test through Swagger.
 
-JWT supports stateless authentication through the `Authorization: Bearer <token>` header. RBAC separates normal user permissions from admin operations.
+JWT supports stateless authentication through the `Authorization: Bearer <token>` header. RBAC separates normal user permissions, admin management operations, and auditor read-only review access.
 
 Security measures include password hashing, parameterized SQL, input validation, rate limiting, audit logging, MFA, HTTPS redirection, and production-style configuration for secrets and alerts.
 

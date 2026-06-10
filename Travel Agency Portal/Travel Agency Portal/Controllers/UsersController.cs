@@ -18,7 +18,7 @@ public class UsersController : ControllerBase
         _configuration = configuration;
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,auditor")]
     [HttpGet]
     public IActionResult GetUsers()
     {
@@ -30,7 +30,7 @@ public class UsersController : ControllerBase
     [HttpGet("{id:int}")]
     public IActionResult GetUser(int id)
     {
-        if (!CanAccessUser(id))
+        if (!CanViewUser(id))
         {
             return Forbid();
         }
@@ -201,6 +201,14 @@ public class UsersController : ControllerBase
         var isAdmin = User.IsInRole("admin");
 
         return isAdmin || string.Equals(currentUserId, id.ToString(), StringComparison.Ordinal);
+    }
+
+    private bool CanViewUser(int id)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var canViewAllUsers = User.IsInRole("admin") || User.IsInRole("auditor");
+
+        return canViewAllUsers || string.Equals(currentUserId, id.ToString(), StringComparison.Ordinal);
     }
 
     private List<UserProfile> ExecuteUsersQuery(string query, params SqlParameter[] parameters)

@@ -45,6 +45,7 @@ The database contains:
 Seed data includes:
 
 - Admin user
+- Auditor user
 - Paris, Bali, and Maldives destinations
 - Example hotels
 - Example travel packages
@@ -54,6 +55,13 @@ Default admin login:
 ```text
 Email: admin@travelagency.com
 Password: Admin123!
+```
+
+Default auditor login:
+
+```text
+Email: auditor@travelagency.com
+Password: Auditor123!
 ```
 
 ## Run Backend
@@ -405,6 +413,7 @@ npm run e2e
 ## Notes
 
 - Admin actions require a user with `U_Type = 'admin'`.
+- Auditor actions require a user with `U_Type = 'auditor'` and are read-only for audit, metrics, bookings, users, contact messages, and stats.
 - Normal users cannot access `/admin`.
 - Public users can view destinations and packages.
 - Logged-in users can book packages, change their password from profile, and submit contact messages linked to their account.

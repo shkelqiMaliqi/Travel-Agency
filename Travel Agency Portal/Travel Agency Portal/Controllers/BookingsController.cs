@@ -17,7 +17,7 @@ public class BookingsController : ControllerBase
         _configuration = configuration;
     }
 
-    [Authorize]
+    [Authorize(Roles = "user,admin")]
     [HttpGet("mine")]
     public IActionResult GetMyBookings()
     {
@@ -38,7 +38,7 @@ public class BookingsController : ControllerBase
         return Ok(ExecuteBookingsQuery(query, new SqlParameter("@U_Id", userId)));
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,auditor")]
     [HttpGet]
     public IActionResult GetBookings()
     {
@@ -73,17 +73,17 @@ public class BookingsController : ControllerBase
             INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id
             INNER JOIN dbo.Users u ON u.U_Id = b.U_Id
             WHERE b.Booking_Id = @Booking_Id
-              AND (@IsAdmin = 1 OR b.U_Id = @U_Id)";
+              AND (@CanViewAll = 1 OR b.U_Id = @U_Id)";
 
         var result = ExecuteBookingsQuery(query,
             new SqlParameter("@Booking_Id", id),
-            new SqlParameter("@IsAdmin", User.IsInRole("admin") ? 1 : 0),
+            new SqlParameter("@CanViewAll", CanViewAllBookings() ? 1 : 0),
             new SqlParameter("@U_Id", userId));
 
         return result.Count > 0 ? Ok(result[0]) : NotFound();
     }
 
-    [Authorize]
+    [Authorize(Roles = "user,admin")]
     [HttpPost]
     public IActionResult CreateBooking([FromBody] CreateBookingRequest request)
     {
@@ -187,7 +187,7 @@ public class BookingsController : ControllerBase
         return ChangeBookingStatus(id, status, null);
     }
 
-    [Authorize]
+    [Authorize(Roles = "user,admin")]
     [HttpPut("{id:int}/cancel")]
     public IActionResult CancelMyBooking(int id)
     {
@@ -198,6 +198,11 @@ public class BookingsController : ControllerBase
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(value, out var userId) ? userId : 0;
+    }
+
+    private bool CanViewAllBookings()
+    {
+        return User.IsInRole("admin") || User.IsInRole("auditor");
     }
 
     private IActionResult ChangeBookingStatus(int bookingId, string nextStatus, int? ownerUserId, bool userCancellation = false)
