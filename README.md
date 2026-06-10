@@ -250,6 +250,23 @@ ConnectionStrings__CRUDCS
 
 Never commit real production secrets.
 
+## Local Email Sending
+
+Local Gmail SMTP settings are configured in:
+
+```text
+Travel Agency Portal/Travel Agency Portal/appsettings.Development.json
+```
+
+Current local email setup:
+
+- Sender: `travel.agency@gmail.com`
+- Test recipients: `shkelqim.maliqi@outlook.com`, `anisamustafa2020@gmail.com`
+- SMTP host: `smtp.gmail.com`
+- SMTP port: `587`
+
+To actually send email, replace `PUT_GMAIL_APP_PASSWORD_HERE` with a Gmail App Password for `travel.agency@gmail.com`. Do not use the normal Gmail login password.
+
 ## Backend Tests
 
 Run the API test project from the solution folder:

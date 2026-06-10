@@ -1,0 +1,40 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-test:
+    name: Build and test ASP.NET Core API
+    runs-on: windows-latest
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      Jwt__Secret: DevelopmentOnlyCiSecretForTravelAgencyApi123!
+      Jwt__Issuer: TravelAgency.Api
+      Jwt__Audience: TravelAgency.Client
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore API
+        run: dotnet restore "Travel Agency Portal/Travel Agency Portal/Travel Agency Portal.csproj"
+
+      - name: Build API
+        run: dotnet build "Travel Agency Portal/Travel Agency Portal/Travel Agency Portal.csproj" --configuration Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test "Travel Agency Portal/Travel Agency Portal.Tests/Travel Agency Portal.Tests.csproj" --configuration Release --verbosity normal

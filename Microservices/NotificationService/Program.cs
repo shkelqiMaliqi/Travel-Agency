@@ -137,6 +137,11 @@ public sealed class EmailSender
             var password = _configuration["Email:Smtp:Password"];
             var from = _configuration["Email:Smtp:From"] ?? username ?? "no-reply@travel-agency.local";
             var enableSsl = _configuration.GetValue("Email:Smtp:EnableSsl", true);
+            var recipients = SplitRecipients(_configuration["Email:Smtp:OverrideRecipients"]);
+            if (recipients.Count == 0)
+            {
+                recipients.Add(message.Email);
+            }
 
             using var smtpClient = new SmtpClient(host, port)
             {
@@ -148,15 +153,21 @@ public sealed class EmailSender
                 smtpClient.Credentials = new NetworkCredential(username, password);
             }
 
-            using var mail = new MailMessage(from, message.Email)
+            using var mail = new MailMessage
             {
+                From = new MailAddress(from),
                 Subject = "Your Travel Agency MFA code",
                 Body = $"Hello {message.Name},\n\nYour MFA code is {message.Code}.\nIt expires at {message.ExpiresAtUtc:u}.\n\nTravel Agency",
                 IsBodyHtml = false
             };
 
+            foreach (var recipient in recipients)
+            {
+                mail.To.Add(recipient);
+            }
+
             await smtpClient.SendMailAsync(mail);
-            _logger.LogInformation("MFA email sent to {Email}.", message.Email);
+            _logger.LogInformation("MFA email sent for {Email} to {RecipientCount} recipient(s).", message.Email, recipients.Count);
             return true;
         }
         catch (Exception ex)
@@ -164,6 +175,14 @@ public sealed class EmailSender
             _logger.LogError(ex, "Failed to send MFA email to {Email}.", message.Email);
             return false;
         }
+    }
+
+    private static List<string> SplitRecipients(string? recipients)
+    {
+        return (recipients ?? string.Empty)
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(recipient => !string.IsNullOrWhiteSpace(recipient))
+            .ToList();
     }
 }
 

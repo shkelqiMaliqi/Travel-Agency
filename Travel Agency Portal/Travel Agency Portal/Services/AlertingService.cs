@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using System.Net;
+using System.Net.Http.Json;
 using System.Net.Mail;
 
 namespace Travel_Agency_Portal.Services;
@@ -48,7 +48,8 @@ public class AlertingService
     {
         var host = _configuration["Alerting:Email:SmtpHost"] ?? _configuration["Email:Smtp:Host"];
         var to = _configuration["Alerting:Email:To"];
-        if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(to))
+        var recipients = SplitRecipients(to);
+        if (string.IsNullOrWhiteSpace(host) || recipients.Count == 0)
         {
             return false;
         }
@@ -71,12 +72,18 @@ public class AlertingService
                 smtpClient.Credentials = new NetworkCredential(username, password);
             }
 
-            using var mail = new MailMessage(from, to)
+            using var mail = new MailMessage
             {
+                From = new MailAddress(from),
                 Subject = $"Travel Agency alert: {title}",
                 Body = message,
                 IsBodyHtml = false
             };
+
+            foreach (var recipient in recipients)
+            {
+                mail.To.Add(recipient);
+            }
 
             await smtpClient.SendMailAsync(mail);
             return true;
@@ -86,5 +93,13 @@ public class AlertingService
             _logger.LogWarning(ex, "Failed to send email alert.");
             return false;
         }
+    }
+
+    private static List<string> SplitRecipients(string? recipients)
+    {
+        return (recipients ?? string.Empty)
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(recipient => !string.IsNullOrWhiteSpace(recipient))
+            .ToList();
     }
 }
