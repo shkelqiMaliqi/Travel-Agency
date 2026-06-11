@@ -5,8 +5,8 @@ The PDF asks for backup and recovery policies for the database and critical conf
 ## Database Backup Policy
 
 - Keep the schema and seed source under version control through:
-  - [`Travel_AgencyDB.sql`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Travel_AgencyDB.sql)
-  - [`Travel_Agency_Features_Update.sql`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Travel_Agency_Features_Update.sql)
+  - [`Database/Travel_AgencyDB.sql`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Database/Travel_AgencyDB.sql)
+  - [`Database/Travel_Agency_Features_Update.sql`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Database/Travel_Agency_Features_Update.sql)
 - Before major schema changes, export a SQL Server backup or create a fresh `.bak`.
 - For classroom/demo environments, keep at least:
   - one current full backup
@@ -37,7 +37,7 @@ Recommended practice:
 ### Option 1: Recreate from SQL scripts
 
 1. Create or reset the SQL Server database.
-2. Run `Travel_AgencyDB.sql`.
+2. Run `Database/Travel_AgencyDB.sql`.
 3. Start the API.
 4. Start the frontend.
 

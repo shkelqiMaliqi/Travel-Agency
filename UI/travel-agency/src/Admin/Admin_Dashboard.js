@@ -51,6 +51,39 @@ const initialUserForm = {
 const valueOf = (item, camel, pascal) => item?.[camel] ?? item?.[pascal];
 const money = (value) => Number(value || 0).toLocaleString(undefined, { style: "currency", currency: "EUR" });
 const date = (value) => (value ? new Date(value).toLocaleDateString() : "-");
+const adminTabs = ["destinations", "hotels", "packages", "bookings", "messages", "users", "infrastructure"];
+const infrastructureLinks = [
+  {
+    group: "Core application",
+    links: [
+      { label: "Frontend app", url: "http://localhost:3000", note: "React user interface." },
+      { label: "Local Swagger", url: "http://localhost:5132/swagger", note: "Best place to demo MFA because local mode shows the code." },
+      { label: "Local API health", url: "http://localhost:5132/health", note: "Backend health check." },
+      { label: "Notification health", url: "http://localhost:5140/health", note: "Notification microservice health check." },
+    ],
+  },
+  {
+    group: "Docker gateway and API",
+    links: [
+      { label: "NGINX gateway", url: "http://localhost:8088", note: "Load-balanced entry point for Docker API instances." },
+      { label: "Gateway Swagger", url: "http://localhost:8088/swagger", note: "Swagger through the NGINX gateway." },
+      { label: "Gateway places API", url: "http://localhost:8088/api/v1/places", note: "Quick proof that Docker API and SQL Server are working." },
+      { label: "Gateway metrics", url: "http://localhost:8088/metrics", note: "Prometheus metrics through the gateway." },
+    ],
+  },
+  {
+    group: "Monitoring, logs, queues, storage",
+    links: [
+      { label: "Prometheus targets", url: "http://localhost:9090/targets", note: "Shows whether Prometheus can scrape the API gateway." },
+      { label: "Grafana dashboard", url: "http://localhost:3001/d/travel-agency-api-overview", note: "Ready API dashboard. Demo login: admin / admin." },
+      { label: "Alertmanager alerts", url: "http://localhost:9093/#/alerts", note: "Alert routing demo." },
+      { label: "RabbitMQ queues", url: "http://localhost:15672/#/queues", note: "Message queue. Demo login: travelagency / travelagency-pass." },
+      { label: "Kibana Discover", url: "http://localhost:5601/app/discover", note: "Travel Agency Logs data view is preconfigured." },
+      { label: "MinIO", url: "http://localhost:9001", note: "S3-compatible storage. Demo login: minioadmin / minioadmin." },
+      { label: "Elasticsearch", url: "http://localhost:9200", note: "Search/log storage backend." },
+    ],
+  },
+];
 
 const AdminDashboard = () => {
   const [auth] = useState(() => getStoredAuth());
@@ -348,7 +381,7 @@ const AdminDashboard = () => {
       </div>
 
       <div className="admin-tabs mb-4">
-        {["destinations", "hotels", "packages", "bookings", "messages", "users"].map((tab) => (
+        {adminTabs.map((tab) => (
           <button key={tab} type="button" className={`btn ${activeTab === tab ? "btn-primary" : "btn-outline-primary"}`} onClick={() => setActiveTab(tab)}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
@@ -609,6 +642,7 @@ const AdminDashboard = () => {
                             <select className="form-select form-select-sm" value={valueOf(user, "u_Type", "U_Type")} onChange={(event) => changeUserRole(userId, event.target.value)}>
                               <option value="user">user</option>
                               <option value="admin">admin</option>
+                              <option value="auditor">auditor</option>
                             </select>
                           </td>
                           <td>
@@ -676,6 +710,40 @@ const AdminDashboard = () => {
             </table>
           </div>
           {contactMessages.length === 0 ? <div className="empty-state">No contact messages yet.</div> : null}
+        </div>
+      ) : null}
+
+      {activeTab === "infrastructure" ? (
+        <div className="dashboard-panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Infrastructure links</h2>
+              <p className="text-muted mb-0">Open local app services and Docker enterprise dashboards in a new browser tab.</p>
+            </div>
+            <span className="badge bg-success">target=_blank</span>
+          </div>
+
+          <div className="infrastructure-grid">
+            {infrastructureLinks.map((section) => (
+              <article className="infrastructure-card" key={section.group}>
+                <h3>{section.group}</h3>
+                <div className="infrastructure-links">
+                  {section.links.map((link) => (
+                    <div className="infrastructure-link-row" key={link.url}>
+                      <div>
+                        <strong>{link.label}</strong>
+                        <span>{link.url}</span>
+                        <p>{link.note}</p>
+                      </div>
+                      <a className="btn btn-outline-primary btn-sm" href={link.url} target="_blank" rel="noreferrer">
+                        Open
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       ) : null}
     </section>

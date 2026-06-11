@@ -17,7 +17,9 @@ spec:
                 - /bin/bash
                 - -c
                 - |
-                  /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "BACKUP DATABASE [Travel_Agency] TO DISK = N'/var/opt/mssql/backup/Travel_Agency_$(date -u +%Y%m%dT%H%M%SZ).bak' WITH INIT, COMPRESSION"
+                  SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
+                  if [ ! -x "$SQLCMD" ]; then SQLCMD="/opt/mssql-tools/bin/sqlcmd"; fi
+                  "$SQLCMD" -S sqlserver -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "BACKUP DATABASE [Travel_Agency] TO DISK = N'/var/opt/mssql/backup/Travel_Agency_$(date -u +%Y%m%dT%H%M%SZ).bak' WITH INIT, COMPRESSION"
               env:
                 - name: MSSQL_SA_PASSWORD
                   valueFrom:

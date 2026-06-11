@@ -608,8 +608,8 @@ What is not done:
 Status: Implemented.
 
 What we have:
-- `Travel_Agency_Raport_Teknik.docx`.
-- `tools_create_report.py`.
+- `Documentation/Generated/Travel_Agency_Raport_Teknik.docx`.
+- `Tools/tools_create_report.py`.
 - `Documentation/PROJECT_REPORT.md`.
 
 ### Required report chapters

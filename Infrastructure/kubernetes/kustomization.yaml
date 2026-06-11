@@ -6,9 +6,21 @@ resources:
   - secret.example.yaml
   - redis.yaml
   - rabbitmq.yaml
+  - mongo.yaml
+  - minio.yaml
   - sqlserver.yaml
+  - sqlserver-init-job.yaml
   - api-deployment.yaml
   - api-hpa.yaml
   - notification-service-deployment.yaml
   - ingress.yaml
   - backup-cronjob.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: travel-agency-db-init-script
+    namespace: travel-agency
+    files:
+      - Travel_AgencyDB.sql=db-init/Travel_AgencyDB.sql

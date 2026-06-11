@@ -7,9 +7,15 @@ Travel Agency is a React and ASP.NET Core Web API project with JWT login, user d
 - `UI/travel-agency` - React frontend
 - `Travel Agency Portal/Travel Agency Portal` - ASP.NET Core Web API
 - `Microservices/NotificationService` - RabbitMQ-driven notification/MFA delivery microservice
-- `Travel_AgencyDB.sql` - full SQL Server setup and seed script
-- `Travel_Agency_Features_Update.sql` - safe update script for an existing database
+- `Database/Travel_AgencyDB.sql` - full SQL Server setup and seed script
+- `Database/Travel_Agency_Features_Update.sql` - safe update script for an existing database
 - `Documentation` - report-ready documentation, requirement mapping, API testing notes, and submission support
+- `Documentation/Generated` - generated Word report and extracted requirement text
+- `Infrastructure` - Docker, NGINX, Kubernetes, monitoring, backup, and enterprise deployment assets
+- `Tools` - helper scripts, including report generation
+- `Logs` - local runtime logs and archived run logs
+
+Local services should write `.run.log` files to `Logs` to keep the project root clean.
 
 ## Requirements
 
@@ -24,13 +30,13 @@ Travel Agency is a React and ASP.NET Core Web API project with JWT login, user d
 For a new database, run:
 
 ```text
-Travel_AgencyDB.sql
+Database/Travel_AgencyDB.sql
 ```
 
 For an existing database, run:
 
 ```text
-Travel_Agency_Features_Update.sql
+Database/Travel_Agency_Features_Update.sql
 ```
 
 The database contains:
@@ -235,7 +241,7 @@ Unhandled backend errors are processed by global middleware and returned as clea
 - Public read endpoints use short-lived response caching and distributed cache support with Redis fallback to memory cache.
 - Login, password reset, and public contact writes are rate limited.
 - Passwords are stored with salted PBKDF2 hashes; legacy SHA256 hashes are still accepted so existing seeded users continue to work.
-- `Travel_Agency_Features_Update.sql` safely updates existing databases.
+- `Database/Travel_Agency_Features_Update.sql` safely updates existing databases.
 
 ## Architecture Notes
 
@@ -294,7 +300,7 @@ Run the API and SQL Server with Docker Compose:
 docker compose up --build
 ```
 
-After SQL Server starts, apply `Travel_AgencyDB.sql` to create and seed the database. The API will be available at:
+After SQL Server starts, apply `Database/Travel_AgencyDB.sql` to create and seed the database. The API will be available at:
 
 ```text
 http://localhost:5132
@@ -367,7 +373,7 @@ The repository now includes documentation files that directly support the PDF re
 If you need a `.docx` version for Moodle submission, run:
 
 ```powershell
-python tools_create_report.py
+python Tools/tools_create_report.py
 ```
 
 ## API Testing

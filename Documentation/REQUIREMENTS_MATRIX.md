@@ -31,7 +31,7 @@ The project now covers the core Web API coursework requirements and the advanced
 | Centralized logging (ELK / Graylog) | Yes | `LogstashLoggerProvider`, Logstash/Elasticsearch/Kibana config | App logs can be shipped to Logstash over TCP as JSON |
 | Alerting | Yes | `AlertingService`, Prometheus rules, Alertmanager config | Slack/webhook and email alert channels are configurable |
 | API Gateway | Yes | `Infrastructure/nginx/nginx.conf` | Gateway handles proxying, rate limiting, and load balancing |
-| Relational database integration | Yes | `Travel_AgencyDB.sql` | SQL Server relational schema |
+| Relational database integration | Yes | `Database/Travel_AgencyDB.sql` | SQL Server relational schema |
 | ORM | Yes | `TravelAgencyDbContext` | EF Core is used for support/audit tables |
 | NoSQL integration | Yes | `MongoAnalyticsService` | Optional MongoDB analytics storage |
 | Cloud storage | Yes | `S3StorageService`, MinIO setup | S3-compatible storage demo included |

@@ -204,7 +204,6 @@ services:
     image: prom/alertmanager:v0.27.0
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
-      - "--config.expand-env"
     environment:
       ALERT_EMAIL_TO: "alerts@example.com"
       ALERT_EMAIL_FROM: "alerts@travel-agency.local"
@@ -219,6 +218,13 @@ services:
 
   grafana:
     image: grafana/grafana:11.1.4
+    environment:
+      GF_SECURITY_ADMIN_USER: "admin"
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./Infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./Infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
       - "3001:3000"
     depends_on:

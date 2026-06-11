@@ -27,9 +27,14 @@ spec:
                   name: travel-agency-secrets
                   key: MSSQL_SA_PASSWORD
           volumeMounts:
+            - name: data-volume
+              mountPath: /var/opt/mssql
             - name: backup-volume
               mountPath: /var/opt/mssql/backup
       volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: sqlserver-data
         - name: backup-volume
           persistentVolumeClaim:
             claimName: sqlserver-backups
@@ -45,6 +50,18 @@ spec:
   ports:
     - port: 1433
       targetPort: 1433
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlserver-data
+  namespace: travel-agency
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

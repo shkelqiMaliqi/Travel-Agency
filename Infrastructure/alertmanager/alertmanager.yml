@@ -8,13 +8,13 @@ route:
 receivers:
   - name: "production-alerts"
     email_configs:
-      - to: "${ALERT_EMAIL_TO}"
-        from: "${ALERT_EMAIL_FROM}"
-        smarthost: "${ALERT_SMTP_HOST}"
-        auth_username: "${ALERT_SMTP_AUTH_USERNAME}"
-        auth_password: "${ALERT_SMTP_AUTH_PASSWORD}"
+      - to: "alerts@example.com"
+        from: "alerts@travel-agency.local"
+        smarthost: "localhost:25"
+        auth_username: ""
+        auth_password: ""
         require_tls: false
         send_resolved: true
     webhook_configs:
-      - url: "${ALERT_SLACK_WEBHOOK_URL}"
+      - url: "http://127.0.0.1:9/disabled-alert-webhook"
         send_resolved: true

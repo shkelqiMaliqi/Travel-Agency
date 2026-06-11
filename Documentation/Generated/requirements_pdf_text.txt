@@ -1,0 +1,168 @@
+
+
+===== PAGE 1 =====
+Kërkesat teknike të Projektit për Zhvillimin e Ueb Shërbimeve & Ueb API-ve 
+1. Arkitektura e sistemit 
+Një sistem modern për Ueb Shërbime duhet të jetë modular, fleksibël dhe i shkallëzueshëm.  
+Kërkesat kryesore për arkitekturën: 
+• Mikroshërbime (Microservices Architecture): 
+Çdo komponent funksional i sistemit (autentifikimi, menaxhimi i përdoruesve, analiza e të 
+dhënave, etj.) duhet të zhvillohet si një mikroshërbim i pavarur, me endpoint -e të qarta 
+REST API. 
+Avantazhi është që shërbimet mund të zhvillohen, testohen dhe deploy-ohen individualisht 
+pa ndikuar në pjesët e tjera të sistemit. 
+Komunikimi mund të bëhet përmes HTTP/HTTPS, gRPC, ose Message Queues (Kafka, 
+RabbitMQ). 
+• REST vs. SOAP: 
+o RESTful API : duhet të përdorë standardet HTTP, format JSON p ër 
+kërkesat/përgjigjet dhe të mbështesë status kodet standarde (200, 400, 401, 404, 
+500). 
+o SOAP API (opsional për sisteme legacy): përdor XML dhe WSDL, i përshtatshëm 
+për integrime enterprise me kërkesa të larta sigurie dhe transaksionesh. 
+• Modeli i komunikimit: API-të duhet të jenë stateless, në mënyrë që çdo kërkesë të jetë e 
+pavarur nga të tjerat. 
+2. Siguria 
+Siguria është element kritik në projektet e API -ve, duke garantuar mbrojtjen e të dhënave dhe 
+integritetin e sistemit. 
+Kërkesat specifike: 
+• Autentifikimi dhe Autorizimi: 
+o Zbatimi i OAuth 2.0 ose JWT (JSON Web Token) për menaxhimin e sesioneve 
+dhe lejeve të përdoruesve. 
+o Mbështetje për autentifikim me shumë faktorë (MFA) për përdoruesit kritikë. 
+o Roli i përdoruesve (admin, user, auditor) të menaxhohet përmes  Role-Based 
+Access Control (RBAC). 
+• Mbrojtja nga sulmet: 
+o Përdorimi i HTTPS/TLS 1.3 për komunikim të enkriptuar. 
+o Mbrojtje ndaj SQL Injection, XSS, CSRF, DDoS  përmes input validation , 
+tokenization, dhe Web Application Firewall (WAF). 
+o Auditim i aktiviteteve të përdoruesve përmes log-imit të sigurt. 
+
+
+===== PAGE 2 =====
+3. Performanca dhe shkallëzueshmëria 
+Sistemi duhet të jetë i optimizuar për të përballuar ngarkesa të mëdha përdorimi pa degradim 
+performance. 
+Kërkesat: 
+• Caching i avancuar: 
+Përdorimi i Redis, Memcached ose Varnish për ruajtjen e rezultateve të kërkesave të 
+përsëritura. 
+• Load Balancing: 
+Shpërndarje automatike e ngarkesës përmes NGINX, HAProxy ose AWS ELB. 
+• Asynchronous Processing: 
+Përpunimi i detyrave intensive në sfond përmes message queues  ose background 
+workers. 
+• Monitoring i resurseve: 
+Matja e latency, throughput, dhe error rates për të identifikuar ngarkesat anormale. 
+4. Dokumentimi i API-ve 
+Dokumentimi duhet të jetë i plotë, i lexueshëm dhe interaktiv. 
+Kërkesat: 
+• Përdorimi i OpenAPI Specification (OAS 3.0) për përshkrimin e endpoint-eve. 
+• Swagger UI  ose Redoc për dokumentacion interaktiv, ku zhvilluesit mund të testojnë 
+kërkesat direkt. 
+• Përfshirja e shembujve të përdorimit, strukturës së kërkesave, përgjigjeve, dhe kodeve të 
+gabimeve. 
+5. Versionimi dhe evoluimi i API-ve 
+Për të siguruar stabilitet gjatë ndryshimeve të API-ve: 
+• Versionimi duhet të bëhet në URL (/api/v1/users) ose përmes HTTP Header (Accept-
+Version: v2). 
+• Mbajtja e versioneve të vjetra për një periudhë tranzicioni. 
+• Ndryshimet e mëdha të komunikohen përmes changelog dhe dokumentacioni duhet të 
+përditësohet automatikisht. 
+
+
+===== PAGE 3 =====
+ 
+6. Monitorimi, logimi dhe auditimi 
+Monitorimi është thelbësor për menaxhimin e performancës dhe zbulimin e anomalive. 
+Kërkesat: 
+• Logim qendror me ELK Stack (Elasticsearch, Logstash, Kibana) ose Graylog. 
+• Monitorim i performancës përmes Prometheus + Grafana. 
+• Alerting system që njofton zhvilluesit në rast dështimi të shërbimeve (p.sh., përmes Slack 
+ose email). 
+• Ruajtje dhe analizë e logeve për qëllime të auditimit të sigurisë. 
+7. Integrimi me sisteme të jashtme 
+• API Gateway (p.sh., Kong, Apigee, NGINX Plus):  për menaxhimin e trafikut, 
+autentifikimin, rate limiting dhe analytics. 
+• Integrimi me databaza: 
+o ORM (Hibernate, Sequelize, SQLAlchemy) për menaxhimin e modeleve dhe 
+query-ve. 
+o Mbështetje për databaza relacione  (PostgreSQL, MySQL) dhe NoSQL 
+(MongoDB, Cassandra) sipas nevojës. 
+• Integrimi me shërbime cloud (AWS S3, Azure Blob, Google Cloud Storage) për ruajtjen 
+e të dhënave ose skedarëve. 
+8. Standardet e kodimit dhe praktikat më të mira 
+Kërkesat: 
+• Zbatimi i parimeve SOLID, DRY, KISS dhe Clean Code. 
+• Përdorimi i linting dhe code formatting tools (Prettier, ESLint, Black). 
+• Testim automatizuar: 
+o Teste njësie për çdo modul. 
+o Teste integrimi për ndërveprimet mes mikroshërbimeve. 
+o Teste end-to-end për të garantuar funksionalitetin e përgjithshëm. 
+• Implementimi i Continuous Testing në pipeline-in e CI/CD. 
+9. Platforma dhe teknologjitë 
+Kërkesat: 
+• Backend: Node.js (Express/NestJS), Python (FastAPI/Django REST), ose Java (Spring 
+Boot). 
+• Frontend (opsional): React, Vue.js ose Angular për ndërfaqe administrative. 
+• Databaza: PostgreSQL për të dhëna të strukturuara, MongoDB për dokumente. 
+
+
+===== PAGE 4 =====
+• Caching: Redis për përshpejtim të kërkesave. 
+• CI/CD: Jenkins, GitHub Actions ose GitLab CI për automatizim të ndërtimit dhe deploy -
+it. 
+• Kontejnerizimi: Docker + Docker Compose; për ambientet e mëdha – Kubernetes. 
+10. DevOps dhe shpërndarja 
+Kërkesat: 
+• CI/CD Pipeline: automatizim i testimit, ndërtimit, dhe publikimit në ambientet staging 
+dhe production. 
+• Docker Containers: për mjedise të izoluar zhvillimi dhe testimi. 
+• Orchestration me Kubernetes (opsionale) për deploy në shkallë të madhe. 
+• Backup & Recovery Policies për databazat dhe konfigurimet kritike. 
+Ky seksion përcakton mënyrën e dokumentimit, përgatitjes dhe dorëzimit të projekteve 
+përfundimtare nga studentët, në përputhje me standardet akademike dhe kërkesat e kursit. 
+11. Dokumentimi i Projektit: 
+• Raporti teknik duhet të dorëzohet në formatin .docx (Microsoft Word). 
+• Dokumenti duhet të përmbajë këto kapituj minimale: 
+1. Përmbledhje Ekzekutive (Abstract) 
+2. Qëllimi dhe objektivat e projektit 
+3. Analiza e kërkesave funksionale dhe jofunksionale 
+4. Projektimi i sistemit (arkitektura, diagramet, modelet e të dhënave) 
+5. Përshkrimi i implementimit (teknologjitë, mjetet dhe komponentët) 
+6. Testimi dhe rezultatet 
+7. Përfundime dhe rekomandime 
+8. Referencat dhe burimet e përdorura 
+9. Shtojcat (nëse ka) – p.sh. fragmente kodi, skema, ose pamje nga ndërfaqet. 
+• Raporti duhet të jetë: 
+o Me strukture akademike dhe të përmbajë faqe titulli, tabelë përmbajtjeje dhe 
+numerim faqesh. 
+o Me gjuhë profesionale dhe teknike, pa gabime drejtshkrimore. 
+• Implementimi / Zhvillimi i Projektit: 
+• Kodi burimor, skriptet, konfigurimet dhe dokumentet shtesë teknike duhet të 
+vendosen në një dosje të vetme dhe të kompresohen në një nga formatet e mëposhtme: 
+o .zip 
+o .rar 
+• Emërtimi i skedarëve duhet të jetë në këtë format: 
+o EmriMbiemri_Projekti_SPDD.zip 
+ose 
+o GrupiX_Projekti_SPDD.rar  
+
+
+===== PAGE 5 =====
+• Platforma e Dorëzimit: 
+• Të gjitha materialet (raporti dhe arkiva e kodit) duhet të ngarkohen në platformën 
+Moodle në seksionin përkatës të lëndës. 
+• Dorëzimi duhet të bëhet konform datave të përcaktuara nga mësimdhënësi në Moodle. 
+• Pas afatit të dorëzimit, sistemi nuk do të pranojë më ngarkesa, dhe projektet e 
+dorëzuara me vonesë nuk do të vlerësohen. 
+• Çdo dorëzim duhet të përfshijë: 
+o Dokumentin .docx 
+o Skedarin .zip / .rar 
+o Një deklaratë origjinaliteti (në fund të raportit), ku studenti konfirmon se puna 
+është e tij dhe nuk përmban plagjiaturë. 
+Zbatimi i tyre ndihmon që projekti të përputhet me standardet moderne të industrisë (RESTful 
+Design, Secure by Design, Cloud Native Prin ciples) dhe të jetë i gatshëm për shkallëzim dhe 
+integrim në ambiente komplekse. 
+ 
+Prof.ass.Dr.sc.Liridon Hoti 
+ 

@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sqlserver-init
+  namespace: travel-agency
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: sqlserver-init
+          image: mcr.microsoft.com/mssql-tools
+          command:
+            - /bin/bash
+            - -c
+            - |
+              SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
+              if [ ! -x "$SQLCMD" ]; then SQLCMD="/opt/mssql-tools/bin/sqlcmd"; fi
+
+              until "$SQLCMD" -S sqlserver -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "SELECT 1"; do
+                echo "Waiting for SQL Server..."
+                sleep 5
+              done
+
+              DB_EXISTS=$("$SQLCMD" -S sqlserver -U sa -P "$MSSQL_SA_PASSWORD" -C -h -1 -W -Q "SET NOCOUNT ON; SELECT CASE WHEN DB_ID('Travel_Agency') IS NULL THEN 0 ELSE 1 END")
+              if [ "$DB_EXISTS" = "1" ]; then
+                echo "Travel_Agency database already exists; skipping initialization."
+              else
+                echo "Initializing Travel_Agency database..."
+                "$SQLCMD" -S sqlserver -U sa -P "$MSSQL_SA_PASSWORD" -C -i /scripts/Travel_AgencyDB.sql
+              fi
+          env:
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: travel-agency-secrets
+                  key: MSSQL_SA_PASSWORD
+          volumeMounts:
+            - name: db-init-script
+              mountPath: /scripts
+      volumes:
+        - name: db-init-script
+          configMap:
+            name: travel-agency-db-init-script

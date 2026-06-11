@@ -151,7 +151,7 @@ Recommended future improvements are to expand Playwright tests for authenticated
 - Backend tests: `Travel Agency Portal/Travel Agency Portal.Tests`
 - Frontend: `UI/travel-agency`
 - E2E tests: `UI/travel-agency/tests/e2e`
-- Database scripts: `Travel_AgencyDB.sql`, `Travel_Agency_Features_Update.sql`
+- Database scripts: `Database/Travel_AgencyDB.sql`, `Database/Travel_Agency_Features_Update.sql`
 - Advanced infrastructure: `docker-compose.enterprise.yml`, `Infrastructure/`
 
 ### Appendix B: Originality Declaration Template
