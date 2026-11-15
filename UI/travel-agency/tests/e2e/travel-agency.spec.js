@@ -28,6 +28,6 @@ test("forgot password page is reachable from login", async ({ page }) => {
 
   await expect(page).toHaveURL(/forgot-password/);
   await expect(
-    page.getByRole("button", { name: /generate reset code/i })
+    page.getByRole("button", { name: /email reset code/i })
   ).toBeVisible();
 });

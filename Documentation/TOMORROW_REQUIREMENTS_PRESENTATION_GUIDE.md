@@ -6,6 +6,7 @@ This guide maps the PDF requirements to the current Travel Agency project and gi
 
 The project covers almost all requirements through real implementation, demo implementation, or infrastructure-ready configuration. The few items that are not fully production-operated are mostly things that require real deployment infrastructure, certificates, secrets, Docker/Kubernetes runtime, or third-party accounts.
 
+
 ## 1. System Architecture
 
 ### Modular, flexible, scalable system

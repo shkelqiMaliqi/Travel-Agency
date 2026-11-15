@@ -106,7 +106,9 @@ const LoginPage = () => {
                     <>
                       {" "}Demo code: <strong>{mfaData.demoCode}</strong>
                     </>
-                  ) : null}
+                  ) : (
+                    <> A verification code was sent to the configured email recipients.</>
+                  )}
                 </div>
                 {mfaData.expiresAt ? <div className="text-muted small">Code expires at {new Date(mfaData.expiresAt).toLocaleString()}.</div> : null}
                 <div className="col-12">

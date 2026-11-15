@@ -22,7 +22,7 @@ public class SwaggerExamplesOperationFilter : IOperationFilter
         {
             case ("POST", "/api/v1/auth/login"):
                 operation.Summary = "Authenticate a user and return a JWT or an MFA challenge.";
-                operation.Description = "Normal users receive a JWT immediately. Roles configured for MFA receive a temporary code and must call verify-mfa.";
+                operation.Description = "Normal users receive a JWT immediately. Roles configured for MFA receive a code by email and must call verify-mfa. The API never returns that code.";
                 SetJsonRequestExample(operation, new OpenApiObject
                 {
                     ["userNameOrEmail"] = new OpenApiString("admin@travelagency.com"),
@@ -39,7 +39,7 @@ public class SwaggerExamplesOperationFilter : IOperationFilter
                         ["userId"] = new OpenApiInteger(1),
                         ["name"] = new OpenApiString("Admin User"),
                         ["email"] = new OpenApiString("admin@travelagency.com"),
-                        ["mfaCode"] = new OpenApiString("123456"),
+                        ["mfaCode"] = new OpenApiNull(),
                         ["mfaExpiresAtUtc"] = new OpenApiString("2026-06-09T22:15:00Z")
                     }
                 });
@@ -71,7 +71,7 @@ public class SwaggerExamplesOperationFilter : IOperationFilter
 
             case ("GET", "/api/v1/places"):
                 operation.Summary = "Return public destination data.";
-                operation.Description = "Supports optional prefix search through the search query string parameter. Results are response-cached and can also be served from distributed cache.";
+                operation.Description = "Supports optional prefix search. Versioned distributed cache entries expire after 20 seconds and are invalidated after catalog edits.";
                 SetResponseExample(operation, "200", new OpenApiObject
                 {
                     ["success"] = new OpenApiBoolean(true),

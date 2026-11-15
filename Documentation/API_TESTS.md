@@ -23,7 +23,7 @@ Swagger usage notes and the recommended presentation flow are also documented in
 
 5. `POST /api/v1/auth/login`
    - Expected: returns token, role, user id, name, and email.
-   - Admin/auditor demo MFA behavior: if MFA is required for the role, the response returns `requiresMfa = true` and a demo verification code.
+   - Admin/auditor MFA behavior: the response returns `requiresMfa = true`. Read the code from the account email inbox (Mailpit in the local Compose stack); the API never returns the code.
 
 6. `POST /api/v1/auth/verify-mfa`
    - Body:
@@ -46,7 +46,7 @@ Swagger usage notes and the recommended presentation flow are also documented in
 }
 ```
 
-   - Expected: returns a reset code for copy/paste testing.
+   - Expected: a generic success response for existing and unknown accounts. Existing accounts receive a single-use token by email. No token is returned by the API.
 
 8. `POST /api/v1/auth/reset-password`
    - Body:
@@ -54,7 +54,7 @@ Swagger usage notes and the recommended presentation flow are also documented in
 ```json
 {
   "email": "user@example.com",
-  "resetCode": "123456",
+  "resetCode": "paste-the-64-character-token-from-the-account-email",
   "newPassword": "NewPass123!",
   "confirmPassword": "NewPass123!"
 }

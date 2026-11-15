@@ -3,6 +3,13 @@ const AUTH_STORAGE_KEY = "travelAgency.auth";
 const CACHE_TTL_MS = 20000;
 const responseCache = new Map();
 const pendingRequests = new Map();
+let cacheVersion = 0;
+
+function invalidateCache() {
+  cacheVersion += 1;
+  responseCache.clear();
+  pendingRequests.clear();
+}
 
 export function getStoredAuth() {
   const raw = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -20,10 +27,12 @@ export function getStoredAuth() {
 }
 
 export function saveAuth(authResponse) {
+  invalidateCache();
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authResponse));
 }
 
 export function clearAuth() {
+  invalidateCache();
   localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
@@ -35,7 +44,9 @@ async function request(path, options = {}) {
   const { auth = false, ...fetchOptions } = options;
   const token = auth ? getAuthToken() : "";
   const method = (fetchOptions.method || "GET").toUpperCase();
-  const canCache = method === "GET";
+  const canCache = method === "GET" && !auth;
+  if (method !== "GET") invalidateCache();
+  const version = cacheVersion;
   const cacheKey = canCache ? `${token || "public"}:${path}` : "";
 
   if (canCache) {
@@ -50,12 +61,12 @@ async function request(path, options = {}) {
   }
 
   const requestPromise = fetch(`${API_BASE_URL}${path}`, {
+      ...fetchOptions,
       headers: {
-        "Content-Type": "application/json",
+        ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(fetchOptions.headers || {}),
       },
-      ...fetchOptions,
     })
     .then(async (response) => {
       const isJson = response.headers.get("content-type")?.includes("application/json");
@@ -76,16 +87,17 @@ async function request(path, options = {}) {
 
       const result = payload && typeof payload === "object" && "success" in payload && "data" in payload ? payload.data : payload;
 
-      if (canCache) {
+      if (canCache && version === cacheVersion) {
+        if (responseCache.size >= 100) responseCache.delete(responseCache.keys().next().value);
         responseCache.set(cacheKey, { payload: result, createdAt: Date.now() });
-      } else {
-        responseCache.clear();
+      } else if (method !== "GET") {
+        invalidateCache();
       }
 
       return result;
     })
     .finally(() => {
-      if (canCache) {
+      if (canCache && pendingRequests.get(cacheKey) === requestPromise) {
         pendingRequests.delete(cacheKey);
       }
     });

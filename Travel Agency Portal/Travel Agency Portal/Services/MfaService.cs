@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 using Travel_Agency_Portal.Data;
 using Travel_Agency_Portal.Models;
 
@@ -30,7 +31,7 @@ public class MfaService
 
     public async Task<(string code, DateTime expiresAtUtc)> CreateCodeAsync(Users user)
     {
-        var code = Random.Shared.Next(100000, 999999).ToString();
+        var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         var expiresAt = DateTime.UtcNow.AddMinutes(10);
 
         var existing = _dbContext.UserMfaCodes.Where(x => x.U_Email == user.U_Email && !x.Is_Used);
@@ -64,8 +65,9 @@ public class MfaService
             return false;
         }
 
-        match.Is_Used = true;
-        await _dbContext.SaveChangesAsync();
-        return true;
+        // A second concurrent verification must not consume the same challenge.
+        return await _dbContext.UserMfaCodes
+            .Where(x => x.Mfa_Id == match.Mfa_Id && !x.Is_Used && x.Expires_At >= DateTime.UtcNow)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Is_Used, true)) == 1;
     }
 }

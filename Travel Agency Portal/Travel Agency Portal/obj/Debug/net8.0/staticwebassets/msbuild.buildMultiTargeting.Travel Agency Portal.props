@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\Travel Agency Portal.props" />
-</Project>

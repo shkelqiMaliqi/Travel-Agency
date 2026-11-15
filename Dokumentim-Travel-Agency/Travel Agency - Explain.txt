@@ -1,0 +1,125 @@
+# Analiza Teknike e Projektit Travel Agency
+## Web Services dhe Web API
+
+## Përmbledhje
+
+Projekti Travel Agency është ndërtuar si një aplikacion me React frontend dhe ASP.NET Core Web API backend. Sistemi përdor REST API, JWT authentication, role-based authorization, SQL Server database, Swagger/OpenAPI dokumentim dhe Docker configuration.
+
+Projekti i mbulon mirë kërkesat kryesore të lëndës Web Services dhe Web API, sidomos pjesën e REST endpoints, sigurisë bazë, dokumentimit, versionimit dhe komunikimit frontend-backend. Disa pika enterprise si microservices, Redis, Kubernetes, API Gateway, ELK dhe Prometheus/Grafana nuk janë implementuar plotësisht dhe mund të paraqiten si përmirësime të ardhshme.
+
+## Kontrolli i kërkesave teknike
+
+| Kërkesa | Statusi | Përshkrimi |
+| --- | --- | --- |
+| Arkitektura e sistemit | Pjesërisht | Projekti është monolithic ASP.NET Core REST API, jo microservices. Megjithatë është modular me controllers, models dhe services. |
+| Microservices | Jo | Nuk ka shërbime të ndara për auth, users, bookings etj. Kjo mund të jetë future improvement. |
+| REST API | Po | Endpoint-et përdorin HTTP methods si GET, POST, PUT, DELETE dhe JSON response. |
+| SOAP | Jo | SOAP nuk është përdorur sepse nuk është i nevojshëm për këtë projekt. |
+| Stateless communication | Po | JWT dërgohet në çdo kërkesë të mbrojtur, pa server-side session. |
+| JWT Authentication | Po | Login gjeneron JWT token për user/admin. |
+| RBAC | Po | Ka role admin dhe user me autorizime të ndara. |
+| MFA | Jo | Multi-factor authentication nuk është implementuar. |
+| SQL Injection protection | Po | Përdoren parameterized SQL queries. |
+| XSS/CSRF/WAF | Pjesërisht | Ka validation dhe React ndihmon kundër XSS, por nuk ka WAF ose CSRF setup të veçantë. |
+| Logging | Po | Ka request logging middleware dhe exception handling middleware. |
+| Caching | Pjesërisht | Ka memory cache dhe response caching, por jo Redis. |
+| Load balancing | Jo | Nuk ka NGINX/HAProxy/AWS ELB. |
+| Async processing | Jo | Nuk ka message queues ose background workers. |
+| Swagger/OpenAPI | Po | Swagger UI është aktiv në /swagger. |
+| API versioning | Po | Endpoint-et janë nën /api/v1. |
+| Monitoring | Pjesërisht | Ka logs, por jo Prometheus/Grafana ose alerting. |
+| API Gateway | Jo | Nuk ka Kong, Apigee ose NGINX Plus. |
+| Database integration | Po | Përdoret SQL Server me tabela relacionale. |
+| ORM | Jo | Përdoret ADO.NET me SQL queries, jo Entity Framework/ORM. |
+| Cloud storage | Jo | Nuk ka AWS S3/Azure Blob/Google Cloud Storage. |
+| Clean Code | Pjesërisht | Projekti është i ndarë në controllers, models, services, middleware. |
+| Automated tests | Pjesërisht | Ka teste për health endpoint, authentication protection dhe password hashing. |
+| CI/CD | Pjesërisht | Ka përmendje në README, por .github/workflows është bosh. Duhet shtuar workflow real ose hequr nga dokumentimi. |
+| Docker | Po | Ka Dockerfile dhe docker-compose.yml. |
+| Kubernetes | Jo | Nuk është implementuar, vetëm mund të jetë future improvement. |
+| Backup/Recovery | Jo | Nuk ka policy të implementuar, mund të përmendet në raport. |
+
+## Pse REST dhe jo SOAP
+
+Ky projekt përdor REST API sepse është më i përshtatshëm për aplikacione moderne web me React frontend. REST përdor HTTP methods si GET, POST, PUT dhe DELETE, dhe kthen të dhëna në format JSON, i cili është i lehtë për t’u përdorur nga JavaScript/React.
+
+SOAP përdor XML, WSDL dhe struktura më të rënda. Ai është më i përshtatshëm për sisteme enterprise ose legacy, si banka apo sisteme me kontrata shumë strikte. Për një sistem Travel Agency me users, hotels, packages, bookings dhe contact messages, REST është më praktik, më i thjeshtë dhe më i shpejtë për zhvillim.
+
+Shembull:
+GET /api/v1/packages kthen listën e paketave në JSON, që është më direkte dhe më e lehtë për frontend-in.
+
+## Pse JWT
+
+Projekti përdor JWT Authentication sepse API duhet të jetë stateless. Kjo do të thotë që serveri nuk ruan session për çdo user. Kur user-i bën login, backend-i krijon një token. Pastaj frontend-i e dërgon token-in në çdo kërkesë të mbrojtur:
+
+Authorization: Bearer <token>
+
+JWT është përdorur sepse punon mirë me REST API, është i lehtë për React frontend, lejon kontrollin e identitetit dhe rolit të user-it, nuk kërkon server-side session dhe është i përshtatshëm për shkallëzim në të ardhmen.
+
+## Pse RBAC
+
+RBAC do të thotë Role-Based Access Control. Projekti përdor role për të ndarë të drejtat e përdoruesve.
+
+Rolet kryesore janë admin dhe user.
+
+Admin mund të menaxhojë destinations, hotels, packages, users, bookings dhe contact messages. User mund të shohë packages, të bëjë booking, të shohë booking-et e veta, të ndryshojë profilin/password dhe të dërgojë contact message.
+
+Kjo e bën sistemin më të sigurt sepse një user normal nuk mund të përdorë funksionet administrative.
+
+## Pse versionim /api/v1
+
+Endpoint-et janë vendosur nën /api/v1 për të mbështetur versionimin e API-së.
+
+Shembuj:
+- /api/v1/users
+- /api/v1/packages
+- /api/v1/bookings
+
+Kjo është praktikë e mirë sepse nëse API ndryshon në të ardhmen, mund të shtohet /api/v2 pa prishur versionin ekzistues.
+
+## Pse Swagger/OpenAPI
+
+Swagger përdoret për dokumentimin interaktiv të API-së. Përmes Swagger, pedagogu ose zhvilluesi mund të shohë të gjitha endpoint-et, request body, response format dhe authorization.
+
+Swagger është i hapur në:
+http://localhost:5132/swagger
+
+Kjo tregon që projekti ka Web API reale, të dokumentuar dhe të testueshme.
+
+## Pse SQL Server
+
+SQL Server është përdorur sepse të dhënat në këtë projekt janë relacionale.
+
+Projekti ka tabela si Users, Places, Hotels, Travel_Packages, Bookings dhe Contact_Form. Një booking lidhet me një user dhe një package. Package lidhet me destination dhe hotel. Për këtë strukturë, relational database është zgjedhje e përshtatshme.
+
+## Pse jo Microservices
+
+Projekti aktual është implementuar si monolithic ASP.NET Core REST API, jo si microservices.
+
+Kjo është zgjedhje e arsyeshme për një projekt studentor sepse është më i thjeshtë për t’u zhvilluar, testuar dhe prezantuar. Megjithatë, projekti është modular me controllers, models, services dhe middleware.
+
+Microservices mund të përmenden si përmirësim i ardhshëm, sepse kërkojnë API Gateway, service discovery, deployment të ndarë, monitoring dhe konfigurim më kompleks.
+
+## Pikat e forta të projektit
+
+Projekti përfshin REST API me JSON, JWT authentication, RBAC për admin/user, Swagger/OpenAPI, versionim me /api/v1, SQL Server database, input validation, parameterized SQL kundër SQL Injection, password hashing, rate limiting, request logging, global error handling, Dockerfile, docker-compose dhe React frontend që konsumon API-n.
+
+## Pikat që duhen përmendur si future improvements
+
+Përmirësimet e ardhshme mund të jenë:
+- ndarja në microservices;
+- Redis caching;
+- API Gateway;
+- load balancing me NGINX ose HAProxy;
+- monitoring me Prometheus dhe Grafana;
+- central logging me ELK Stack ose Graylog;
+- MFA për admin;
+- Kubernetes deployment;
+- CI/CD workflow real me GitHub Actions;
+- backup dhe recovery policy për databazën.
+
+## Përfundim
+
+Projekti i mbulon mirë kërkesat bazë të lëndës Web Services dhe Web API. Ai ka REST API funksionale, autentifikim me JWT, role-based authorization, dokumentim me Swagger, databazë relacionale dhe frontend që komunikon me API.
+
+Pjesët më të avancuara si microservices, Redis, Kubernetes, API Gateway, WAF, Prometheus/Grafana dhe ELK Stack nuk janë implementuar plotësisht, por mund të prezantohen si përmirësime të ardhshme për një version production/enterprise.

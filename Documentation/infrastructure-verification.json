@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-11-15T21:20:33.987Z",
+  "checks": [
+    {
+      "name": "two API instances receive gateway traffic",
+      "passed": true,
+      "upstreams": [
+        "172.19.0.8:8080",
+        "172.19.0.7:8080"
+      ]
+    },
+    {
+      "name": "RabbitMQ notification worker delivers admin MFA to the local inbox",
+      "passed": true,
+      "delivery": "RabbitMQ -> notification service -> Mailpit",
+      "apiExposesCode": false
+    },
+    {
+      "name": "catalog writes invalidate caches across both API instances",
+      "passed": true,
+      "filteredLists": true,
+      "details": true
+    },
+    {
+      "name": "password recovery uses email and a single-use token",
+      "passed": true,
+      "genericResponse": true,
+      "singleUse": true
+    },
+    {
+      "name": "Prometheus scrapes both API replicas",
+      "passed": true,
+      "targets": [
+        {
+          "instance": "api2:8080",
+          "health": "up"
+        },
+        {
+          "instance": "api1:8080",
+          "health": "up"
+        }
+      ]
+    },
+    {
+      "name": "production frontend compresses scripts and caches versioned assets",
+      "passed": true,
+      "compression": "gzip",
+      "immutableAssets": true,
+      "sameOriginApi": true
+    }
+  ]
+}

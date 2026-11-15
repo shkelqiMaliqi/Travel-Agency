@@ -58,6 +58,7 @@ public class MfaDeliveryService
             using var connection = factory.CreateConnection("travel-agency-api");
             using var channel = connection.CreateModel();
             channel.QueueDeclare(queueName, durable: true, exclusive: false, autoDelete: false);
+            channel.ConfirmSelect();
 
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
             var properties = channel.CreateBasicProperties();
@@ -66,6 +67,7 @@ public class MfaDeliveryService
             properties.Type = "mfa.delivery";
 
             channel.BasicPublish(exchange: string.Empty, routingKey: queueName, basicProperties: properties, body: body);
+            channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
             _logger.LogInformation("MFA delivery message published to RabbitMQ for {Email}.", message.Email);
             return true;
         }

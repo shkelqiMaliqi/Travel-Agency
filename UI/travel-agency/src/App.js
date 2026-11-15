@@ -1,28 +1,31 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import Navbar from "./NavBar";
 import Home from "./Components/Home";
-import AboutUs from "./Components/AboutUs";
-import ContactUs from "./Components/ContactUs";
-import RegisterPage from "./Components/RegisterPage";
-import LoginPage from "./Components/LoginPage";
-import ForgotPassword from "./Components/ForgotPassword";
-import LoggedIn from "./Components/LoggedIn";
-import Destinations from "./Components/Destinations";
-import Packages from "./Components/Packages";
-import PackageDetails from "./Components/PackageDetails";
-import MyBookings from "./Components/MyBookings";
-import BookingDetails from "./Components/BookingDetails";
-import Profile from "./Components/Profile";
-import AdminDashboard from "./Admin/Admin_Dashboard";
+import { pageLoaders, prefetchLink } from "./pageLoaders";
 import ProtectedRoute from "./Components/ProtectedRoute";
+
+const AboutUs = lazy(pageLoaders.AboutUs);
+const ContactUs = lazy(pageLoaders.ContactUs);
+const RegisterPage = lazy(pageLoaders.RegisterPage);
+const LoginPage = lazy(pageLoaders.LoginPage);
+const ForgotPassword = lazy(pageLoaders.ForgotPassword);
+const LoggedIn = lazy(pageLoaders.LoggedIn);
+const Destinations = lazy(pageLoaders.Destinations);
+const Packages = lazy(pageLoaders.Packages);
+const PackageDetails = lazy(pageLoaders.PackageDetails);
+const MyBookings = lazy(pageLoaders.MyBookings);
+const BookingDetails = lazy(pageLoaders.BookingDetails);
+const Profile = lazy(pageLoaders.Profile);
+const AdminDashboard = lazy(pageLoaders.AdminDashboard);
 
 function App() {
   return (
-    <div className="app-shell">
+    <div className="app-shell" onPointerOver={prefetchLink} onFocus={prefetchLink}>
       <Navbar />
       <main className="container py-4">
+        <Suspense fallback={<div role="status" className="py-4">Loading page…</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/aboutus" element={<AboutUs />} />
@@ -74,6 +77,7 @@ function App() {
             }
           />
         </Routes>
+        </Suspense>
       </main>
     </div>
   );

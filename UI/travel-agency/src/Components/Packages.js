@@ -1,3 +1,4 @@
+import TravelImage from "./TravelImage";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { createBooking, getPackages, getPlaces, getStoredAuth } from "../services/api";
@@ -195,7 +196,7 @@ const Packages = () => {
           return (
             <div className="col-md-6 col-lg-4" key={packageId}>
               <article className="card h-100 shadow-sm package-card catalog-card">
-                <img
+                <TravelImage
                   src={valueOf(tripPackage, "package_Url", "Package_Url") || "https://via.placeholder.com/600x300?text=Travel+Package"}
                   className="card-img-top catalog-card-image"
                   alt={valueOf(tripPackage, "package_Name", "Package_Name")}

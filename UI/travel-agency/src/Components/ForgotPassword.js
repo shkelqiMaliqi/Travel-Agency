@@ -23,7 +23,6 @@ function isPasswordValid(password) {
 
 const ForgotPassword = () => {
   const [formData, setFormData] = useState(initialForm);
-  const [generatedCode, setGeneratedCode] = useState("");
   const [status, setStatus] = useState({ loading: false, error: "", success: "" });
 
   const handleChange = (event) => {
@@ -37,9 +36,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await requestPasswordReset({ email: formData.email });
-      setGeneratedCode(response.resetCode || "");
-      setFormData((current) => ({ ...current, resetCode: response.resetCode || "" }));
-      setStatus({ loading: false, error: "", success: response.message || "Reset code generated." });
+      setStatus({ loading: false, error: "", success: response.message || "If your account exists, check your email for the reset code." });
     } catch (error) {
       setStatus({ loading: false, error: error.message, success: "" });
     }
@@ -59,7 +56,6 @@ const ForgotPassword = () => {
       const response = await resetPassword(formData);
       setStatus({ loading: false, error: "", success: response.message || "Password reset successfully." });
       setFormData(initialForm);
-      setGeneratedCode("");
     } catch (error) {
       setStatus({ loading: false, error: error.message, success: "" });
     }
@@ -76,7 +72,7 @@ const ForgotPassword = () => {
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h2 className="mb-3">Reset password</h2>
-            <p className="text-muted">Request a reset code, copy it, then enter the code with your new password.</p>
+            <p className="text-muted">Request a reset code by email, then enter it below with your new password.</p>
 
             <form onSubmit={handleRequestCode} className="row g-3 mb-4">
               <div className="col-12">
@@ -87,16 +83,10 @@ const ForgotPassword = () => {
               </div>
               <div className="col-12 d-grid">
                 <button type="submit" className="btn btn-outline-primary" disabled={status.loading || !formData.email}>
-                  {status.loading ? "Generating code..." : "Generate reset code"}
+                  {status.loading ? "Sending..." : "Email reset code"}
                 </button>
               </div>
             </form>
-
-            {generatedCode ? (
-              <div className="alert alert-info">
-                Reset code: <strong>{generatedCode}</strong>
-              </div>
-            ) : null}
 
             <form onSubmit={handleResetPassword} className="row g-3">
               <div className="col-12">

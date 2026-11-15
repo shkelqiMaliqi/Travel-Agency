@@ -100,7 +100,44 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHealthChecks();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes
+        .Concat(new[] { "application/json", "application/javascript" });
+});
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped(provider =>
+{
+    var user = provider.GetRequiredService<IHttpContextAccessor>().HttpContext?.User;
+    var id = user?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    return new RequestActor(int.TryParse(id, out var userId) ? userId : null,
+        (user?.FindAll(System.Security.Claims.ClaimTypes.Role).Select(claim => claim.Value)
+            ?? Enumerable.Empty<string>()).ToHashSet(StringComparer.Ordinal));
+});
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AuthRepository>();
+builder.Services.AddScoped<UsersService>();
+builder.Services.AddScoped<UsersRepository>();
+builder.Services.AddScoped<BookingsService>();
+builder.Services.AddScoped<BookingsRepository>();
+builder.Services.AddScoped<PlacesService>();
+builder.Services.AddScoped<PlacesRepository>();
+builder.Services.AddScoped<PackagesService>();
+builder.Services.AddScoped<PackagesRepository>();
+builder.Services.AddScoped<HotelsService>();
+builder.Services.AddScoped<HotelsRepository>();
+builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<ContactRepository>();
+builder.Services.AddScoped<StatsService>();
+builder.Services.AddScoped<StatsRepository>();
+builder.Services.AddScoped<InfrastructureService>();
+builder.Services.AddScoped<InfrastructureRepository>();
+builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
+builder.Services.AddScoped<IPasswordResetDelivery, PasswordResetDelivery>();
+builder.Services.AddScoped<PasswordResetService>();
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<CatalogCache>();
 builder.Services.AddResponseCaching();
 builder.Services.AddHttpClient();
 builder.Services.AddDbContext<TravelAgencyDbContext>(options =>
@@ -122,6 +159,15 @@ else
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("PasswordResetPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(15),
+                QueueLimit = 0
+            }));
 
     options.AddPolicy("AuthPolicy", context =>
         RateLimitPartition.GetFixedWindowLimiter(
@@ -152,26 +198,27 @@ builder.Services.AddScoped<MfaDeliveryService>();
 builder.Services.AddScoped<AlertingService>();
 builder.Services.AddScoped<MongoAnalyticsService>();
 builder.Services.AddScoped<S3StorageService>();
-builder.Services.AddHostedService<CleanupWorker>();
-builder.Services.AddHostedService<MetricsSnapshotWorker>();
-
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
-var issuer = builder.Configuration["Jwt:Issuer"] ?? "TravelAgency.Api";
-var audience = builder.Configuration["Jwt:Audience"] ?? "TravelAgency.Client";
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+if (builder.Configuration.GetValue("Workers:Enabled", true))
+{
+    builder.Services.AddHostedService<CleanupWorker>();
+    builder.Services.AddHostedService<MetricsSnapshotWorker>();
+}
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    .AddJwtBearer();
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<IConfiguration>((options, configuration) =>
     {
+        var secret = configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = signingKey,
+            ValidIssuer = configuration["Jwt:Issuer"] ?? "TravelAgency.Api",
+            ValidAudience = configuration["Jwt:Audience"] ?? "TravelAgency.Client",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -180,6 +227,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseResponseCompression();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 

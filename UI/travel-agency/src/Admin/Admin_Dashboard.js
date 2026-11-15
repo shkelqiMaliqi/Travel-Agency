@@ -1,3 +1,4 @@
+import TravelImage from "../Components/TravelImage";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
@@ -809,7 +810,7 @@ function ListPanel({ title, count, children }) {
 function Row({ image, title, text, children }) {
   return (
     <article className="destination-row">
-      <img src={image || "https://via.placeholder.com/120x90?text=Trip"} alt={title} />
+      <TravelImage src={image || "https://via.placeholder.com/120x90?text=Trip"} alt={title} />
       <div>
         <h3>{title}</h3>
         <p>{text}</p>

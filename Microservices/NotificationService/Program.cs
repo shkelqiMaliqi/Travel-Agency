@@ -19,12 +19,6 @@ app.MapGet("/health", () => Results.Ok(new
     utc = DateTime.UtcNow
 }));
 
-app.MapPost("/notifications/test-mfa", async (MfaDeliveryMessage message, EmailSender sender) =>
-{
-    var sent = await sender.SendMfaCodeAsync(message);
-    return Results.Ok(new { sent });
-});
-
 app.Run();
 
 public sealed class MfaDeliveryWorker : BackgroundService
@@ -60,7 +54,11 @@ public sealed class MfaDeliveryWorker : BackgroundService
                 using var connection = factory.CreateConnection("travel-agency-notification-service");
                 using var channel = connection.CreateModel();
                 channel.QueueDeclare(queueName, durable: true, exclusive: false, autoDelete: false);
-                channel.BasicQos(prefetchSize: 0, prefetchCount: 10, global: false);
+                channel.QueueDeclare(queueName + ".failed", durable: true, exclusive: false, autoDelete: false);
+                channel.ConfirmSelect();
+                channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+                var disconnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                channel.ModelShutdown += (_, _) => disconnected.TrySetResult();
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += async (_, args) =>
@@ -74,6 +72,11 @@ public sealed class MfaDeliveryWorker : BackgroundService
                             channel.BasicReject(args.DeliveryTag, requeue: false);
                             return;
                         }
+                        if (message.ExpiresAtUtc <= DateTime.UtcNow)
+                        {
+                            channel.BasicReject(args.DeliveryTag, requeue: false);
+                            return;
+                        }
 
                         var sent = await _emailSender.SendMfaCodeAsync(message);
                         if (sent)
@@ -82,20 +85,32 @@ public sealed class MfaDeliveryWorker : BackgroundService
                         }
                         else
                         {
-                            channel.BasicNack(args.DeliveryTag, multiple: false, requeue: true);
+                            // Bound retries so broken SMTP cannot create a CPU-intensive
+                            // redelivery loop. Failed messages remain available for diagnosis.
+                            var attempts = args.BasicProperties.Headers?.TryGetValue("x-attempts", out var count) == true
+                                ? Convert.ToInt32(count) : 0;
+                            var retry = channel.CreateBasicProperties();
+                            retry.Persistent = true;
+                            retry.ContentType = "application/json";
+                            retry.Headers = new Dictionary<string, object> { ["x-attempts"] = attempts + 1 };
+                            await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                            channel.BasicPublish("", attempts >= 2 ? queueName + ".failed" : queueName,
+                                retry, args.Body);
+                            channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+                            channel.BasicAck(args.DeliveryTag, multiple: false);
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to process MFA delivery message.");
-                        channel.BasicNack(args.DeliveryTag, multiple: false, requeue: true);
+                        channel.BasicReject(args.DeliveryTag, requeue: false);
                     }
                 };
 
                 channel.BasicConsume(queueName, autoAck: false, consumer);
                 _logger.LogInformation("Notification service is consuming {QueueName}.", queueName);
 
-                await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+                await disconnected.Task.WaitAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {

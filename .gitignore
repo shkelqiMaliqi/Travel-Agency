@@ -1,0 +1,22 @@
+.env
+.env.*
+!.env.example
+
+*.run.out
+*.run.err
+Logs/
+Documentation/*.log
+node_modules/
+bin/
+obj/
+**/build/
+**/test-results/
+**/playwright-report/
+**/TestResults/
+.vs/
+*.csproj.user
+Infrastructure/backups/output/
+*.trx
+.deploy/
+
+/Dokumentim-Travel-Agency/Travel Agency.zip

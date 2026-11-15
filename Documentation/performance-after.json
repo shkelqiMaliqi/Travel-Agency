@@ -1,0 +1,60 @@
+{
+  "measuredAt": "2026-11-15T21:20:32.418Z",
+  "mainBundle": {
+    "file": "main.730a0db0.js",
+    "bytes": 182082,
+    "gzipBytes": 59146
+  },
+  "pages": [
+    {
+      "route": "/",
+      "domContentLoadedMs": 180,
+      "firstContentfulPaintMs": 396,
+      "scripts": [
+        {
+          "url": "/static/js/main.730a0db0.js",
+          "transferBytes": 59446
+        }
+      ],
+      "linkResources": [
+        "http://127.0.0.1:3100/static/css/main.34d7cd9c.css"
+      ]
+    },
+    {
+      "route": "/packages",
+      "domContentLoadedMs": 59,
+      "firstContentfulPaintMs": 144,
+      "scripts": [
+        {
+          "url": "/static/js/main.730a0db0.js",
+          "transferBytes": 59446
+        },
+        {
+          "url": "/static/js/836.22b11d65.chunk.js",
+          "transferBytes": 3022
+        }
+      ],
+      "linkResources": [
+        "http://127.0.0.1:3100/static/css/main.34d7cd9c.css"
+      ]
+    },
+    {
+      "route": "/loginpage",
+      "domContentLoadedMs": 65,
+      "firstContentfulPaintMs": 132,
+      "scripts": [
+        {
+          "url": "/static/js/main.730a0db0.js",
+          "transferBytes": 59446
+        },
+        {
+          "url": "/static/js/719.1902b4f7.chunk.js",
+          "transferBytes": 1696
+        }
+      ],
+      "linkResources": [
+        "http://127.0.0.1:3100/static/css/main.34d7cd9c.css"
+      ]
+    }
+  ]
+}

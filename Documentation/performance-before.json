@@ -1,0 +1,55 @@
+{
+  "measuredAt": "2026-11-15T20:57:37.180Z",
+  "mainBundle": {
+    "file": "main.82cd35ec.js",
+    "bytes": 262667,
+    "gzipBytes": 73310
+  },
+  "pages": [
+    {
+      "route": "/",
+      "domContentLoadedMs": 3400,
+      "firstContentfulPaintMs": 3608,
+      "scripts": [
+        {
+          "url": "/static/js/main.82cd35ec.js",
+          "transferBytes": 73610
+        }
+      ],
+      "linkResources": [
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+        "http://127.0.0.1:3100/static/css/main.34d7cd9c.css"
+      ]
+    },
+    {
+      "route": "/packages",
+      "domContentLoadedMs": 183,
+      "firstContentfulPaintMs": 236,
+      "scripts": [
+        {
+          "url": "/static/js/main.82cd35ec.js",
+          "transferBytes": 73610
+        }
+      ],
+      "linkResources": [
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+        "http://127.0.0.1:3100/static/css/main.34d7cd9c.css"
+      ]
+    },
+    {
+      "route": "/loginpage",
+      "domContentLoadedMs": 264,
+      "firstContentfulPaintMs": 324,
+      "scripts": [
+        {
+          "url": "/static/js/main.82cd35ec.js",
+          "transferBytes": 73610
+        }
+      ],
+      "linkResources": [
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+        "http://127.0.0.1:3100/static/css/main.34d7cd9c.css"
+      ]
+    }
+  ]
+}

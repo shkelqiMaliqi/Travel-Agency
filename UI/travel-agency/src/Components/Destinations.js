@@ -1,3 +1,4 @@
+import TravelImage from "./TravelImage";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { getPlaces } from "../services/api";
 
@@ -82,7 +83,7 @@ const Destinations = () => {
         {places.map((place) => (
           <div className="col-md-6 col-lg-4" key={place.place_Id ?? place.Place_Id}>
             <article className="card h-100 shadow-sm catalog-card">
-              <img
+              <TravelImage
                 src={place.place_Url ?? place.Place_Url ?? "https://via.placeholder.com/600x300?text=Destination"}
                 className="card-img-top catalog-card-image"
                 alt={place.place_Name ?? place.Place_Name}

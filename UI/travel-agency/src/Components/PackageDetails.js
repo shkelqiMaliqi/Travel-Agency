@@ -1,3 +1,4 @@
+import TravelImage from "./TravelImage";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { createBooking, getPackage, getStoredAuth } from "../services/api";
@@ -184,7 +185,7 @@ const PackageDetails = () => {
       <div className="package-detail-layout">
         <div className="package-detail-main">
           <article className="card shadow-sm package-detail-card">
-            <img
+            <TravelImage
               src={valueOf(tripPackage, "package_Url", "Package_Url") || "https://via.placeholder.com/900x400?text=Travel+Package"}
               className="card-img-top"
               alt={valueOf(tripPackage, "package_Name", "Package_Name")}
@@ -259,7 +260,7 @@ const PackageDetails = () => {
                 Login to book
               </Link>
             )}
-            <img
+            <TravelImage
               src={summaryImage}
               className="booking-summary-image"
               alt={placeName}

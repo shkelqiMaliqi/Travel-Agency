@@ -1,3 +1,4 @@
+import TravelImage from "./TravelImage";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyBookings, getPackages, getPlaces, getStoredAuth } from "../services/api";
@@ -172,7 +173,7 @@ const LoggedIn = () => {
 
             {upcomingBooking ? (
               <article className="destination-row">
-                <img src="https://via.placeholder.com/120x90?text=Booking" alt={valueOf(upcomingBooking, "package_Name", "Package_Name")} />
+                <TravelImage src="https://via.placeholder.com/120x90?text=Booking" alt={valueOf(upcomingBooking, "package_Name", "Package_Name")} />
                 <div>
                   <h3>{valueOf(upcomingBooking, "package_Name", "Package_Name")}</h3>
                   <p>
@@ -205,7 +206,7 @@ const LoggedIn = () => {
               {places.length > 0 ? (
                 places.map((place) => (
                   <article className="destination-row" key={place.place_Id ?? place.Place_Id}>
-                    <img
+                    <TravelImage
                       src={place.place_Url ?? place.Place_Url ?? "https://via.placeholder.com/120x90?text=Trip"}
                       alt={place.place_Name ?? place.Place_Name}
                     />
@@ -238,7 +239,7 @@ const LoggedIn = () => {
               {featuredPackages.length > 0 ? (
                 featuredPackages.map((tripPackage) => (
                   <article className="destination-row" key={valueOf(tripPackage, "package_Id", "Package_Id")}>
-                    <img
+                    <TravelImage
                       src={valueOf(tripPackage, "package_Url", "Package_Url") || "https://via.placeholder.com/120x90?text=Package"}
                       alt={valueOf(tripPackage, "package_Name", "Package_Name")}
                     />

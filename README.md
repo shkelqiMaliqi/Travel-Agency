@@ -2,6 +2,17 @@
 
 Travel Agency is a React and ASP.NET Core Web API project with JWT login, user dashboards, admin management, package booking, contact messages, and SQL Server storage.
 
+## Verified local stack and recent fixes
+
+See [the verification report](Documentation/VERIFICATION_2026-11-15.md) for security fixes, architecture, executable test evidence, loading-speed measurements, and deployment prerequisites.
+
+```powershell
+docker compose -f docker-compose.local.yml up -d --build
+node Tools/verify-local-stack.cjs
+```
+
+Open the production frontend at http://localhost:3101 and the local email inbox at http://localhost:8025. All messages in this stack stay in Mailpit. Admin login uses admin@travelagency.com / Admin123!; read the MFA code in the inbox.
+
 ## Project Structure
 
 - `UI/travel-agency` - React frontend
@@ -75,7 +86,7 @@ Password: Auditor123!
 From the API project folder:
 
 ```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal\Travel Agency Portal"
+cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\Travel Agency Portal\Travel Agency Portal"
 dotnet run --launch-profile http
 ```
 
@@ -102,7 +113,7 @@ http://localhost:5132/health
 From the React project folder:
 
 ```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\UI\travel-agency"
+cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\UI\travel-agency"
 npm start
 ```
 
@@ -115,7 +126,7 @@ http://localhost:3000
 ## Main Features
 
 - Register and login
-- Forgot password reset with copy/paste reset code
+- Email-delivered password reset with single-use expiring tokens
 - JWT session expiry set to 1 hour
 - User dashboard with booking counts, upcoming booking, and package options
 - User profile view/edit
@@ -286,11 +297,11 @@ To actually send email, replace `PUT_GMAIL_APP_PASSWORD_HERE` with a Gmail App P
 Run the API test project from the solution folder:
 
 ```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\Travel Agency Portal"
+cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\Travel Agency Portal"
 dotnet test
 ```
 
-The automated tests currently cover password hashing compatibility, the health endpoint, and authentication protection on secured endpoints.
+The automated tests cover CRUD, booking concurrency and cancellation, JWT roles, cache invalidation, password recovery security, registration, and API infrastructure. SQL integration tests use a temporary database; set TEST_SQLSERVER_CONNECTION to override the local SQL instance.
 
 ## Docker
 
@@ -354,7 +365,7 @@ They validate:
 - ASP.NET Core restore, build, and backend tests
 - React install, test, and production build
 
-This satisfies the project's continuous testing requirement at coursework level, even though it does not yet include automated deployment to staging/production.
+A tested-image publication and optional Kubernetes staging rollout workflow is available in .github/workflows/deploy-staging.yml. Its remote deployment requires the staging environment credentials described in Documentation/VERIFICATION_2026-11-15.md.
 
 ## Documentation Bundle
 
@@ -395,7 +406,7 @@ API_TESTS.md
 Run browser tests from the frontend folder:
 
 ```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Travel Agency\UI\travel-agency"
+cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\UI\travel-agency"
 npx playwright install chromium
 npm run e2e
 ```

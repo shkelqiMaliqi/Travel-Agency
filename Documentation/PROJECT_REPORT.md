@@ -81,7 +81,7 @@ JWT supports stateless authentication through the `Authorization: Bearer <token>
 
 Security measures include password hashing, parameterized SQL, input validation, rate limiting, audit logging, MFA, HTTPS redirection, and production-style configuration for secrets and alerts.
 
-The MFA code can be exposed in local demo mode for classroom testing. In production-style configuration, `Security__ExposeMfaCodeInResponse=false` and the code is delivered through RabbitMQ/email.
+MFA codes are delivered through RabbitMQ/email and are never exposed in API responses. The local Compose stack captures messages in Mailpit for classroom testing. Password recovery also uses email-delivered single-use tokens. See `Documentation/VERIFICATION_2026-11-15.md` for current test evidence and deployment limitations.
 
 ## 7. API Documentation and Infrastructure
 
@@ -107,6 +107,7 @@ Infrastructure support includes:
 Backend tests cover health checks, authentication protection, password hashing, and infrastructure behavior. Frontend checks cover Jest tests, linting, and production build. Playwright E2E tests cover browser-level public navigation and authentication-form visibility.
 
 Manual API testing is documented in `Documentation/API_TESTS.md`.
+
 
 ## 9. DevOps and Delivery
 

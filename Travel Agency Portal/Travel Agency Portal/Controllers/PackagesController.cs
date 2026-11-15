@@ -1,8 +1,6 @@
-using System.Data.SqlClient;
-using System.Text.Json;
+using Travel_Agency_Portal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 using Travel_Agency_Portal.Dtos;
 using Travel_Agency_Portal.Models;
 
@@ -10,291 +8,32 @@ namespace Travel_Agency_Portal.Controllers;
 
 [Route("api/v1/[controller]")]
 [ApiController]
-public class PackagesController : ControllerBase
+public class PackagesController(PackagesService service) : ApiControllerBase
 {
-    private readonly IConfiguration _configuration;
-    private readonly IDistributedCache? _distributedCache;
-
-    public PackagesController(IConfiguration configuration, IDistributedCache? distributedCache = null)
-    {
-        _configuration = configuration;
-        _distributedCache = distributedCache;
-    }
 
     [AllowAnonymous]
     [HttpGet]
     public IActionResult GetPackages([FromQuery] string? search = null, [FromQuery] int? placeId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null)
-    {
-        var cacheKey = $"packages:{search}:{placeId}:{minPrice}:{maxPrice}";
-        if (_distributedCache is not null)
-        {
-            var cachedJson = _distributedCache.GetString(cacheKey);
-            if (!string.IsNullOrWhiteSpace(cachedJson))
-            {
-                var cachedPackages = JsonSerializer.Deserialize<List<TravelPackage>>(cachedJson);
-                if (cachedPackages is not null)
-                {
-                    return Ok(cachedPackages);
-                }
-            }
-        }
-
-        var query = @"
-            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
-                   p.Place_Name, p.Place_Description,
-                   h.Hotel_Name, h.Hotel_Description, h.Hotel_Stars,
-                   tp.Package_Name, tp.Package_Description, tp.Price_Per_Person,
-                   tp.Start_Date, tp.End_Date, tp.Available_Seats, tp.Package_Url
-            FROM dbo.Travel_Packages tp
-            INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
-            INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id";
-
-        var filters = new List<string>();
-        var parameters = new List<SqlParameter>();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            filters.Add("(tp.Package_Name LIKE @Search OR tp.Package_Description LIKE @Search OR p.Place_Name LIKE @Search OR h.Hotel_Name LIKE @Search)");
-            parameters.Add(new SqlParameter("@Search", $"%{search.Trim()}%"));
-        }
-
-        if (placeId.HasValue)
-        {
-            filters.Add("tp.Place_Id = @Place_Id");
-            parameters.Add(new SqlParameter("@Place_Id", placeId.Value));
-        }
-
-        if (minPrice.HasValue)
-        {
-            filters.Add("tp.Price_Per_Person >= @MinPrice");
-            parameters.Add(new SqlParameter("@MinPrice", minPrice.Value));
-        }
-
-        if (maxPrice.HasValue)
-        {
-            filters.Add("tp.Price_Per_Person <= @MaxPrice");
-            parameters.Add(new SqlParameter("@MaxPrice", maxPrice.Value));
-        }
-
-        if (filters.Count > 0)
-        {
-            query += " WHERE " + string.Join(" AND ", filters);
-        }
-
-        query += " ORDER BY tp.Package_Name ASC, p.Place_Name ASC";
-
-        var packages = ExecutePackagesQuery(query, parameters.ToArray());
-        _distributedCache?.SetString(cacheKey, JsonSerializer.Serialize(packages), new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-        });
-
-        return Ok(packages);
-    }
+        => ToActionResult(service.GetPackages(search, placeId, minPrice, maxPrice));
 
     [AllowAnonymous]
     [HttpGet("{id:int}")]
     public IActionResult GetPackage(int id)
-    {
-        var cacheKey = $"packages:id:{id}";
-        if (_distributedCache is not null)
-        {
-            var cachedJson = _distributedCache.GetString(cacheKey);
-            if (!string.IsNullOrWhiteSpace(cachedJson))
-            {
-                var cachedPackage = JsonSerializer.Deserialize<TravelPackage>(cachedJson);
-                if (cachedPackage is not null)
-                {
-                    return Ok(cachedPackage);
-                }
-            }
-        }
-
-        const string query = @"
-            SELECT tp.Package_Id, tp.Place_Id, tp.Hotel_Id,
-                   p.Place_Name, p.Place_Description,
-                   h.Hotel_Name, h.Hotel_Description, h.Hotel_Stars,
-                   tp.Package_Name, tp.Package_Description, tp.Price_Per_Person,
-                   tp.Start_Date, tp.End_Date, tp.Available_Seats, tp.Package_Url
-            FROM dbo.Travel_Packages tp
-            INNER JOIN dbo.Places p ON p.Place_Id = tp.Place_Id
-            INNER JOIN dbo.Hotels h ON h.Hotel_Id = tp.Hotel_Id
-            WHERE tp.Package_Id = @Package_Id";
-
-        var result = ExecutePackagesQuery(query, new SqlParameter("@Package_Id", id));
-        if (result.Count == 0)
-        {
-            return NotFound();
-        }
-
-        _distributedCache?.SetString(cacheKey, JsonSerializer.Serialize(result[0]), new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-        });
-        return Ok(result[0]);
-    }
+        => ToActionResult(service.GetPackage(id));
 
     [Authorize(Roles = "admin")]
     [HttpPost]
     public IActionResult AddPackage([FromBody] PackageRequestDto package)
-    {
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        if (package.End_Date.Date < package.Start_Date.Date)
-        {
-            return BadRequest(new { message = "End date must be after start date." });
-        }
-
-        if (!HotelBelongsToPlace(package.Hotel_Id, package.Place_Id))
-        {
-            return BadRequest(new { message = "Selected hotel does not belong to this destination." });
-        }
-
-        const string query = @"
-            INSERT INTO dbo.Travel_Packages
-                (Place_Id, Hotel_Id, Package_Name, Package_Description, Price_Per_Person, Start_Date, End_Date, Available_Seats, Package_Url)
-            VALUES
-                (@Place_Id, @Hotel_Id, @Package_Name, @Package_Description, @Price_Per_Person, @Start_Date, @End_Date, @Available_Seats, @Package_Url)";
-
-        ExecuteNonQuery(query,
-            new SqlParameter("@Place_Id", package.Place_Id),
-            new SqlParameter("@Hotel_Id", package.Hotel_Id),
-            new SqlParameter("@Package_Name", package.Package_Name),
-            new SqlParameter("@Package_Description", package.Package_Description),
-            new SqlParameter("@Price_Per_Person", package.Price_Per_Person),
-            new SqlParameter("@Start_Date", package.Start_Date.Date),
-            new SqlParameter("@End_Date", package.End_Date.Date),
-            new SqlParameter("@Available_Seats", package.Available_Seats),
-            new SqlParameter("@Package_Url", (object?)package.Package_Url ?? DBNull.Value));
-
-        return Ok(new { message = "Package added successfully." });
-    }
+        => ToActionResult(service.AddPackage(package));
 
     [Authorize(Roles = "admin")]
     [HttpPut("{id:int}")]
     public IActionResult UpdatePackage(int id, [FromBody] PackageRequestDto package)
-    {
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        if (package.End_Date.Date < package.Start_Date.Date)
-        {
-            return BadRequest(new { message = "End date must be after start date." });
-        }
-
-        if (!HotelBelongsToPlace(package.Hotel_Id, package.Place_Id))
-        {
-            return BadRequest(new { message = "Selected hotel does not belong to this destination." });
-        }
-
-        const string query = @"
-            UPDATE dbo.Travel_Packages
-            SET Place_Id = @Place_Id,
-                Hotel_Id = @Hotel_Id,
-                Package_Name = @Package_Name,
-                Package_Description = @Package_Description,
-                Price_Per_Person = @Price_Per_Person,
-                Start_Date = @Start_Date,
-                End_Date = @End_Date,
-                Available_Seats = @Available_Seats,
-                Package_Url = @Package_Url
-            WHERE Package_Id = @Package_Id";
-
-        var rows = ExecuteNonQuery(query,
-            new SqlParameter("@Package_Id", id),
-            new SqlParameter("@Place_Id", package.Place_Id),
-            new SqlParameter("@Hotel_Id", package.Hotel_Id),
-            new SqlParameter("@Package_Name", package.Package_Name),
-            new SqlParameter("@Package_Description", package.Package_Description),
-            new SqlParameter("@Price_Per_Person", package.Price_Per_Person),
-            new SqlParameter("@Start_Date", package.Start_Date.Date),
-            new SqlParameter("@End_Date", package.End_Date.Date),
-            new SqlParameter("@Available_Seats", package.Available_Seats),
-            new SqlParameter("@Package_Url", (object?)package.Package_Url ?? DBNull.Value));
-
-        return rows > 0 ? Ok(new { message = "Package updated successfully." }) : NotFound();
-    }
+        => ToActionResult(service.UpdatePackage(id, package));
 
     [Authorize(Roles = "admin")]
     [HttpDelete("{id:int}")]
     public IActionResult DeletePackage(int id)
-    {
-        const string usageQuery = "SELECT COUNT(1) FROM dbo.Bookings WHERE Package_Id = @Package_Id";
-        if (ExecuteScalar(usageQuery, new SqlParameter("@Package_Id", id)) > 0)
-        {
-            return Conflict(new { message = "This package has bookings and cannot be deleted." });
-        }
+        => ToActionResult(service.DeletePackage(id));
 
-        const string query = "DELETE FROM dbo.Travel_Packages WHERE Package_Id = @Package_Id";
-        var rows = ExecuteNonQuery(query, new SqlParameter("@Package_Id", id));
-
-        return rows > 0 ? Ok(new { message = "Package deleted successfully." }) : NotFound();
-    }
-
-    private List<TravelPackage> ExecutePackagesQuery(string query, params SqlParameter[] parameters)
-    {
-        var packages = new List<TravelPackage>();
-        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
-        using var command = new SqlCommand(query, connection);
-        command.Parameters.AddRange(parameters);
-
-        connection.Open();
-        using var reader = command.ExecuteReader();
-        while (reader.Read())
-        {
-            packages.Add(new TravelPackage
-            {
-                Package_Id = reader.GetInt32(reader.GetOrdinal("Package_Id")),
-                Place_Id = reader.GetInt32(reader.GetOrdinal("Place_Id")),
-                Hotel_Id = reader.GetInt32(reader.GetOrdinal("Hotel_Id")),
-                Place_Name = reader.GetString(reader.GetOrdinal("Place_Name")),
-                Place_Description = reader.GetString(reader.GetOrdinal("Place_Description")),
-                Hotel_Name = reader.GetString(reader.GetOrdinal("Hotel_Name")),
-                Hotel_Description = reader.GetString(reader.GetOrdinal("Hotel_Description")),
-                Hotel_Stars = reader.GetInt32(reader.GetOrdinal("Hotel_Stars")),
-                Package_Name = reader.GetString(reader.GetOrdinal("Package_Name")),
-                Package_Description = reader.GetString(reader.GetOrdinal("Package_Description")),
-                Price_Per_Person = reader.GetDecimal(reader.GetOrdinal("Price_Per_Person")),
-                Start_Date = reader.GetDateTime(reader.GetOrdinal("Start_Date")),
-                End_Date = reader.GetDateTime(reader.GetOrdinal("End_Date")),
-                Available_Seats = reader.GetInt32(reader.GetOrdinal("Available_Seats")),
-                Package_Url = reader.IsDBNull(reader.GetOrdinal("Package_Url")) ? null : reader.GetString(reader.GetOrdinal("Package_Url"))
-            });
-        }
-
-        return packages;
-    }
-
-    private int ExecuteNonQuery(string query, params SqlParameter[] parameters)
-    {
-        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
-        using var command = new SqlCommand(query, connection);
-        command.Parameters.AddRange(parameters);
-
-        connection.Open();
-        return command.ExecuteNonQuery();
-    }
-
-    private bool HotelBelongsToPlace(int hotelId, int placeId)
-    {
-        const string query = "SELECT COUNT(1) FROM dbo.Hotels WHERE Hotel_Id = @Hotel_Id AND Place_Id = @Place_Id";
-        return ExecuteScalar(query, new SqlParameter("@Hotel_Id", hotelId), new SqlParameter("@Place_Id", placeId)) > 0;
-    }
-
-    private int ExecuteScalar(string query, params SqlParameter[] parameters)
-    {
-        using var connection = new SqlConnection(_configuration.GetConnectionString("CRUDCS"));
-        using var command = new SqlCommand(query, connection);
-        command.Parameters.AddRange(parameters);
-
-        connection.Open();
-        var result = command.ExecuteScalar();
-
-        return result is null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
-    }
 }

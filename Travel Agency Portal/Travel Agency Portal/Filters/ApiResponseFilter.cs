@@ -30,7 +30,8 @@ public class ApiResponseFilter : IResultFilter
 
         if (statusCode < 200 || statusCode >= 300)
         {
-            objectResult.Value = ApiResponse<object>.Fail(ExtractMessage(objectResult.Value), objectResult.Value);
+            objectResult.Value = ApiResponse<object>.Fail(
+                objectResult.Value is null ? MessageForStatus(statusCode) : ExtractMessage(objectResult.Value), objectResult.Value);
             return;
         }
 

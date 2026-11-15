@@ -1,0 +1,155 @@
+name: travel-agency-local
+
+x-api: &api
+  image: travel-agency-api:local
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: &api-env
+    ASPNETCORE_ENVIRONMENT: Development
+    ConnectionStrings__CRUDCS: "Server=sqlserver,1433;Database=Travel_Agency;User Id=sa;Password=${LOCAL_SQL_PASSWORD:-LocalDemoOnly!Password123};TrustServerCertificate=True;MultipleActiveResultSets=true"
+    Jwt__Secret: "${LOCAL_JWT_SECRET:-LocalDemoOnlySigningSecretChangeBeforeHosting123456789!}"
+    Jwt__Issuer: TravelAgency.Api
+    Jwt__Audience: TravelAgency.Client
+    Redis__ConnectionString: "redis:6379,abortConnect=false,connectTimeout=1000,syncTimeout=1000"
+    RabbitMq__ConnectionString: "amqp://localdemo:localdemo@rabbitmq:5672"
+    RabbitMq__MfaQueue: travel-agency.mfa.delivery
+    Email__Smtp__Host: mailpit
+    Email__Smtp__Port: 1025
+    Email__Smtp__EnableSsl: "false"
+    Email__Smtp__Username: ""
+    Email__Smtp__Password: ""
+    Email__Smtp__OverrideRecipients: ""
+    Email__Smtp__From: no-reply@travel-agency.local
+    Security__ExposeMfaCodeInResponse: "false"
+    Security__MfaRequiredRoles: admin,auditor
+    Mongo__ConnectionString: ""
+    Logging__Logstash__Host: ""
+  depends_on:
+    db-init:
+      condition: service_completed_successfully
+    redis:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+    mailpit:
+      condition: service_started
+  restart: unless-stopped
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${LOCAL_SQL_PASSWORD:-LocalDemoOnly!Password123}"
+      MSSQL_MEMORY_LIMIT_MB: 1536
+    ports:
+      - "127.0.0.1:14330:1433"
+    volumes:
+      - local-sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SQLCMDPASSWORD: "${LOCAL_SQL_PASSWORD:-LocalDemoOnly!Password123}"
+    volumes:
+      - ./Database/Travel_AgencyDB.sql:/schema.sql:ro
+      - ./Infrastructure/local/init-db.sh:/init-db.sh:ro
+    entrypoint: ["/bin/bash", "/init-db.sh"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: localdemo
+      RABBITMQ_DEFAULT_PASS: localdemo
+    ports:
+      - "127.0.0.1:15673:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.20.3
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
+
+  api1:
+    <<: *api
+  api2:
+    <<: *api
+
+  notification-service:
+    image: travel-agency-notification-service:local
+    build:
+      context: .
+      dockerfile: Microservices/NotificationService/Dockerfile
+    environment:
+      <<: *api-env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ./Infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: [api1, api2]
+    restart: unless-stopped
+
+  frontend:
+    image: travel-agency-frontend:local
+    build:
+      context: .
+      dockerfile: UI/travel-agency/Dockerfile
+    ports:
+      - "127.0.0.1:3101:80"
+    depends_on: [gateway]
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    ports:
+      - "127.0.0.1:9091:9090"
+    volumes:
+      - ./Infrastructure/local/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on: [api1, api2]
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: "${LOCAL_GRAFANA_PASSWORD:-local-monitoring-demo}"
+    ports:
+      - "127.0.0.1:3002:3000"
+    volumes:
+      - ./Infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./Infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]
+
+volumes:
+  local-sql-data:
