@@ -20,7 +20,10 @@ spec:
             - name: RABBITMQ_DEFAULT_USER
               value: "travelagency"
             - name: RABBITMQ_DEFAULT_PASS
-              value: "travelagency-pass"
+              valueFrom:
+                secretKeyRef:
+                  name: travel-agency-secrets
+                  key: RABBITMQ_DEFAULT_PASS
           ports:
             - containerPort: 5672
             - containerPort: 15672

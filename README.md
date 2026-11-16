@@ -1,439 +1,84 @@
 # Travel Agency
 
-Travel Agency is a React and ASP.NET Core Web API project with JWT login, user dashboards, admin management, package booking, contact messages, and SQL Server storage.
+A React website and ASP.NET Core REST API for destinations, hotels, travel packages, bookings, profiles, and agency administration. SQL Server persists business data; JWT and RBAC protect user, admin, and auditor workflows. A separate notification service consumes RabbitMQ MFA messages.
 
-## Verified local stack and recent fixes
+## Verified development setup on Windows
 
-See [the verification report](Documentation/VERIFICATION_2026-11-15.md) for security fixes, architecture, executable test evidence, loading-speed measurements, and deployment prerequisites.
+Prerequisites: .NET 8 SDK/runtime, Node.js 22.12 or later, npm 11 recommended, SQL Server LocalDB (`MSSQLLocalDB`), and `sqlcmd` on PATH. Run commands from this repository root. No absolute paths for another computer are required.
 
 ```powershell
-docker compose -f docker-compose.local.yml up -d --build
+npm --prefix UI/travel-agency ci
+dotnet restore 'Travel Agency Portal/Travel Agency Portal.sln'
+./Tools/start-local.ps1
+```
+
+The startup script preserves an existing database, applies the additive feature update, generates private local configuration, downloads a pinned/checksum-verified Mailpit executable if needed, and starts hidden background services. Mailpit binds only to loopback and captures email locally; it does not deliver messages to real recipients. The one-time full database schema is run only if `Travel_Agency` is absent.
+
+| Service | Address |
+| --- | --- |
+| Website | http://localhost:3000 |
+| API documentation | http://localhost:5132/swagger |
+| API health and metrics | http://localhost:5132/health and /metrics |
+| Local MFA/recovery email inbox | http://localhost:8025 |
+
+Development runs over HTTP on loopback. This is not the published HTTPS configuration. Development JWT keys are random, never the previously committed shared key. The launcher reads a persistent private key from `.env`; starting the API directly without one generates a process-local key, invalidating previous tokens on restart. Multiple API replicas must share a strong environment-provided key.
+
+Seeded demo administrator: `admin@travelagency.com` / `Admin123!`; auditor: `auditor@travelagency.com` / `Auditor123!`. These are classroom accounts, not deployment credentials. Read the MFA code from the local inbox. Codes are never displayed by the website or returned by the API. Change/remove seeded credentials before any public deployment.
+
+## Manual development commands
+
+```powershell
+dotnet run --project 'Travel Agency Portal/Travel Agency Portal/Travel Agency Portal.csproj' --launch-profile http
+npm --prefix UI/travel-agency start
+```
+
+Start Mailpit first for MFA/recovery. The development connection targets `(localdb)\MSSQLLocalDB`. Override another SQL instance with `ConnectionStrings__CRUDCS`; set `Jwt__Secret` to a random value with at least 32 bytes for a persistent key. Base production settings contain no working credentials. Native startup uses SMTP at `127.0.0.1:1025`, with no recipient override.
+
+## Automated verification
+
+```powershell
+dotnet test 'Travel Agency Portal/Travel Agency Portal.sln' -c Release
+npm --prefix UI/travel-agency test
+npm --prefix UI/travel-agency run lint
+npm --prefix UI/travel-agency run build
+cd UI/travel-agency
+npx playwright install chromium
+cd ../..
+./Tools/verify-windows.ps1
+```
+
+Backend tests default to LocalDB. For a different SQL Server, set `TEST_SQLSERVER_CONNECTION`; the fixture creates/removes a randomly named test database and never resets `Travel_Agency`. The full browser harness creates its own `TravelAgencyE2E_*` database and temporary servers at ports 5152/3001, runs public/mobile and authenticated email/booking checks, then removes only its generated database and process trees. It requires the Mailpit inbox to be running. See `Documentation/VERIFICATION_2026-11-16.md` for actual results and limits.
+
+## Docker Compose integration stack
+
+Docker Desktop with WSL2/Linux containers is required on Windows. This machine did not have Docker/WSL at the time of repair; a container deployment is not claimed as verified here.
+
+```powershell
+./Tools/initialize-local.ps1
+docker compose -f docker-compose.local.yml up -d --build --wait --wait-timeout 300
 node Tools/verify-local-stack.cjs
 ```
 
-Open the production frontend at http://localhost:3101 and the local email inbox at http://localhost:8025. All messages in this stack stay in Mailpit. Admin login uses admin@travelagency.com / Admin123!; read the MFA code in the inbox.
+This separate Compose project/SQL volume preserves its database across restarts. It runs two APIs, NGINX, Redis, RabbitMQ, the notification worker, Mailpit, SQL Server, Prometheus, Grafana, and a production frontend. URLs: frontend 3101, gateway 8088, inbox 8025, RabbitMQ management 15673, Prometheus 9091, Grafana 3002. Stop the native Mailpit first if port 8025 is occupied; do not run both email environments on the same ports. Random SQL/JWT/Grafana values are generated into ignored `.env` and never printed.
 
-## Project Structure
+Stop the stack without deleting its database: `docker compose -f docker-compose.local.yml down`. Do not add volume-deletion flags when preserving data.
 
-- `UI/travel-agency` - React frontend
-- `Travel Agency Portal/Travel Agency Portal` - ASP.NET Core Web API
-- `Microservices/NotificationService` - RabbitMQ-driven notification/MFA delivery microservice
-- `Database/Travel_AgencyDB.sql` - full SQL Server setup and seed script
-- `Database/Travel_Agency_Features_Update.sql` - safe update script for an existing database
-- `Documentation` - report-ready documentation, requirement mapping, API testing notes, and submission support
-- `Documentation/Generated` - generated Word report and extracted requirement text
-- `Infrastructure` - Docker, NGINX, Kubernetes, monitoring, backup, and enterprise deployment assets
-- `Tools` - helper scripts, including report generation
-- `Logs` - local runtime logs and archived run logs
+## Kubernetes and CI CD
 
-Local services should write `.run.log` files to `Logs` to keep the project root clean.
-
-## Requirements
-
-- Node.js
-- .NET SDK
-- SQL Server
-- SQL Server instance named `SHKELQIM`, or update `CRUDCS` in `appsettings.json`
-- Docker Desktop, optional, if running with `docker compose`
-
-## Database Setup
-
-For a new database, run:
-
-```text
-Database/Travel_AgencyDB.sql
-```
-
-For an existing database, run:
-
-```text
-Database/Travel_Agency_Features_Update.sql
-```
-
-The database contains:
-
-- `Users`
-- `Places`
-- `Hotels`
-- `Travel_Packages`
-- `Bookings`
-- `Contact_Form`
-
-Seed data includes:
-
-- Admin user
-- Auditor user
-- Paris, Bali, and Maldives destinations
-- Example hotels
-- Example travel packages
-
-Default admin login:
-
-```text
-Email: admin@travelagency.com
-Password: Admin123!
-```
-
-Default auditor login:
-
-```text
-Email: auditor@travelagency.com
-Password: Auditor123!
-```
-
-## Run Backend
-
-From the API project folder:
+`Infrastructure/kubernetes` supplies deployments, services, storage, initialization, HPA, frontend configuration, Mailpit, and a backup job. `Tools/start-kubernetes-local.ps1` restricts initialization to named local clusters and preserves existing secrets. A published deployment needs separately provisioned infrastructure and credentials; it must not use this local initializer.
 
 ```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\Travel Agency Portal\Travel Agency Portal"
-dotnet run --launch-profile http
+./Tools/initialize-local.ps1
+./Tools/start-kubernetes-local.ps1
+bash Tools/deploy-kubernetes.sh travel-agency-api:local travel-agency-notification-service:local travel-agency-frontend:local
 ```
 
-Backend URL:
+Build/load these three images in the selected cluster first. See `Documentation/DEPLOYMENT.md`. The optional TLS ingress is separate from the base bundle; replace its example domain and provision a real certificate before applying it.
 
-```text
-http://localhost:5132
-```
+GitHub Actions includes backend CI with an explicit LocalDB test connection, frontend CI, browser CI, and `deploy-staging.yml`. The manually dispatched advanced pipeline tests Compose integrations, validates a real rollout in a disposable kind cluster, optionally publishes commit-tagged GHCR images, and optionally deploys to the GitHub `staging` environment. Publication and deployment default to false. Remote deployment needs `KUBE_CONFIG_BASE64`, registry pull access, and already provisioned namespace/configuration/secrets. No workflow dispatch, image publication, or remote deployment was performed during the local repair.
 
-Swagger:
+## Submission
 
-```text
-http://localhost:5132/swagger
-```
+Read `Documentation/REQUIREMENTS_MATRIX.md`, `SUBMISSION_CHECKLIST.md`, `PROJECT_REPORT.md`, and `PRESENTATION_GUIDE.md`. Add real team contributions and AI-use details in `TEAM_CONTRIBUTIONS.md`; these cannot be inferred or certified by the tooling. Build a source-only package using `python Tools/package-submission.py`. The archive excludes private environment files, generated dependencies/builds, logs, old backup copies, and historical reports with obsolete runtime claims. It includes current source, scripts, schema, test evidence, and documentation.
 
-Health check:
-
-```text
-http://localhost:5132/health
-```
-
-## Run Frontend
-
-From the React project folder:
-
-```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\UI\travel-agency"
-npm start
-```
-
-Frontend URL:
-
-```text
-http://localhost:3000
-```
-
-## Main Features
-
-- Register and login
-- Email-delivered password reset with single-use expiring tokens
-- JWT session expiry set to 1 hour
-- User dashboard with booking counts, upcoming booking, and package options
-- User profile view/edit
-- User password change from profile with current password verification
-- Public destination catalog with search
-- Public package catalog with filters
-- Package details page
-- User package booking
-- User booking details and pending-booking cancellation
-- Admin dashboard stats
-- Admin destination management
-- Admin hotel management
-- Admin package management
-- Admin booking management with customer info
-- Admin user management with edit, role change, and delete
-- Contact form
-- Admin contact message read/archive/delete
-- Demo MFA flow for protected roles such as admin
-- Production-style MFA delivery through RabbitMQ and the notification microservice
-- Redis-ready distributed caching with in-memory fallback
-- RabbitMQ asynchronous processing
-- Background cleanup and metrics snapshot workers
-- Prometheus `/metrics` endpoint
-- Audit log persistence through Entity Framework Core
-- Logstash TCP log shipping into ELK
-- Slack/webhook or email alerting hooks
-- Optional MongoDB analytics integration endpoint
-- Optional S3-compatible storage integration endpoint
-- Kubernetes deployment manifests
-- Automated SQL Server backup examples
-- Playwright E2E browser tests
-
-## API Versioning
-
-All backend endpoints are exposed under:
-
-```text
-/api/v1
-```
-
-This keeps the current API version explicit and makes future versions easier to add.
-
-## API Response Format
-
-Successful API responses are wrapped consistently:
-
-```json
-{
-  "success": true,
-  "message": "Request completed successfully.",
-  "data": {}
-}
-```
-
-Validation and server errors use the same shape:
-
-```json
-{
-  "success": false,
-  "message": "Validation failed.",
-  "data": {}
-}
-```
-
-Unhandled backend errors are processed by global middleware and returned as clean JSON.
-
-## Main API Endpoints
-
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| `POST` | `/api/v1/auth/register` | Public | Register user |
-| `POST` | `/api/v1/auth/login` | Public | Login and receive JWT |
-| `POST` | `/api/v1/auth/forgot-password` | Public | Generate password reset code |
-| `POST` | `/api/v1/auth/reset-password` | Public | Verify reset code and set new password |
-| `GET` | `/api/v1/places` | Public | List/search destinations |
-| `POST` | `/api/v1/places` | Admin | Add destination |
-| `PUT` | `/api/v1/places/{id}` | Admin | Update destination |
-| `DELETE` | `/api/v1/places/{id}` | Admin | Delete destination |
-| `GET` | `/api/v1/hotels` | Public | List hotels |
-| `POST` | `/api/v1/hotels` | Admin | Add hotel |
-| `PUT` | `/api/v1/hotels/{id}` | Admin | Update hotel |
-| `DELETE` | `/api/v1/hotels/{id}` | Admin | Delete hotel |
-| `GET` | `/api/v1/packages` | Public | List/search packages |
-| `GET` | `/api/v1/packages/{id}` | Public | Package details |
-| `POST` | `/api/v1/packages` | Admin | Add package |
-| `PUT` | `/api/v1/packages/{id}` | Admin | Update package |
-| `DELETE` | `/api/v1/packages/{id}` | Admin | Delete package |
-| `GET` | `/api/v1/bookings/mine` | User | User bookings |
-| `GET` | `/api/v1/bookings/{id}` | User/Admin | Booking details |
-| `POST` | `/api/v1/bookings` | User | Create booking |
-| `PUT` | `/api/v1/bookings/{id}/cancel` | User | Cancel pending booking |
-| `GET` | `/api/v1/bookings` | Admin | All bookings |
-| `PUT` | `/api/v1/bookings/{id}/status` | Admin | Change booking status |
-| `GET` | `/api/v1/users` | Admin | List users |
-| `GET` | `/api/v1/users/{id}` | User/Admin | User profile |
-| `PUT` | `/api/v1/users/{id}` | User/Admin | Update user |
-| `PUT` | `/api/v1/users/{id}/password` | User | Change own password |
-| `PUT` | `/api/v1/users/{id}/role` | Admin | Change role |
-| `DELETE` | `/api/v1/users/{id}` | Admin | Delete user |
-| `POST` | `/api/v1/contact` | Public/User | Send contact message to admin |
-| `GET` | `/api/v1/contact` | Admin | List messages |
-| `PUT` | `/api/v1/contact/{id}/read` | Admin | Mark message read |
-| `PUT` | `/api/v1/contact/{id}/archive` | Admin | Archive message |
-| `DELETE` | `/api/v1/contact/{id}` | Admin | Delete message |
-| `GET` | `/api/v1/stats/admin` | Admin | Admin dashboard stats |
-
-## API Infrastructure Notes
-
-- Controllers expose REST endpoints.
-- DTOs are used for API request models where input differs from database objects.
-- A shared `DatabaseService` provides reusable ADO.NET database access.
-- Entity Framework Core is also used for advanced support tables such as MFA codes, audit logs, and metrics snapshots.
-- A separate notification microservice consumes RabbitMQ messages for MFA email delivery.
-- JWT bearer authentication protects user/admin endpoints.
-- Role-based authorization protects admin endpoints.
-- Admin login supports an MFA verification step.
-- Swagger/OpenAPI is enabled in development.
-- CORS allows the React frontend to call the API from `localhost:3000`.
-- `/health` exposes a simple service health endpoint.
-- `/metrics` exposes Prometheus-compatible application metrics.
-- Application logs can be shipped to Logstash when `Logging__Logstash__Host` is configured.
-- API request logging records method, path, status code, and elapsed time through ASP.NET logging.
-- Public read endpoints use short-lived response caching and distributed cache support with Redis fallback to memory cache.
-- Login, password reset, and public contact writes are rate limited.
-- Passwords are stored with salted PBKDF2 hashes; legacy SHA256 hashes are still accepted so existing seeded users continue to work.
-- `Database/Travel_Agency_Features_Update.sql` safely updates existing databases.
-
-## Architecture Notes
-
-This project is implemented as a monolithic ASP.NET Core REST API plus a React client. REST was selected instead of SOAP because the app mainly exposes JSON resources such as users, destinations, hotels, packages, bookings, and contact messages.
-
-The repository now includes a demo-level enterprise infrastructure option with NGINX gateway/load balancing, Redis, MongoDB, MinIO, ELK, Prometheus, Grafana, and Alertmanager. The application still remains a modular monolith, but the repo now contains runnable support for those surrounding infrastructure requirements.
-
-The repository also includes a notification microservice and RabbitMQ queue for asynchronous MFA delivery, plus Kubernetes manifests for a production-style deployment shape.
-
-## Security Notes
-
-For local development, `appsettings.json` contains development configuration. For production or Docker, override sensitive values with environment variables:
-
-```text
-Jwt__Secret
-Jwt__Issuer
-Jwt__Audience
-ConnectionStrings__CRUDCS
-```
-
-Never commit real production secrets.
-
-## Local Email Sending
-
-Local Gmail SMTP settings are configured in:
-
-```text
-Travel Agency Portal/Travel Agency Portal/appsettings.Development.json
-```
-
-Current local email setup:
-
-- Sender: `travel.agency@gmail.com`
-- Test recipients: `shkelqim.maliqi@outlook.com`, `anisamustafa2020@gmail.com`
-- SMTP host: `smtp.gmail.com`
-- SMTP port: `587`
-
-To actually send email, replace `PUT_GMAIL_APP_PASSWORD_HERE` with a Gmail App Password for `travel.agency@gmail.com`. Do not use the normal Gmail login password.
-
-## Backend Tests
-
-Run the API test project from the solution folder:
-
-```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\Travel Agency Portal"
-dotnet test
-```
-
-The automated tests cover CRUD, booking concurrency and cancellation, JWT roles, cache invalidation, password recovery security, registration, and API infrastructure. SQL integration tests use a temporary database; set TEST_SQLSERVER_CONNECTION to override the local SQL instance.
-
-## Docker
-
-Run the API and SQL Server with Docker Compose:
-
-```powershell
-docker compose up --build
-```
-
-After SQL Server starts, apply `Database/Travel_AgencyDB.sql` to create and seed the database. The API will be available at:
-
-```text
-http://localhost:5132
-```
-
-For the advanced requirement stack, use:
-
-```powershell
-docker compose -f docker-compose.enterprise.yml up --build
-```
-
-That compose file adds:
-
-- NGINX API Gateway and load balancing
-- Redis
-- RabbitMQ
-- Notification service
-- MongoDB
-- MinIO S3-compatible storage
-- ELK stack
-- Prometheus + Grafana + Alertmanager
-- SQL Server backup helper
-
-## Kubernetes
-
-Kubernetes manifests are available at:
-
-```text
-Infrastructure/kubernetes
-```
-
-Apply them with:
-
-```powershell
-kubectl apply -k Infrastructure/kubernetes
-```
-
-Before using them in a real cluster, replace the example secret values in `secret.example.yaml`.
-
-## CI/CD
-
-The repository includes GitHub Actions workflows at:
-
-```text
-.github/workflows/backend-ci.yml
-.github/workflows/frontend-ci.yml
-```
-
-They validate:
-
-- ASP.NET Core restore, build, and backend tests
-- React install, test, and production build
-
-A tested-image publication and optional Kubernetes staging rollout workflow is available in .github/workflows/deploy-staging.yml. Its remote deployment requires the staging environment credentials described in Documentation/VERIFICATION_2026-11-15.md.
-
-## Documentation Bundle
-
-The repository now includes documentation files that directly support the PDF requirements:
-
-- `Documentation/PROJECT_REPORT.md` - report-ready technical writeup
-- `Documentation/REQUIREMENTS_MATRIX.md` - honest requirement-by-requirement status mapping
-- `Documentation/ARCHITECTURE.md` - architecture explanation
-- `Documentation/API_TESTS.md` - manual API demonstration checklist
-- `Documentation/BACKUP_RECOVERY.md` - backup and recovery notes
-- `Documentation/SUBMISSION_CHECKLIST.md` - final hand-in checklist
-- `Documentation/ENTERPRISE_STACK.md` - advanced infrastructure overview
-- `Documentation/SWAGGER_GUIDE.md` - OpenAPI/Swagger usage and demo walkthrough
-- `CHANGELOG.md` - version/change communication support
-
-If you need a `.docx` version for Moodle submission, run:
-
-```powershell
-python Tools/tools_create_report.py
-```
-
-## API Testing
-
-Use Swagger first:
-
-```text
-http://localhost:5132/swagger
-```
-
-Extra manual testing notes are in:
-
-```text
-API_TESTS.md
-```
-
-## E2E Testing
-
-Run browser tests from the frontend folder:
-
-```powershell
-cd "C:\Users\Lenovo\OneDrive\Desktop\Programming_Projects\Travel Agency\UI\travel-agency"
-npx playwright install chromium
-npm run e2e
-```
-
-## Useful Routes
-
-- `/` - Home
-- `/registerpage` - Register
-- `/loginpage` - Login
-- `/forgot-password` - Reset password
-- `/dashboard` - User dashboard
-- `/profile` - User profile settings
-- `/destinations` - Public destination catalog
-- `/packages` - Public package catalog
-- `/packages/:id` - Package details
-- `/my-bookings` - User bookings
-- `/bookings/:id` - Booking details
-- `/contactus` - Contact form
-- `/admin` - Admin dashboard and management tools
-
-## Notes
-
-- Admin actions require a user with `U_Type = 'admin'`.
-- Auditor actions require a user with `U_Type = 'auditor'` and are read-only for audit, metrics, bookings, users, contact messages, and stats.
-- Normal users cannot access `/admin`.
-- Public users can view destinations and packages.
-- Logged-in users can book packages, change their password from profile, and submit contact messages linked to their account.
-- Users can cancel only pending bookings.
-- Packages with zero seats are shown as sold out and cannot be booked.
-- Registration and password reset require passwords with at least 8 characters, uppercase, lowercase, number, and special character.
+The supplied course PDF states 8 January 2027 as the deadline, one submission per group through Moodle, and attendance by every member at the practical defense. The user must perform these academic steps.

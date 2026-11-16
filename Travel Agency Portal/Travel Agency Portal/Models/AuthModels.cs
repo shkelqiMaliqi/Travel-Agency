@@ -5,22 +5,27 @@ namespace Travel_Agency_Portal.Models;
 public class RegisterRequest
 {
     [Required]
+    [StringLength(100)]
     public string U_Name { get; set; } = string.Empty;
 
     [Required]
+    [StringLength(100)]
     public string U_Surname { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string U_Email { get; set; } = string.Empty;
 
     [Required]
+    [StringLength(100)]
     public string U_Username { get; set; } = string.Empty;
 
+    [StringLength(30)]
     public string? U_Phone { get; set; }
 
     [Required]
-    [MinLength(6)]
+    [MinLength(8)]
     public string Password { get; set; } = string.Empty;
 
     [Required]
@@ -57,6 +62,7 @@ public class MfaVerifyRequest
 {
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string Email { get; set; } = string.Empty;
 
     [Required]
@@ -67,6 +73,7 @@ public class ForgotPasswordRequest
 {
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string Email { get; set; } = string.Empty;
 }
 
@@ -74,6 +81,7 @@ public class ResetPasswordRequest
 {
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string Email { get; set; } = string.Empty;
 
     [Required]

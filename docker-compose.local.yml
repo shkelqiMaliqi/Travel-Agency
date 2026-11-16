@@ -7,8 +7,8 @@ x-api: &api
     dockerfile: Dockerfile
   environment: &api-env
     ASPNETCORE_ENVIRONMENT: Development
-    ConnectionStrings__CRUDCS: "Server=sqlserver,1433;Database=Travel_Agency;User Id=sa;Password=${LOCAL_SQL_PASSWORD:-LocalDemoOnly!Password123};TrustServerCertificate=True;MultipleActiveResultSets=true"
-    Jwt__Secret: "${LOCAL_JWT_SECRET:-LocalDemoOnlySigningSecretChangeBeforeHosting123456789!}"
+    ConnectionStrings__CRUDCS: "Server=sqlserver,1433;Database=Travel_Agency;User Id=sa;Password=${LOCAL_SQL_PASSWORD:?Run Tools/initialize-local.ps1 first};TrustServerCertificate=True;MultipleActiveResultSets=true"
+    Jwt__Secret: "${LOCAL_JWT_SECRET:?Run Tools/initialize-local.ps1 first}"
     Jwt__Issuer: TravelAgency.Api
     Jwt__Audience: TravelAgency.Client
     Redis__ConnectionString: "redis:6379,abortConnect=false,connectTimeout=1000,syncTimeout=1000"
@@ -41,7 +41,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${LOCAL_SQL_PASSWORD:-LocalDemoOnly!Password123}"
+      MSSQL_SA_PASSWORD: "${LOCAL_SQL_PASSWORD:?Run Tools/initialize-local.ps1 first}"
       MSSQL_MEMORY_LIMIT_MB: 1536
     ports:
       - "127.0.0.1:14330:1433"
@@ -57,7 +57,7 @@ services:
   db-init:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      SQLCMDPASSWORD: "${LOCAL_SQL_PASSWORD:-LocalDemoOnly!Password123}"
+      SQLCMDPASSWORD: "${LOCAL_SQL_PASSWORD:?Run Tools/initialize-local.ps1 first}"
     volumes:
       - ./Database/Travel_AgencyDB.sql:/schema.sql:ro
       - ./Infrastructure/local/init-db.sh:/init-db.sh:ro
@@ -88,7 +88,7 @@ services:
       retries: 20
 
   mailpit:
-    image: axllent/mailpit:v1.20.3
+    image: axllent/mailpit:v1.33.1
     ports:
       - "127.0.0.1:8025:8025"
       - "127.0.0.1:1025:1025"
@@ -143,7 +143,7 @@ services:
     image: grafana/grafana:11.1.4
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: "${LOCAL_GRAFANA_PASSWORD:-local-monitoring-demo}"
+      GF_SECURITY_ADMIN_PASSWORD: "${LOCAL_GRAFANA_PASSWORD:?Run Tools/initialize-local.ps1 first}"
     ports:
       - "127.0.0.1:3002:3000"
     volumes:

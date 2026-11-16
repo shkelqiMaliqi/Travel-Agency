@@ -1,67 +1,11 @@
-# Backup and Recovery Notes
+# Backup and recovery
 
-The PDF asks for backup and recovery policies for the database and critical configuration. This project now includes both a written backup policy and automated backup examples for Docker Compose and Kubernetes.
+Schema and seed scripts are versioned under `Database/`. `Travel_AgencyDB.sql` resets tables and is intended only for a newly created or explicitly disposable database. Do not run it over existing application data. `Travel_Agency_Features_Update.sql` adds absent feature structures/data and is used by the native launcher.
 
-## Database Backup Policy
+Before significant schema/data changes, obtain a SQL Server backup. The container examples include a backup helper and Kubernetes CronJob. They are configuration examples until a real backup/restore run is recorded. No restore over the user's application database was performed during repair.
 
-- Keep the schema and seed source under version control through:
-  - [`Database/Travel_AgencyDB.sql`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Database/Travel_AgencyDB.sql)
-  - [`Database/Travel_Agency_Features_Update.sql`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Database/Travel_Agency_Features_Update.sql)
-- Before major schema changes, export a SQL Server backup or create a fresh `.bak`.
-- For classroom/demo environments, keep at least:
-  - one current full backup
-  - one previous backup
-  - one clean seed script snapshot
-- Automated Docker backup helper:
-  - [`Infrastructure/backups/sqlserver-backup.sh`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Infrastructure/backups/sqlserver-backup.sh)
-- Automated Kubernetes backup helper:
-  - [`Infrastructure/kubernetes/backup-cronjob.yaml`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Infrastructure/kubernetes/backup-cronjob.yaml)
+For a deployed service, retain at least a current and previous full backup, store an encrypted off-machine copy, restrict backup access, and keep recovery credentials separately from source control. Choose retention/RPO/RTO targets appropriate to the environment. For the classroom environment, test a restore into a separately named disposable database and verify catalogs, accounts, and booking relationships before relying on the backup. Do not overwrite `Travel_Agency` during a drill.
 
-## Configuration Backup Policy
+Recovery: provision a separate target SQL database/server, restore the backup there, point a test API at it using a private environment connection string, and validate database-backed requests and authentication. After validation, plan a controlled switchover with the owner. `/health` alone is not proof that restored business data is correct.
 
-Critical configuration values include:
-
-- `Jwt__Secret`
-- `Jwt__Issuer`
-- `Jwt__Audience`
-- `ConnectionStrings__CRUDCS`
-
-Recommended practice:
-
-- keep development defaults in `appsettings.json`
-- override sensitive values in environment variables for Docker/production-like runs
-- store production secrets outside the repository
-
-## Recovery Procedure
-
-### Option 1: Recreate from SQL scripts
-
-1. Create or reset the SQL Server database.
-2. Run `Database/Travel_AgencyDB.sql`.
-3. Start the API.
-4. Start the frontend.
-
-### Option 2: Restore from database backup
-
-1. Restore the latest SQL Server backup.
-2. Confirm connection string values.
-3. Start the API and validate `/health`.
-4. Verify login and package endpoints.
-
-## Recovery Validation Checklist
-
-- `/health` returns success
-- admin login works
-- destinations load
-- packages load
-- bookings can be read
-- contact message flow works
-
-## Recommendation
-
-For a more advanced production environment, add:
-
-- retention rules
-- off-machine backup storage
-- restore drills
-- infrastructure secret rotation
+Preserve `.env`/deployment secrets securely; do not include them in the source archive. Generate replacements only when creating a new environment or deliberately rotating credentials. Deleting local `.env` while retaining a database volume can make its SQL password inconsistent.

@@ -5,12 +5,12 @@ services:
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      Jwt__Secret: "ChangeThisDockerSecretToARealLongRandomValue123!"
+      Jwt__Secret: "${LOCAL_JWT_SECRET:?Run Tools/initialize-local.ps1 first}"
       Jwt__Issuer: "TravelAgency.Api"
       Jwt__Audience: "TravelAgency.Client"
-      ConnectionStrings__CRUDCS: "Server=sqlserver,1433;Database=Travel_Agency;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      ConnectionStrings__CRUDCS: "Server=sqlserver,1433;Database=Travel_Agency;User Id=sa;Password=${LOCAL_SQL_PASSWORD:?Run Tools/initialize-local.ps1 first};TrustServerCertificate=True;MultipleActiveResultSets=true"
     ports:
-      - "5132:8080"
+      - "127.0.0.1:5132:8080"
     depends_on:
       - sqlserver
 
@@ -18,9 +18,9 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
+      MSSQL_SA_PASSWORD: "${LOCAL_SQL_PASSWORD:?Run Tools/initialize-local.ps1 first}"
     ports:
-      - "1433:1433"
+      - "127.0.0.1:1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
 

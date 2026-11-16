@@ -40,5 +40,6 @@ public class TravelPackage
     public int Available_Seats { get; set; }
 
     [Url]
+    [StringLength(500)]
     public string? Package_Url { get; set; }
 }

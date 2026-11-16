@@ -8,7 +8,7 @@ const response = (data) => ({
 
 beforeEach(() => {
   clearAuth();
-  global.fetch = jest.fn();
+  global.fetch = vi.fn();
 });
 
 test("public reads deduplicate requests, reuse results, and avoid a JSON preflight header", async () => {

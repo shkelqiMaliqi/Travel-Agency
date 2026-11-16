@@ -24,5 +24,6 @@ public class Hotel
     public int Hotel_Stars { get; set; } = 3;
 
     [Url]
+    [StringLength(500)]
     public string? Hotel_Url { get; set; }
 }

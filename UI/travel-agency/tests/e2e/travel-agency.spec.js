@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
 test("home page renders public travel actions", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: 'domcontentloaded' });
 
   await expect(
     page.getByRole("heading", { name: /find your next trip/i })
@@ -15,7 +15,7 @@ test("home page renders public travel actions", async ({ page }) => {
 });
 
 test("login page exposes the authentication form", async ({ page }) => {
-  await page.goto("/loginpage");
+  await page.goto("/loginpage", { waitUntil: 'domcontentloaded' });
 
   await expect(page.getByLabel(/email or username/i)).toBeVisible();
   await expect(page.getByLabel(/password/i)).toBeVisible();
@@ -23,7 +23,7 @@ test("login page exposes the authentication form", async ({ page }) => {
 });
 
 test("forgot password page is reachable from login", async ({ page }) => {
-  await page.goto("/loginpage");
+  await page.goto("/loginpage", { waitUntil: 'domcontentloaded' });
   await page.getByRole("link", { name: /reset it here/i }).click();
 
   await expect(page).toHaveURL(/forgot-password/);

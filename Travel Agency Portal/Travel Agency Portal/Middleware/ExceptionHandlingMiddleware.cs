@@ -25,13 +25,18 @@ public class ExceptionHandlingMiddleware
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unhandled API exception.");
-            var alertingService = context.RequestServices.GetRequiredService<AlertingService>();
-            await alertingService.NotifyAsync("Travel Agency API exception", exception.Message);
+            if (exception is not MfaDeliveryUnavailableException)
+            {
+                var alertingService = context.RequestServices.GetRequiredService<AlertingService>();
+                await alertingService.NotifyAsync("Travel Agency API exception", exception.Message);
+            }
 
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = exception is MfaDeliveryUnavailableException
+                ? StatusCodes.Status503ServiceUnavailable : (int)HttpStatusCode.InternalServerError;
 
-            var payload = ApiResponse<object>.Fail("An unexpected server error occurred.");
+            var payload = ApiResponse<object>.Fail(exception is MfaDeliveryUnavailableException
+                ? exception.Message : "An unexpected server error occurred.");
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase

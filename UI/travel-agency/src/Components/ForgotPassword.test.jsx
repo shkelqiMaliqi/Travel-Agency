@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import ForgotPassword from "./ForgotPassword";
 import { requestPasswordReset } from "../services/api";
 
-jest.mock("../services/api", () => ({ requestPasswordReset: jest.fn(), resetPassword: jest.fn() }));
+vi.mock("../services/api", () => ({ requestPasswordReset: vi.fn(), resetPassword: vi.fn() }));
 
 test("asks the user to check email and never fills a reset code from the API response", async () => {
   requestPasswordReset.mockResolvedValue({ message: "Check your inbox.", resetCode: "must-not-be-used" });

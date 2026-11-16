@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Prometheus;
@@ -93,13 +94,23 @@ builder.Services.AddCors(options =>
                 "http://localhost:3000",
                 "https://localhost:3000",
                 "http://localhost:3001",
-                "https://localhost:3001")
+                "https://localhost:3001",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:3001")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
 builder.Services.AddHealthChecks();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Trust only explicitly configured ingress/proxy addresses, never arbitrary clients.
+    foreach (var address in (builder.Configuration["ReverseProxy:KnownProxies"] ?? "")
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        options.KnownProxies.Add(System.Net.IPAddress.Parse(address));
+});
 builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true;
@@ -190,6 +201,7 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
+builder.Services.AddSingleton<JwtSigningKey>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<DatabaseService>();
 builder.Services.AddScoped<AuditLogService>();
@@ -207,9 +219,8 @@ if (builder.Configuration.GetValue("Workers:Enabled", true))
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-    .Configure<IConfiguration>((options, configuration) =>
+    .Configure<IConfiguration, JwtSigningKey>((options, configuration, signingKey) =>
     {
-        var secret = configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -218,7 +229,7 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
             ValidateLifetime = true,
             ValidIssuer = configuration["Jwt:Issuer"] ?? "TravelAgency.Api",
             ValidAudience = configuration["Jwt:Audience"] ?? "TravelAgency.Client",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+            IssuerSigningKey = signingKey.Key,
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -226,7 +237,11 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+// Validate secrets before accepting traffic; test factories supply their own key.
+_ = app.Services.GetRequiredService<JwtSigningKey>();
 
+app.UseForwardedHeaders();
+if (!app.Environment.IsDevelopment()) app.UseHsts();
 app.UseResponseCompression();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();

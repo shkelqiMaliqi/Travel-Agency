@@ -1,3 +1,5 @@
+> Historical reference. Use README.md, PRESENTATION_GUIDE.md and VERIFICATION_2026-11-16.md for the repaired setup and verified results. Runtime claims below are not current verification.
+
 # Tomorrow Presentation Guide - Requirements Line by Line
 
 This guide maps the PDF requirements to the current Travel Agency project and gives you simple wording for the presentation.

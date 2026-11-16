@@ -1,3 +1,5 @@
+> Historical reference. Use README.md, PRESENTATION_GUIDE.md and VERIFICATION_2026-11-16.md for the repaired setup and verified results. Runtime claims below are not current verification.
+
 # Requirements fixes and verification — 15 November 2026
 
 This report distinguishes implementation from live verification. The course PDF is the requirements source; deployment examples alone are not treated as proof of operation.

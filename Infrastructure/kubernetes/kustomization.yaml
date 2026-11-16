@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - configmap.yaml
-  - secret.example.yaml
   - redis.yaml
   - rabbitmq.yaml
   - mongo.yaml
@@ -13,8 +12,9 @@ resources:
   - api-deployment.yaml
   - api-hpa.yaml
   - notification-service-deployment.yaml
-  - ingress.yaml
   - backup-cronjob.yaml
+  - frontend.yaml
+  - mailpit.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
@@ -24,3 +24,8 @@ configMapGenerator:
     namespace: travel-agency
     files:
       - Travel_AgencyDB.sql=db-init/Travel_AgencyDB.sql
+
+  - name: travel-agency-frontend-nginx
+    namespace: travel-agency
+    files:
+      - frontend.conf=frontend.conf

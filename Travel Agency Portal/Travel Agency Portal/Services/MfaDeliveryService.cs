@@ -39,7 +39,7 @@ public class MfaDeliveryService
             return;
         }
 
-        _logger.LogWarning("MFA delivery was not sent because RabbitMQ and SMTP are not configured.");
+        throw new MfaDeliveryUnavailableException();
     }
 
     private bool TryPublishToQueue(MfaDeliveryMessage message)
@@ -93,11 +93,7 @@ public class MfaDeliveryService
             var password = _configuration["Email:Smtp:Password"];
             var from = _configuration["Email:Smtp:From"] ?? username ?? "no-reply@travel-agency.local";
             var enableSsl = _configuration.GetValue("Email:Smtp:EnableSsl", true);
-            var recipients = SplitRecipients(_configuration["Email:Smtp:OverrideRecipients"]);
-            if (recipients.Count == 0)
-            {
-                recipients.Add(message.Email);
-            }
+            var recipients = new List<string> { message.Email };
 
             using var smtpClient = new SmtpClient(host, port)
             {
@@ -140,4 +136,9 @@ public class MfaDeliveryService
             .Where(recipient => !string.IsNullOrWhiteSpace(recipient))
             .ToList();
     }
+}
+
+public sealed class MfaDeliveryUnavailableException : Exception
+{
+    public MfaDeliveryUnavailableException() : base("The verification email service is temporarily unavailable.") { }
 }

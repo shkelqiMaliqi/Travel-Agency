@@ -5,6 +5,9 @@ metadata:
   namespace: travel-agency
 spec:
   schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
       template:

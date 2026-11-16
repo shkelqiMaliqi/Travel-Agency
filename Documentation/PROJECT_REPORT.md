@@ -1,160 +1,62 @@
-# Travel Agency Technical Report
+# Travel Agency technical report
 
-## 1. Executive Summary
+## Executive summary
 
-Travel Agency is a React frontend and ASP.NET Core Web API backend project for managing destinations, hotels, travel packages, bookings, user accounts, and contact messages. The system exposes versioned REST endpoints under `/api/v1`, uses JWT authentication, role-based authorization, Swagger/OpenAPI documentation, SQL Server persistence, and Docker-based execution.
+Travel Agency implements a functional travel booking and administration platform with React, ASP.NET Core, and SQL Server. Its core workflows are verified locally. The repository includes notification messaging, distributed caching, gateway/load-balancing, monitoring, Kubernetes, and an advanced CI/CD pipeline; operation of those infrastructure components must be supported by actual target-environment evidence. This report separates implementation from verified execution.
 
-The project also includes advanced requirement coverage: MFA for protected roles with queue/email delivery, Redis-ready caching, RabbitMQ asynchronous processing, Prometheus metrics, audit logging, NGINX gateway/load balancing, ELK log shipping, Alertmanager/Prometheus/Grafana infrastructure, Kubernetes manifests, automated backup jobs, MongoDB analytics, S3-compatible storage, and Playwright E2E tests.
+## Problem and objectives
 
-## 2. Project Goal and Objectives
+Customers need a single place to discover trips, reserve available capacity, review bookings, and manage account information. Staff need controlled administration of destinations, hotels, packages, bookings, users, and contact messages. Auditors need read-only access. Objectives are a usable website, consistent REST resources, persistent relational data, protected role-based operations, and reproducible tests/deployment.
 
-The goal is to build a functional travel-agency portal where users browse destinations and packages, make bookings, manage profiles, and contact the agency, while administrators manage operational data through protected endpoints and frontend tools.
+## Requirements and acceptance
 
-### Objectives
+Functional requirements include registration/login, privileged-role MFA, password recovery, catalog browsing/filtering, booking/cancellation, profile management, contact messages, and administration. These exceed the five functional requirements in the supplied PDF. Sources are user input and the SQL schema/seed scripts. Main business processes are account authentication/recovery, catalog maintenance, seat reservation/cancellation, and contact handling.
 
-- Build a real REST API using ASP.NET Core Web API.
-- Build a React frontend that consumes the API.
-- Use JWT and RBAC for stateless authentication and authorization.
-- Add MFA for sensitive roles such as admin and auditor.
-- Use SQL Server as the primary relational database.
-- Document the API through OpenAPI/Swagger UI.
-- Demonstrate microservices through a notification service.
-- Demonstrate queue-based async processing through RabbitMQ.
-- Support local, Docker Compose, and Kubernetes deployment paths.
-- Add automated tests, linting, CI, and browser E2E coverage.
+Nonfunctional acceptance criteria: unauthorized requests return 401/403; invalid models return 400; concurrent bookings cannot oversell; cancellation restores seats once; unexpected exceptions return a structured response without terminating the app; test runs preserve the application database; repeat catalog reads use a 20-second cache with mutation invalidation; secrets are supplied privately for deployments. Reliability and maintainability are supported by explicit layers, automated tests, startup diagnostics, and reproducible configuration. Representative response times are measured and saved rather than asserted as universal performance guarantees.
 
-## 3. Functional and Non-Functional Requirements
+## Architecture and data model
 
-### Functional Requirements
+React sends JSON HTTP requests to versioned `/api/v1` controllers. Application services coordinate domain rules and repositories execute parameterized SQL and transactions. EF Core manages support data. `Users`, `Places`, `Hotels`, `Travel_Packages`, `Bookings`, and `Contact_Form` are the core relational entities. Packages reference a place and hotel; bookings reference a package and account. Foreign keys/check constraints preserve relational validity. MFA, reset tokens, audit events, and metrics snapshots have separate tables.
 
-- User registration and login
-- MFA verification for configured roles
-- Forgot-password and reset-password flow
-- User profile update and password change
-- Public destination and package browsing
-- Booking creation, history, details, and cancellation
-- Admin management for places, hotels, packages, bookings, users, and contact messages
-- Contact form submission
-- Infrastructure endpoints for audit logs, metrics snapshots, analytics events, and storage demo
-- Notification microservice for queued MFA delivery
+The independent NotificationService consumes durable RabbitMQ messages and sends account email. Redis provides distributed caching when configured; otherwise native development uses memory. NGINX balances Compose requests across two API instances. Prometheus scrapes API metrics and Grafana visualizes them. Kubernetes resources describe orchestration, persistence, startup/readiness, HPA, and backup jobs.
 
-### Non-Functional Requirements
+## Implementation and technology decisions
 
-- JWT authentication and role-based authorization
-- Parameterized SQL and input validation
-- Swagger/OpenAPI documentation with examples
-- Redis-ready distributed caching
-- RabbitMQ-based asynchronous processing
-- Prometheus metrics and Alertmanager alerting
-- ELK-compatible centralized log shipping
-- Docker Compose enterprise stack
-- Kubernetes manifests with API replicas, HPA, ingress, and backup CronJob
-- Automated backend, frontend, and E2E tests
+REST/JSON matches a resource-oriented browser application. URL versioning provides clear contracts. SQL Server is technically appropriate for relational bookings and transactionally consistent seat management; the PDF permits other suitable database technologies when justified. ASP.NET Core provides routing, validation, dependency injection, JWT middleware, and hosted workers. The frontend uses React 18, React Router 7, and Vite; tests use xUnit, Vitest, and Playwright. Exact resolved frontend versions are in package-lock.json and backend versions in the project files.
 
-## 4. System Design
+## Security and error handling
 
-The system now uses a small microservice split:
+JWT is a token format used here for bearer authentication, not an OAuth authorization flow. RBAC and ownership checks restrict operations. New passwords use salted PBKDF2; legacy seed hashes remain for classroom compatibility and should be changed before publishing. Parameterized SQL and bounded request models reduce injection/truncation risks. MFA and recovery secrets are hashed in storage and never returned to callers. MFA goes to the account owner, with delivery failure returning 503 rather than a false success. Recovery responses conceal account existence.
 
-- Main API: `Travel Agency Portal/Travel Agency Portal`
-- Notification microservice: `Microservices/NotificationService`
-- Frontend: `UI/travel-agency`
-- Database: SQL Server
-- Queue: RabbitMQ
-- Cache: Redis
-- Observability: Prometheus, Grafana, Alertmanager, ELK
+Base settings contain no shared signing key or working production database credential. Direct development startup generates a random process-local signing key; private environment configuration supplies a persistent key for replicas. Known example/short/missing production signing keys are rejected at startup. Native email is captured only by loopback Mailpit. Published environments require genuine SMTP, TLS certificates, secret storage, and explicitly trusted ingress IPs. Local HTTP is a documented development limitation. Dependencies were updated and the current npm audit reports zero findings; this is not a comprehensive security certification.
 
-The main API owns the travel-agency business workflows. The notification service consumes RabbitMQ messages for MFA delivery and sends email through SMTP when configured. This gives the project a concrete microservice and queue-based async-processing example while keeping the rest of the coursework app understandable.
+## Testing and results
 
-## 5. Implementation Description
+The 16 November repair run verifies 26 backend cases, including production-key rejection and generated development keys, plus CRUD, role/ownership protection, validation, booking concurrency/cancellation, and recovery expiry/replay protections. Five frontend tests pass; lint and production build pass after migration away from Create React App. The full browser harness uses a generated database and local email capture to exercise privileged MFA, customer recovery, booking, and cancellation along with public/mobile pages. Its exact result and infrastructure limits are recorded in `VERIFICATION_2026-11-16.md`.
 
-The backend includes JWT authentication, RBAC, MFA challenge/verification, Swagger examples, health checks, `/metrics`, caching, rate limiting, request logging, exception handling, audit logging, EF Core support tables, hosted workers, RabbitMQ publishing, Logstash log shipping, email/webhook alerting, MongoDB analytics, and S3-compatible storage.
+The SQL test fixture and browser harness create their own random databases and clean up only those databases. Application data is preserved. The API exposes 42 documented operations over 29 paths. Existing historical measurements are not presented as results of the repaired version; fresh evidence belongs in `Documentation/Evidence`.
 
-The frontend includes public pages, package/destination pages, login/register, forgot password, MFA login step, dashboards, profile, bookings, admin management, and contact form.
+## Deployment and reproducibility
 
-The enterprise stack includes two API instances behind NGINX, Redis, RabbitMQ, notification service, SQL Server, MongoDB, MinIO, ELK, Prometheus, Grafana, Alertmanager, and a SQL Server backup helper.
+The root README provides portable relative startup/test commands. `Tools/start-local.ps1` generates private local configuration and preserves existing data. Compose uses generated secrets, two API replicas, Redis, RabbitMQ/worker, local email, monitoring, and production frontend serving. The advanced manually dispatched workflow tests this stack, rolls out to a disposable kind cluster, and optionally publishes/deploys commit-tagged images through a configured GitHub staging environment. It has not been run on GitHub as part of the local repair.
 
-## 6. Security and Technical Choices
+The Kubernetes base omits automatic example secrets/ingress. Local initialization is restricted to named local contexts. Published TLS ingress is a separate configuration requiring a real domain/certificate. Container verification on this computer requires installing Docker/WSL and a cluster; absence of that infrastructure cannot be solved by changing a manifest or claiming a rollout passed.
 
-REST was chosen because the application is resource-oriented and serves a JavaScript frontend. JSON is lightweight and easy to test through Swagger.
+## Conclusions and remaining conditions
 
-JWT supports stateless authentication through the `Authorization: Bearer <token>` header. RBAC separates normal user permissions, admin management operations, and auditor read-only review access.
+The core application and automated quality checks work locally. Remaining external conditions are infrastructure installation/execution, hosted workflow verification, any actual public environment credentials/domain/certificate, and the students' academic submission/defense. The requirements matrix records these conditions honestly. Students must complete their real contributions and disclosures before submission and explain the implementation individually.
 
-Security measures include password hashing, parameterized SQL, input validation, rate limiting, audit logging, MFA, HTTPS redirection, and production-style configuration for secrets and alerts.
+## References
 
-MFA codes are delivered through RabbitMQ/email and are never exposed in API responses. The local Compose stack captures messages in Mailpit for classroom testing. Password recovery also uses email-delivered single-use tokens. See `Documentation/VERIFICATION_2026-11-15.md` for current test evidence and deployment limitations.
+- Supplied course PDF: Kërkesat teknike Ueb Shërbime Ueb APIs 2026, six pages, Prof. Liridon Hoti.
+- ASP.NET Core documentation: https://learn.microsoft.com/aspnet/core/
+- SQL Server documentation: https://learn.microsoft.com/sql/
+- React documentation: https://react.dev/
+- Vite documentation: https://vite.dev/guide/
+- GitHub Actions container publication: https://docs.github.com/actions/tutorials/publish-packages/publish-docker-images
+- Mailpit installation: https://mailpit.axllent.org/docs/install/
+- Kubernetes documentation: https://kubernetes.io/docs/
 
-## 7. API Documentation and Infrastructure
+## Authorship and AI assistance
 
-Swagger UI includes bearer authentication, request examples, response examples, and common error response descriptions. The API is versioned under `/api/v1`.
-
-Infrastructure support includes:
-
-- `/health`
-- `/metrics`
-- NGINX gateway
-- Redis caching
-- RabbitMQ queue
-- Notification microservice
-- ELK log shipping
-- Prometheus/Grafana/Alertmanager
-- Kubernetes manifests
-- SQL Server backup automation
-- MongoDB analytics endpoint
-- S3-compatible storage endpoint
-
-## 8. Testing and Results
-
-Backend tests cover health checks, authentication protection, password hashing, and infrastructure behavior. Frontend checks cover Jest tests, linting, and production build. Playwright E2E tests cover browser-level public navigation and authentication-form visibility.
-
-Manual API testing is documented in `Documentation/API_TESTS.md`.
-
-
-## 9. DevOps and Delivery
-
-The repository includes:
-
-- `Dockerfile`
-- `docker-compose.yml`
-- `docker-compose.enterprise.yml`
-- `Microservices/NotificationService`
-- `Infrastructure/kubernetes`
-- `Infrastructure/backups/sqlserver-backup.sh`
-- backend CI workflow
-- frontend CI workflow
-- E2E CI workflow
-- ESLint, Prettier, and `.editorconfig`
-- report and requirement documentation
-
-## 10. Conclusions and Recommendations
-
-The project now demonstrates all major coursework requirements through working code, configuration, tests, or runnable infrastructure scaffolding. It is still not a fully operated production system because real deployment would require private secrets, hosted domains, TLS certificates, real SMTP/webhook credentials, cloud accounts, and production monitoring dashboards.
-
-Recommended future improvements are to expand Playwright tests for authenticated booking/admin flows, add cloud-provider-specific deployment scripts, configure real secret management, and perform restore drills using real backup files.
-
-## 11. References
-
-- Microsoft ASP.NET Core Documentation
-- Microsoft JWT Bearer Authentication Documentation
-- OpenAPI Specification / Swagger Documentation
-- React Documentation
-- Docker Documentation
-- Kubernetes Documentation
-- SQL Server Documentation
-- RabbitMQ Documentation
-- Prometheus and Grafana Documentation
-
-## 12. Appendices
-
-### Appendix A: Main Project Paths
-
-- Backend: `Travel Agency Portal/Travel Agency Portal`
-- Notification microservice: `Microservices/NotificationService`
-- Backend tests: `Travel Agency Portal/Travel Agency Portal.Tests`
-- Frontend: `UI/travel-agency`
-- E2E tests: `UI/travel-agency/tests/e2e`
-- Database scripts: `Database/Travel_AgencyDB.sql`, `Database/Travel_Agency_Features_Update.sql`
-- Advanced infrastructure: `docker-compose.enterprise.yml`, `Infrastructure/`
-
-### Appendix B: Originality Declaration Template
-
-I declare that this project is my own work (or the work of my group), prepared for academic purposes for the course on Web Services and Web API. Any external materials or references used are properly acknowledged in the report and supporting documentation.
+Real team membership and contributions must be supplied by the students in `TEAM_CONTRIBUTIONS.md`. AI assistance was used for review, repairs, testing, and documentation. Each student must review and understand the final work and make any originality declaration personally under the course's rules.

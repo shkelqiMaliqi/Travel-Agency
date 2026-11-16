@@ -9,7 +9,8 @@ fi
 HOST="${SQLSERVER_HOST:-sqlserver}"
 DATABASE="${SQLSERVER_DATABASE:-Travel_Agency}"
 USER="${SQLSERVER_USER:-sa}"
-PASSWORD="${SQLSERVER_PASSWORD:-YourStrong!Passw0rd}"
+SQLCMDPASSWORD="${SQLSERVER_PASSWORD:?Set SQLSERVER_PASSWORD privately}"
+export SQLCMDPASSWORD
 INTERVAL="${BACKUP_INTERVAL_SECONDS:-86400}"
 BACKUP_DIR="/backups/output"
 
@@ -21,7 +22,7 @@ while true; do
   LOCAL_FILE="$BACKUP_DIR/${DATABASE}_${TS}.bak"
 
   echo "Starting SQL Server backup for ${DATABASE} at ${TS}"
-  "$SQLCMD" -S "$HOST" -U "$USER" -P "$PASSWORD" -C -Q "BACKUP DATABASE [${DATABASE}] TO DISK = N'${FILE}' WITH INIT, COMPRESSION"
+  "$SQLCMD" -S "$HOST" -U "$USER" -C -Q "BACKUP DATABASE [${DATABASE}] TO DISK = N'${FILE}' WITH INIT, COMPRESSION"
   echo "Backup command completed. SQL Server wrote ${FILE}."
   echo "Record this backup in backup logs. If SQL Server backup volume is mounted to ${BACKUP_DIR}, keep ${LOCAL_FILE}."
 

@@ -9,15 +9,16 @@ namespace Travel_Agency_Portal.Services;
 public class JwtTokenService
 {
     private readonly IConfiguration _configuration;
+    private readonly JwtSigningKey _signingKey;
 
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IConfiguration configuration, JwtSigningKey signingKey)
     {
         _configuration = configuration;
+        _signingKey = signingKey;
     }
 
     public AuthResponse CreateToken(Users user)
     {
-        var secret = _configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Missing Jwt:Secret configuration.");
         var issuer = _configuration["Jwt:Issuer"] ?? "TravelAgency.Api";
         var audience = _configuration["Jwt:Audience"] ?? "TravelAgency.Client";
         var expiresAt = DateTime.UtcNow.AddHours(1);
@@ -32,8 +33,7 @@ public class JwtTokenService
             new Claim("username", user.U_Username)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials(_signingKey.Key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: issuer,

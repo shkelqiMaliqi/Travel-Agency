@@ -1,0 +1,86 @@
+{
+  "reviewedAt": "2026-11-16",
+  "backend": {
+    "total": 26,
+    "passed": 26,
+    "failed": 0
+  },
+  "frontend": {
+    "suitesPassed": 3,
+    "testsPassed": 5,
+    "build": "passed",
+    "lint": "passed"
+  },
+  "browser": {
+    "stats": {
+      "startTime": "2026-11-16T15:31:03.729Z",
+      "duration": 11354.611,
+      "expected": 7,
+      "skipped": 1,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "name": "admin email MFA, customer recovery, booking and cancellation work end to end",
+        "project": "chromium",
+        "status": "passed"
+      },
+      {
+        "name": "admin email MFA, customer recovery, booking and cancellation work end to end",
+        "project": "mobile-chrome",
+        "status": "skipped"
+      },
+      {
+        "name": "home page renders public travel actions",
+        "project": "chromium",
+        "status": "passed"
+      },
+      {
+        "name": "home page renders public travel actions",
+        "project": "mobile-chrome",
+        "status": "passed"
+      },
+      {
+        "name": "login page exposes the authentication form",
+        "project": "chromium",
+        "status": "passed"
+      },
+      {
+        "name": "login page exposes the authentication form",
+        "project": "mobile-chrome",
+        "status": "passed"
+      },
+      {
+        "name": "forgot password page is reachable from login",
+        "project": "chromium",
+        "status": "passed"
+      },
+      {
+        "name": "forgot password page is reachable from login",
+        "project": "mobile-chrome",
+        "status": "passed"
+      }
+    ]
+  },
+  "npmAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "kubernetes": {
+    "manifestRender": "passed",
+    "kubectlClient": "v1.37.2",
+    "rollout": "not run; WSL installation rejected by automatic approval review"
+  },
+  "githubActions": {
+    "workflowDefinition": "implemented",
+    "hostedExecution": "not performed"
+  },
+  "databaseSafety": "Tests used generated disposable databases; application database was retained.",
+  "startupScript": "verified against existing local services; private configuration generated",
+  "documentDelivery": "Markdown; generated Word copies excluded because layout rendering could not complete"
+}

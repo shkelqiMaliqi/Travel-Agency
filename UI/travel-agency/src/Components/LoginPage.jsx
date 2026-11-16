@@ -5,7 +5,7 @@ import { loginUser, saveAuth, verifyMfa } from "../services/api";
 const LoginPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ userNameOrEmail: "", password: "" });
-  const [mfaData, setMfaData] = useState({ email: "", code: "", demoCode: "", expiresAt: "" });
+  const [mfaData, setMfaData] = useState({ email: "", code: "", expiresAt: "" });
   const [status, setStatus] = useState({ loading: false, error: "", mfaRequired: false });
 
   const handleChange = (event) => {
@@ -23,7 +23,6 @@ const LoginPage = () => {
         setMfaData({
           email: response.email,
           code: "",
-          demoCode: response.mfaCode || "",
           expiresAt: response.mfaExpiresAtUtc || "",
         });
         setStatus({ loading: false, error: "", mfaRequired: true });
@@ -102,13 +101,7 @@ const LoginPage = () => {
               <form onSubmit={handleMfaSubmit} className="row g-3">
                 <div className="alert alert-warning mb-0">
                   Multi-factor authentication is required for this account.
-                  {mfaData.demoCode ? (
-                    <>
-                      {" "}Demo code: <strong>{mfaData.demoCode}</strong>
-                    </>
-                  ) : (
-                    <> A verification code was sent to the configured email recipients.</>
-                  )}
+                   A verification code was sent to your account email.
                 </div>
                 {mfaData.expiresAt ? <div className="text-muted small">Code expires at {new Date(mfaData.expiresAt).toLocaleString()}.</div> : null}
                 <div className="col-12">

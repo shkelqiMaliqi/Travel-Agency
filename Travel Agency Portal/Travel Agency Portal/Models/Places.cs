@@ -16,5 +16,6 @@ public class Place
     public string Place_Description { get; set; } = string.Empty;
 
     [Url]
+    [StringLength(500)]
     public string? Place_Url { get; set; }
 }

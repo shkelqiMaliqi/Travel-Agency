@@ -17,12 +17,14 @@ public class Users
 
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string U_Email { get; set; } = string.Empty;
 
     [Required]
     [StringLength(50)]
     public string U_Username { get; set; } = string.Empty;
 
+    [StringLength(30)]
     public string? U_Phone { get; set; }
 
     [Required]
@@ -43,6 +45,7 @@ public class UserProfile
     public string U_Surname { get; set; } = string.Empty;
     public string U_Email { get; set; } = string.Empty;
     public string U_Username { get; set; } = string.Empty;
+    [StringLength(30)]
     public string? U_Phone { get; set; }
     public string U_Type { get; set; } = "user";
 }
@@ -59,12 +62,14 @@ public class UpdateUserProfileRequest
 
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string U_Email { get; set; } = string.Empty;
 
     [Required]
     [StringLength(50)]
     public string U_Username { get; set; } = string.Empty;
 
+    [StringLength(30)]
     public string? U_Phone { get; set; }
 }
 

@@ -17,6 +17,7 @@ public class ContactMessage
 
     [Required]
     [EmailAddress]
+    [StringLength(255)]
     public string C_Email { get; set; } = string.Empty;
 
     [Required]

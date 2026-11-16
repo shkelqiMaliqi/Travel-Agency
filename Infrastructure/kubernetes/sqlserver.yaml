@@ -19,6 +19,8 @@ spec:
           ports:
             - containerPort: 1433
           env:
+            - name: MSSQL_MEMORY_LIMIT_MB
+              value: "1536"
             - name: ACCEPT_EULA
               value: "Y"
             - name: MSSQL_SA_PASSWORD

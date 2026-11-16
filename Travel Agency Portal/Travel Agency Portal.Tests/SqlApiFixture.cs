@@ -24,11 +24,9 @@ public sealed class SqlApiFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         var root = FindRoot();
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile(Path.Combine(root, "Travel Agency Portal", "Travel Agency Portal", "appsettings.json"))
-            .Build();
         var builder = new SqlConnectionStringBuilder(
-            Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION") ?? configuration.GetConnectionString("CRUDCS"))
+            Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION") ??
+            "Server=(localdb)\\MSSQLLocalDB;Database=master;Integrated Security=true;TrustServerCertificate=true")
         { InitialCatalog = "master", ConnectTimeout = 15, TrustServerCertificate = true };
         _master = builder.ConnectionString;
         builder.InitialCatalog = _name;

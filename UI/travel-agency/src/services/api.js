@@ -20,7 +20,7 @@ export function getStoredAuth() {
 
   try {
     return JSON.parse(raw);
-  } catch (error) {
+  } catch {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     return null;
   }

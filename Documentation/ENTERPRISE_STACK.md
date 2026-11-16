@@ -1,3 +1,5 @@
+> Historical reference. Use README.md, PRESENTATION_GUIDE.md and VERIFICATION_2026-11-16.md for the repaired setup and verified results. Runtime claims below are not current verification.
+
 # Enterprise Feature Demo Stack
 
 This project now includes a **demo-level enterprise stack** for coursework purposes in:

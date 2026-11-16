@@ -1,52 +1,23 @@
-# Travel Agency Requirements Matrix
+# Requirements matrix for the supplied 2026 PDF
 
-This document maps the project against the PDF requirements in `Kerkesat teknike per implementimin e projekteve ne Ueb Sherbime dhe Ueb API.pdf`.
+This matrix uses the six-page `Kërkesat teknike_Ueb Shërbime Ueb APIs 2026.pdf` supplied on 16 November 2026. The older extracted requirements file and prior matrix describe a different document. See `VERIFICATION_2026-11-16.md` and `Evidence/verification-2026-11-16.json` for actual local results.
 
-## Summary
+| Section | Implementation or evidence | Current status |
+| --- | --- | --- |
+| 1 Purpose and objectives | PROJECT_REPORT.md; functional website/API | Verified core |
+| 2 Requirements analysis | Problem, actors, more than five functional requirements, measurable nonfunctional acceptance, business/data flows in report | Documented |
+| 3 Architecture and API design | Controllers/services/repositories; 42 REST operations; JSON/OpenAPI; NotificationService boundary | Core verified; queue communication awaits container run |
+| 4 Business rules | Validation, transactionally protected capacity, cancellation, ownership, relational rules | Verified by SQL-backed tests and browser booking/cancellation |
+| 5 Database management | SQL schema/constraints, seed/update scripts, safe queries, CRUD | Verified with LocalDB; isolated tests preserve application data |
+| 6 Security | JWT/RBAC, PBKDF2, request limits, random/private keys, account-owner MFA, generic recovery, local email capture, TLS ingress and trusted-proxy configuration | Local behavior verified; public TLS/domain/credentials are deployment prerequisites |
+| 7 Testing | 26 backend, 5 frontend, 7 browser checks passed; one duplicate mobile auth case intentionally skipped | Verified locally; test inputs/assertions and results retained |
+| 8 Performance and resilience | Cache, workers, metrics/logging/error handling, NGINX replicas, Redis, RabbitMQ, Prometheus/Grafana and smoke script | Native behavior verified; advanced runtime blocked by missing Docker/WSL |
+| 9 Code standards and Git | Layered source, Git, ESLint/Prettier; Vite migration; package exclusions | Lint/build verified; final archive excludes generated/private files |
+| 10 Execution and deployment | Relative startup scripts, generated private environment, initialization, Docker/Compose, Kubernetes, advanced CI/CD | Native verified; manifests render; container rollout/hosted pipeline not yet executed |
+| 11 Submission materials | Source, schema, configuration, tests/evidence, README, report, presentation and packaging tool | Prepared; student must complete team details and upload archive |
+| 12 Practical defense | PRESENTATION_GUIDE.md and executable demo commands | Prepared; attendance and individual understanding require students |
+| 13 Assessment criteria | Evidence clearly distinguishes implementation from actual execution | No invented grade or completion percentage |
+| 14 Integrity | References and factual AI assistance disclosure; TEAM_CONTRIBUTIONS.md | Real names/contributions/declaration need student confirmation |
+| 15 Final provisions | 8 January 2027 deadline, one Moodle upload per group, all-member defense | Student responsibility; no upload performed |
 
-The project now covers the core Web API coursework requirements and the advanced infrastructure requirements through code, configuration, tests, Docker Compose, Kubernetes manifests, and documentation.
-
-## Requirement Status
-
-| Requirement | Status | Current Evidence | Notes |
-| --- | --- | --- | --- |
-| Modular architecture | Yes | `Controllers`, `Services`, `Middleware`, `Filters`, `Data` | Clear backend separation of concerns |
-| Microservices architecture | Yes | `Microservices/NotificationService` | MFA delivery is separated into an independent notification microservice |
-| REST API with JSON | Yes | `Controllers/*.cs` | Uses standard HTTP methods and JSON responses |
-| Stateless communication | Yes | JWT bearer auth in [`Program.cs`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/Travel%20Agency%20Portal/Travel%20Agency%20Portal/Program.cs) | No server-side session dependency |
-| JWT authentication | Yes | `AuthController`, `JwtTokenService` | Login/register return JWT |
-| RBAC | Yes | `[Authorize(Roles = "...")]` | Admin, user, and read-only auditor roles are enforced |
-| MFA | Yes | `MfaService`, `MfaDeliveryService`, `NotificationService`, `User_Mfa_Codes` | Admin and auditor require MFA; local demo can expose the code; production config delivers by queue/email |
-| HTTPS/TLS | Partial | `app.UseHttpsRedirection()` | App-level HTTPS redirection exists; production certificates are environment-specific |
-| SQL injection protection | Yes | Parameterized queries in controllers/services | ADO.NET parameters are used |
-| XSS / CSRF / WAF | Partial | React escaping, validation, bearer-token auth, NGINX gateway | No full WAF appliance, but gateway scaffolding exists |
-| Auditing / secure logging | Yes | `AuditLogService`, `Audit_Logs`, request logging middleware | Audit data is persisted |
-| Advanced caching | Yes | Redis configuration + distributed cache | Places/packages support distributed cache with memory fallback |
-| Load balancing | Yes | NGINX gateway, `api1`, `api2`, Kubernetes Service/HPA | Docker and Kubernetes examples included |
-| Async processing / queues | Yes | RabbitMQ, `MfaDeliveryService`, `NotificationService` | MFA delivery is published to a queue and processed out of band |
-| Monitoring resources | Yes | `/metrics`, Prometheus config, metrics snapshots | Prometheus-compatible metrics included |
-| OpenAPI / Swagger UI | Yes | Swagger config + `SwaggerExamplesOperationFilter` | Interactive docs include examples and error responses |
-| API versioning | Yes | `/api/v1/...` routes | URL versioning applied |
-| Changelog / communication of changes | Yes | [`CHANGELOG.md`](C:/Users/Lenovo/OneDrive/Desktop/Travel%20Agency/CHANGELOG.md) | Change history included |
-| Centralized logging (ELK / Graylog) | Yes | `LogstashLoggerProvider`, Logstash/Elasticsearch/Kibana config | App logs can be shipped to Logstash over TCP as JSON |
-| Alerting | Yes | `AlertingService`, Prometheus rules, Alertmanager config | Slack/webhook and email alert channels are configurable |
-| API Gateway | Yes | `Infrastructure/nginx/nginx.conf` | Gateway handles proxying, rate limiting, and load balancing |
-| Relational database integration | Yes | `Database/Travel_AgencyDB.sql` | SQL Server relational schema |
-| ORM | Yes | `TravelAgencyDbContext` | EF Core is used for support/audit tables |
-| NoSQL integration | Yes | `MongoAnalyticsService` | Optional MongoDB analytics storage |
-| Cloud storage | Yes | `S3StorageService`, MinIO setup | S3-compatible storage demo included |
-| Clean code / structure | Partial | Separated controllers/services/middleware/tests/docs | Strong coursework structure with room for more refactoring |
-| Linting / formatting tools | Yes | ESLint, Prettier, `.editorconfig` | Frontend lint/format and repo formatting included |
-| Unit tests | Yes | `Travel Agency Portal.Tests` | Backend tests exist |
-| Integration tests | Partial | Infrastructure/auth checks + manual API tests | Some integration coverage exists |
-| End-to-end tests | Yes | Playwright config and `UI/travel-agency/tests/e2e` | Browser E2E suite and workflow added |
-| Continuous testing in CI/CD | Yes | Backend, frontend, and E2E workflows | Build/test automation exists |
-| React frontend | Yes | `UI/travel-agency` | Implemented |
-| Docker / Docker Compose | Yes | `docker-compose.yml`, `docker-compose.enterprise.yml` | Basic and advanced stacks included |
-| Kubernetes | Yes | `Infrastructure/kubernetes/*.yaml` | Deployments, services, ingress, HPA, secrets/config, and backup CronJob included |
-| Backup and recovery policies | Yes | `BACKUP_RECOVERY.md`, `Infrastructure/backups/sqlserver-backup.sh`, Kubernetes CronJob | Documented and automated examples included |
-| Academic technical report | Yes | `PROJECT_REPORT.md` + generated `.docx` | Structured for coursework submission |
-
-## Honest Final Position
-
-The project now has implementation evidence for every major requirement. Some items are still demo or environment-ready rather than fully production-operated, because real production deployment would require private secrets, real domains, TLS certificates, SMTP credentials, Slack/email webhooks, cloud accounts, and hosted infrastructure.
+The PDF's page 2 both mandates microservices and permits an appropriate modular monolith. This project supplies a notification service and queue integration; demonstrate them rather than relying on that wording conflict. Page 4 requires Kubernetes and advanced CI/CD. Configuration is implemented, but their runtime completion must remain pending until executed. The PDF permits appropriate alternative technologies, so justify ASP.NET Core/SQL Server during the defense.

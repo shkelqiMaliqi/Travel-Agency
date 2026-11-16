@@ -1,21 +1,25 @@
+# Apply only after replacing the domain and provisioning its certificate Secret.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: travel-agency-ingress
   namespace: travel-agency
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/limit-rps: "20"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts: [travel-agency.example.com]
+      secretName: travel-agency-tls
   rules:
-    - host: travel-agency.local
+    - host: travel-agency.example.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: travel-agency-api
+                name: travel-agency-frontend
                 port:
                   number: 80
